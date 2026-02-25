@@ -1,13 +1,33 @@
 use uuid::Uuid;
 
+/// Unique identifier for a [`Medication`] aggregate root.
+///
+/// Each call to [`MedicationId::new`] (or `Default::default`) generates a
+/// fresh UUID v4, guaranteeing uniqueness across the system.
+///
+/// [`Medication`]: crate::domain::entities::medication::Medication
+///
+/// # Examples
+///
+/// ```rust
+/// use bitpill::domain::value_objects::medication_id::MedicationId;
+///
+/// let id = MedicationId::new();
+/// assert!(!id.to_string().is_empty());
+///
+/// // Every call produces a different ID.
+/// assert_ne!(MedicationId::new(), MedicationId::new());
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct MedicationId(Uuid);
 
 impl MedicationId {
+    /// Generates a new unique `MedicationId` using UUID v4.
     pub fn new() -> Self {
         Self(Uuid::new_v4())
     }
 
+    /// Returns the underlying [`Uuid`] value.
     pub fn value(&self) -> Uuid {
         self.0
     }
