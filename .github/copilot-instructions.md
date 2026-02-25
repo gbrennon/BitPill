@@ -7,17 +7,20 @@ BitPill is a medication/pill management application built in Rust. It allows use
 ## Build, Test & Lint
 
 ```bash
-cargo build
-cargo test                          # full suite
-cargo test <substring>              # single test by name
-cargo test domain::                 # tests scoped to a module
-cargo clippy -- -D warnings         # lint (must pass with zero warnings)
-cargo fmt                           # format
-cargo fmt --check                   # format check (CI)
-cargo run                           # run the application
+just              # default: fmt-check + lint + coverage
+just build
+just run
+just test
+just test-one <name_substring>   # single test
+just coverage                    # HTML report → target/llvm-cov/html/index.html
+just coverage-summary            # terminal summary
+just lint                        # cargo clippy -- -D warnings
+just fmt
+just fmt-check
+just clean
 ```
 
-If a `justfile` is present, prefer `just <recipe>` over raw `cargo` commands.
+Raw `cargo` equivalents work too; prefer `just` when the recipe exists.
 
 ---
 
