@@ -7,12 +7,11 @@ BitPill is a medication/pill management application built in Rust. It allows use
 ## Build, Test & Lint
 
 ```bash
-just              # default: fmt-check + lint + coverage
+just              # default: fmt-check + lint
 just build
 just run
 just test
 just test-one <name_substring>   # single test
-just coverage                    # terminal coverage summary
 just lint                        # cargo clippy -- -D warnings
 just fmt
 just fmt-check
