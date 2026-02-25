@@ -12,8 +12,7 @@ just build
 just run
 just test
 just test-one <name_substring>   # single test
-just coverage                    # HTML report → target/llvm-cov/html/index.html
-just coverage-summary            # terminal summary
+just coverage                    # terminal coverage summary
 just lint                        # cargo clippy -- -D warnings
 just fmt
 just fmt-check
