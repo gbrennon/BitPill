@@ -1,11 +1,37 @@
 use crate::domain::errors::DomainError;
 
+/// The prescribed amount of a medication in milligrams.
+///
+/// `Dosage` is a value object — two instances with the same `amount_mg` are
+/// considered equal regardless of identity.
+///
+/// # Invariants
+///
+/// - `amount_mg` must be greater than zero. A zero dosage is meaningless and
+///   rejected by the constructor.
+///
+/// # Examples
+///
+/// ```rust
+/// use bitpill::domain::{value_objects::dosage::Dosage, errors::DomainError};
+///
+/// let dosage = Dosage::new(500).unwrap();
+/// assert_eq!(dosage.amount_mg(), 500);
+/// assert_eq!(dosage.to_string(), "500mg");
+///
+/// assert!(matches!(Dosage::new(0), Err(DomainError::InvalidDosage)));
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Dosage {
     amount_mg: u32,
 }
 
 impl Dosage {
+    /// Creates a new `Dosage`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainError::InvalidDosage`] when `amount_mg` is `0`.
     pub fn new(amount_mg: u32) -> Result<Self, DomainError> {
         if amount_mg == 0 {
             return Err(DomainError::InvalidDosage);
@@ -13,6 +39,7 @@ impl Dosage {
         Ok(Self { amount_mg })
     }
 
+    /// Returns the dosage amount in milligrams.
     pub fn amount_mg(&self) -> u32 {
         self.amount_mg
     }
