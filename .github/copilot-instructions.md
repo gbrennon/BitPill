@@ -7,11 +7,11 @@ BitPill is a medication/pill management application built in Rust. It allows use
 ## Build, Test & Lint
 
 ```bash
-just              # default: fmt-check + lint
+just              # default: fmt-check + lint + test (with coverage)
 just build
 just run
-just test
-just test-one <name_substring>   # single test
+just test         # runs cargo llvm-cov (coverage included)
+just test-one <name_substring>   # single test via cargo test
 just lint                        # cargo clippy -- -D warnings
 just fmt
 just fmt-check
@@ -19,6 +19,8 @@ just clean
 ```
 
 Raw `cargo` equivalents work too; prefer `just` when the recipe exists.
+
+> **Note:** `just test` runs `cargo llvm-cov` and includes coverage. There is no separate `just coverage` recipe.
 
 ---
 
@@ -82,54 +84,61 @@ src/
 Each file defines exactly one primary `struct`, `enum`, or `trait`. The file name matches the type name in `snake_case`.
 
 ```
-src/domain/entities/pill.rs          → struct Pill
-src/domain/value_objects/dosage.rs   → struct Dosage
-src/application/ports/pill_repository.rs → trait PillRepository
-src/application/services/create_pill_service.rs → struct CreatePillService
+src/domain/entities/medication.rs          → struct Medication
+src/domain/entities/dose_record.rs         → struct DoseRecord
+src/domain/value_objects/dosage.rs         → struct Dosage
+src/domain/value_objects/medication_id.rs  → struct MedicationId
+src/application/ports/medication_repository.rs → trait MedicationRepository
+src/application/ports/clock_port.rs        → trait ClockPort
+src/application/services/create_medication_service.rs → struct CreateMedicationService
 ```
 
 ### Ports as Traits
 
 Define every external capability as a `trait` inside `application/ports/`. Infrastructure adapters implement these traits — the core never knows the concrete type.
 
-```rust
-// src/application/ports/pill_repository.rs
-use crate::domain::entities::pill::Pill;
+Port methods are **synchronous** — do not use `async fn` unless a specific async runtime is adopted.
 
-pub trait PillRepository: Send + Sync {
-    async fn save(&self, pill: &Pill) -> Result<(), RepositoryError>;
-    async fn find_by_id(&self, id: &PillId) -> Result<Option<Pill>, RepositoryError>;
-    async fn find_all(&self) -> Result<Vec<Pill>, RepositoryError>;
-    async fn delete(&self, id: &PillId) -> Result<(), RepositoryError>;
+```rust
+// src/application/ports/medication_repository.rs
+use crate::domain::{entities::medication::Medication, value_objects::medication_id::MedicationId};
+
+pub trait MedicationRepository: Send + Sync {
+    fn save(&self, medication: &Medication) -> Result<(), RepositoryError>;
+    fn find_by_id(&self, id: &MedicationId) -> Result<Option<Medication>, RepositoryError>;
+    fn find_all(&self) -> Result<Vec<Medication>, RepositoryError>;
+    fn delete(&self, id: &MedicationId) -> Result<(), RepositoryError>;
 }
 ```
+
+The `ClockPort` trait abstracts the system clock — inject it via `Arc<dyn ClockPort>` instead of calling `chrono::Local::now()` directly inside services. This keeps services fully testable.
 
 ### Application Services (Use Cases)
 
-Services in `application/services/` receive port traits via constructor injection and contain **no I/O**.
+Services in `application/services/` receive port traits via constructor injection and contain **no I/O**. Service methods are synchronous.
 
 ```rust
-// src/application/services/create_pill_service.rs
+// src/application/services/create_medication_service.rs
 use std::sync::Arc;
-use crate::application::ports::pill_repository::PillRepository;
-use crate::domain::entities::pill::Pill;
+use crate::application::ports::medication_repository::MedicationRepository;
+use crate::domain::entities::medication::Medication;
 
-pub struct CreatePillService {
-    repository: Arc<dyn PillRepository>,
+pub struct CreateMedicationService {
+    repository: Arc<dyn MedicationRepository>,
 }
 
-impl CreatePillService {
-    pub fn new(repository: Arc<dyn PillRepository>) -> Self {
+impl CreateMedicationService {
+    pub fn new(repository: Arc<dyn MedicationRepository>) -> Self {
         Self { repository }
     }
 
-    pub async fn execute(&self, name: String) -> Result<Pill, ServiceError> {
-        let pill = Pill::new(name);
-        self.repository.save(&pill).await?;
-        Ok(pill)
+    pub fn execute(&self, name: impl Into<String>, amount_mg: u32, ...) -> Result<Medication, CreateMedicationError> {
+        // validate inputs, build domain objects, call repository
     }
 }
 ```
+
+Each service defines its own error enum (e.g. `CreateMedicationError`) that uses `#[from]` to wrap both `DomainError` and `RepositoryError`.
 
 ### Value Objects Are Immutable
 
@@ -161,14 +170,18 @@ impl Dosage {
 Entities have identity (`id`) and carry domain behaviour. Do not create anemic structs with only getters/setters.
 
 ```rust
-// src/domain/entities/pill.rs
-impl Pill {
-    pub fn schedule(&mut self, dosage: Dosage, time: ScheduledTime) -> Result<(), DomainError> {
-        // domain logic here
+// src/domain/entities/dose_record.rs
+impl DoseRecord {
+    pub fn mark_taken(&mut self, at: NaiveDateTime) -> Result<(), DomainError> {
+        if self.taken_at.is_some() {
+            return Err(DomainError::DoseAlreadyTaken);
+        }
+        self.taken_at = Some(at);
+        Ok(())
     }
 
-    pub fn is_due(&self, now: &DateTime<Utc>) -> bool {
-        // ...
+    pub fn is_taken(&self) -> bool {
+        self.taken_at.is_some()
     }
 }
 ```
@@ -180,15 +193,43 @@ Wire all concrete adapters in `infrastructure/container.rs`. No other module sho
 ```rust
 // src/infrastructure/container.rs
 pub struct Container {
-    pub create_pill_service: CreatePillService,
+    pub create_medication_service: CreateMedicationService,
+    pub mark_dose_taken_service: MarkDoseTakenService,
 }
 
 impl Container {
-    pub fn new(db_path: &str) -> Self {
-        let repository = Arc::new(SqlitePillRepository::new(db_path));
+    pub fn new() -> Self {
+        let medication_repo = Arc::new(InMemoryMedicationRepository::new());
+        let dose_record_repo = Arc::new(InMemoryDoseRecordRepository::new());
         Self {
-            create_pill_service: CreatePillService::new(repository),
+            create_medication_service: CreateMedicationService::new(medication_repo),
+            mark_dose_taken_service: MarkDoseTakenService::new(dose_record_repo),
         }
+    }
+}
+```
+
+### Test Fakes
+
+Fake implementations of port traits are defined **inline** in the `#[cfg(test)]` module of the service file under test, using `Mutex<Vec<T>>` for interior mutability. There is no shared fakes module at this time.
+
+```rust
+#[cfg(test)]
+mod tests {
+    struct FakeMedicationRepository {
+        medications: Mutex<Vec<Medication>>,
+        fail_on_save: bool,
+    }
+
+    impl MedicationRepository for FakeMedicationRepository {
+        fn save(&self, medication: &Medication) -> Result<(), RepositoryError> {
+            if self.fail_on_save {
+                return Err(RepositoryError::StorageError("forced failure".into()));
+            }
+            self.medications.lock().unwrap().push(medication.clone());
+            Ok(())
+        }
+        // ...
     }
 }
 ```

@@ -1,3 +1,5 @@
 pub mod dosage;
-pub mod pill_id;
-pub mod pill_name;
+pub mod dose_record_id;
+pub mod medication_id;
+pub mod medication_name;
+pub mod scheduled_time;
