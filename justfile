@@ -12,17 +12,8 @@ build:
 run:
     cargo run
 
-# Run all tests
+# Run all tests with coverage
 test:
-    cargo test
-
-# Run tests with HTML coverage report (opens in browser)
-coverage:
-    cargo llvm-cov --html
-    @echo "Coverage report: target/llvm-cov/html/index.html"
-
-# Run tests with coverage summary in terminal
-coverage-summary:
     cargo llvm-cov
 
 # Run a single test by name substring
@@ -40,6 +31,10 @@ fmt:
 # Check formatting without modifying files
 fmt-check:
     cargo fmt --check
+
+# Install required dev tools
+tools:
+    cargo install cargo-llvm-cov --locked
 
 # Remove build artifacts
 clean:
