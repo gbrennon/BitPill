@@ -4,6 +4,10 @@ use thiserror::Error;
 pub enum DomainError {
     #[error("invalid dosage: amount must be greater than zero")]
     InvalidDosage,
-    #[error("pill name must not be empty")]
-    EmptyPillName,
+    #[error("medication name must not be empty")]
+    EmptyMedicationName,
+    #[error("invalid scheduled time")]
+    InvalidScheduledTime,
+    #[error("dose has already been taken")]
+    DoseAlreadyTaken,
 }
