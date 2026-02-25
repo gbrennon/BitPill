@@ -3,6 +3,41 @@ use crate::domain::value_objects::{
     scheduled_time::ScheduledTime,
 };
 
+/// An aggregate root representing a medication prescribed to a patient.
+///
+/// `Medication` groups together everything that defines *what* is to be taken:
+/// an identity, a human-readable name, a dosage, and an optional list of
+/// scheduled administration times.
+///
+/// # Invariants
+///
+/// - `id` is a randomly generated UUID v4 — unique per instance.
+/// - `name` and `dosage` are validated value objects; they can only hold
+///   legal values (non-empty name, non-zero dosage).
+/// - `scheduled_times` may be empty (unscheduled medication is allowed).
+///
+/// # Examples
+///
+/// ```rust
+/// use bitpill::domain::{
+///     entities::medication::Medication,
+///     value_objects::{
+///         dosage::Dosage,
+///         medication_name::MedicationName,
+///         scheduled_time::ScheduledTime,
+///     },
+/// };
+///
+/// let medication = Medication::new(
+///     MedicationName::new("Ibuprofen").unwrap(),
+///     Dosage::new(400).unwrap(),
+///     vec![ScheduledTime::new(8, 0).unwrap(), ScheduledTime::new(20, 0).unwrap()],
+/// );
+///
+/// assert_eq!(medication.name().value(), "Ibuprofen");
+/// assert_eq!(medication.dosage().amount_mg(), 400);
+/// assert_eq!(medication.scheduled_times().len(), 2);
+/// ```
 #[derive(Debug, Clone)]
 pub struct Medication {
     id: MedicationId,
@@ -12,6 +47,11 @@ pub struct Medication {
 }
 
 impl Medication {
+    /// Creates a new `Medication` with an auto-generated unique ID.
+    ///
+    /// `name` and `dosage` are pre-validated value objects — pass the results
+    /// of [`MedicationName::new`] and [`Dosage::new`] directly.
+    /// `scheduled_times` may be an empty `Vec` for unscheduled medications.
     pub fn new(name: MedicationName, dosage: Dosage, scheduled_times: Vec<ScheduledTime>) -> Self {
         Self {
             id: MedicationId::new(),
@@ -21,18 +61,24 @@ impl Medication {
         }
     }
 
+    /// Returns the unique identifier of this medication.
     pub fn id(&self) -> &MedicationId {
         &self.id
     }
 
+    /// Returns the medication's name.
     pub fn name(&self) -> &MedicationName {
         &self.name
     }
 
+    /// Returns the prescribed dosage.
     pub fn dosage(&self) -> &Dosage {
         &self.dosage
     }
 
+    /// Returns the list of scheduled administration times.
+    ///
+    /// An empty slice means the medication has no fixed schedule.
     pub fn scheduled_times(&self) -> &[ScheduledTime] {
         &self.scheduled_times
     }

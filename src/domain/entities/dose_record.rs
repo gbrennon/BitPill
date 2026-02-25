@@ -5,6 +5,53 @@ use crate::domain::{
     value_objects::{dose_record_id::DoseRecordId, medication_id::MedicationId},
 };
 
+/// Records whether a single scheduled dose of a medication was taken.
+///
+/// A `DoseRecord` is created when a dose is *scheduled* (`taken_at = None`)
+/// and transitions to *taken* exactly once via [`mark_taken`].
+/// The transition is irreversible — calling [`mark_taken`] on an already-taken
+/// record returns [`DomainError::DoseAlreadyTaken`].
+///
+/// # Invariants
+///
+/// - `id` is a randomly generated UUID v4 — unique per instance.
+/// - `taken_at` starts as `None` and can only be set once.
+/// - `medication_id` must reference an existing [`Medication`] aggregate root
+///   (the domain does not enforce referential integrity; that is the
+///   repository's responsibility).
+///
+/// [`mark_taken`]: DoseRecord::mark_taken
+/// [`Medication`]: crate::domain::entities::medication::Medication
+///
+/// # Examples
+///
+/// ```rust
+/// use bitpill::domain::{
+///     entities::dose_record::DoseRecord,
+///     value_objects::medication_id::MedicationId,
+///     errors::DomainError,
+/// };
+/// use chrono::NaiveDate;
+///
+/// let medication_id  = MedicationId::new();
+/// let scheduled_at   = NaiveDate::from_ymd_opt(2025, 6, 1)
+///     .unwrap()
+///     .and_hms_opt(8, 0, 0)
+///     .unwrap();
+///
+/// let mut record = DoseRecord::new(medication_id, scheduled_at);
+/// assert!(!record.is_taken());
+///
+/// // Mark the dose as taken.
+/// record.mark_taken(scheduled_at).unwrap();
+/// assert!(record.is_taken());
+///
+/// // Attempting to mark it taken again is an error.
+/// assert!(matches!(
+///     record.mark_taken(scheduled_at),
+///     Err(DomainError::DoseAlreadyTaken)
+/// ));
+/// ```
 #[derive(Debug, Clone)]
 pub struct DoseRecord {
     id: DoseRecordId,
@@ -14,6 +61,12 @@ pub struct DoseRecord {
 }
 
 impl DoseRecord {
+    /// Creates a new, untaken dose record.
+    ///
+    /// - `medication_id` — the medication this record belongs to.
+    /// - `scheduled_at` — the datetime at which the dose was due.
+    ///
+    /// `taken_at` is initialised to `None`; the record is not yet taken.
     pub fn new(medication_id: MedicationId, scheduled_at: NaiveDateTime) -> Self {
         Self {
             id: DoseRecordId::new(),
@@ -23,6 +76,12 @@ impl DoseRecord {
         }
     }
 
+    /// Marks this dose as taken at the given datetime.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainError::DoseAlreadyTaken`] if the dose was already marked
+    /// taken. This enforces the invariant that a dose can only be taken once.
     pub fn mark_taken(&mut self, at: NaiveDateTime) -> Result<(), DomainError> {
         if self.taken_at.is_some() {
             return Err(DomainError::DoseAlreadyTaken);
@@ -31,22 +90,27 @@ impl DoseRecord {
         Ok(())
     }
 
+    /// Returns `true` if the dose has been marked as taken.
     pub fn is_taken(&self) -> bool {
         self.taken_at.is_some()
     }
 
+    /// Returns the unique identifier of this dose record.
     pub fn id(&self) -> &DoseRecordId {
         &self.id
     }
 
+    /// Returns the identifier of the medication this record belongs to.
     pub fn medication_id(&self) -> &MedicationId {
         &self.medication_id
     }
 
+    /// Returns the datetime at which the dose was scheduled.
     pub fn scheduled_at(&self) -> NaiveDateTime {
         self.scheduled_at
     }
 
+    /// Returns the datetime at which the dose was taken, or `None` if not yet taken.
     pub fn taken_at(&self) -> Option<NaiveDateTime> {
         self.taken_at
     }
