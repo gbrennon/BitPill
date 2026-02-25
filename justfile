@@ -2,7 +2,7 @@
 # Requires: cargo, cargo-llvm-cov, rustfmt, clippy
 
 # Default: check formatting, lint, then run tests with coverage
-default: fmt-check lint coverage
+default: fmt-check lint test
 
 # Build the project
 build:
@@ -34,6 +34,7 @@ fmt-check:
 
 # Install required dev tools
 tools:
+    rustup component add rustfmt clippy
     cargo install cargo-llvm-cov --locked
 
 # Remove build artifacts
