@@ -1,13 +1,33 @@
 use uuid::Uuid;
 
+/// Unique identifier for a [`DoseRecord`] aggregate.
+///
+/// Each call to [`DoseRecordId::new`] (or `Default::default`) generates a
+/// fresh UUID v4, guaranteeing uniqueness across the system.
+///
+/// [`DoseRecord`]: crate::domain::entities::dose_record::DoseRecord
+///
+/// # Examples
+///
+/// ```rust
+/// use bitpill::domain::value_objects::dose_record_id::DoseRecordId;
+///
+/// let id = DoseRecordId::new();
+/// assert!(!id.to_string().is_empty());
+///
+/// // Every call produces a different ID.
+/// assert_ne!(DoseRecordId::new(), DoseRecordId::new());
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DoseRecordId(Uuid);
 
 impl DoseRecordId {
+    /// Generates a new unique `DoseRecordId` using UUID v4.
     pub fn new() -> Self {
         Self(Uuid::new_v4())
     }
 
+    /// Returns the underlying [`Uuid`] value.
     pub fn value(&self) -> Uuid {
         self.0
     }

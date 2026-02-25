@@ -1,9 +1,38 @@
 use crate::domain::errors::DomainError;
 
+/// A validated, trimmed display name for a medication (e.g. `"Aspirin"`).
+///
+/// `MedicationName` is a value object — two instances with the same string are
+/// considered equal. It enforces that the name is never empty or whitespace-only,
+/// and stores the value with surrounding whitespace stripped.
+///
+/// # Invariants
+///
+/// - The underlying string is never empty after trimming.
+/// - Surrounding whitespace is removed on construction.
+///
+/// # Examples
+///
+/// ```rust
+/// use bitpill::domain::{value_objects::medication_name::MedicationName, errors::DomainError};
+///
+/// let name = MedicationName::new("  Ibuprofen  ").unwrap();
+/// assert_eq!(name.value(), "Ibuprofen");
+///
+/// assert!(matches!(MedicationName::new(""), Err(DomainError::EmptyMedicationName)));
+/// assert!(matches!(MedicationName::new("   "), Err(DomainError::EmptyMedicationName)));
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MedicationName(String);
 
 impl MedicationName {
+    /// Creates a new `MedicationName` from any string-like value.
+    ///
+    /// Whitespace is trimmed before validation and storage.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DomainError::EmptyMedicationName`] when the trimmed string is empty.
     pub fn new(name: impl Into<String>) -> Result<Self, DomainError> {
         let name = name.into();
         if name.trim().is_empty() {
@@ -12,6 +41,7 @@ impl MedicationName {
         Ok(Self(name.trim().to_string()))
     }
 
+    /// Returns the medication name as a string slice.
     pub fn value(&self) -> &str {
         &self.0
     }
