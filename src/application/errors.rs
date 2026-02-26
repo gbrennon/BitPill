@@ -1,5 +1,16 @@
 use thiserror::Error;
 
+use crate::domain::errors::DomainError;
+
+/// Top-level error type for application-layer use cases.
+#[derive(Debug, Error)]
+pub enum ApplicationError {
+    #[error(transparent)]
+    Domain(#[from] DomainError),
+    #[error(transparent)]
+    Storage(#[from] StorageError),
+}
+
 /// Generic infrastructure storage failure that can be reused by repository ports.
 #[derive(Debug, Error)]
 #[error("storage error: {0}")]
