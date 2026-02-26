@@ -6,7 +6,7 @@ use crate::application::ports::create_medication_port::{
     CreateMedicationRequest,
     CreateMedicationResponse,
 };
-use crate::application::ports::medication_repository::MedicationRepository;
+use crate::application::ports::medication_repository_port::MedicationRepository;
 use crate::domain::{
     entities::medication::Medication,
     value_objects::{
