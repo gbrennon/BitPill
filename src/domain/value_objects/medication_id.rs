@@ -3,7 +3,7 @@ use uuid::Uuid;
 /// Unique identifier for a [`Medication`] aggregate root.
 ///
 /// Each call to [`MedicationId::new`] (or `Default::default`) generates a
-/// fresh UUID v4, guaranteeing uniqueness across the system.
+/// fresh UUID v7, guaranteeing uniqueness across the system.
 ///
 /// [`Medication`]: crate::domain::entities::medication::Medication
 ///
@@ -24,7 +24,7 @@ pub struct MedicationId(Uuid);
 impl MedicationId {
     /// Generates a new unique `MedicationId` using UUID v4.
     pub fn new() -> Self {
-        Self(Uuid::new_v4())
+        Self(Uuid::new_v7())
     }
 
     /// Returns the underlying [`Uuid`] value.
