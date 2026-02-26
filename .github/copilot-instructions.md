@@ -88,8 +88,8 @@ src/domain/entities/medication.rs          → struct Medication
 src/domain/entities/dose_record.rs         → struct DoseRecord
 src/domain/value_objects/dosage.rs         → struct Dosage
 src/domain/value_objects/medication_id.rs  → struct MedicationId
-src/application/ports/medication_repository.rs → trait MedicationRepository
-src/application/ports/clock_port.rs        → trait ClockPort
+src/application/ports/medication_repository_port.rs → trait MedicationRepository
+src/application/ports/clock_port.rs             → trait ClockPort
 src/application/services/create_medication_service.rs → struct CreateMedicationService
 ```
 
@@ -99,15 +99,18 @@ Define every external capability as a `trait` inside `application/ports/`. Infra
 
 Port methods are **synchronous** — do not use `async fn` unless a specific async runtime is adopted.
 
+Port files use a `_port.rs` suffix (e.g., `medication_repository_port.rs`, `clock_port.rs`, `notification_port.rs`).
+
 ```rust
-// src/application/ports/medication_repository.rs
+// src/application/ports/medication_repository_port.rs
+use crate::application::errors::StorageError;
 use crate::domain::{entities::medication::Medication, value_objects::medication_id::MedicationId};
 
 pub trait MedicationRepository: Send + Sync {
-    fn save(&self, medication: &Medication) -> Result<(), RepositoryError>;
-    fn find_by_id(&self, id: &MedicationId) -> Result<Option<Medication>, RepositoryError>;
-    fn find_all(&self) -> Result<Vec<Medication>, RepositoryError>;
-    fn delete(&self, id: &MedicationId) -> Result<(), RepositoryError>;
+    fn save(&self, medication: &Medication) -> Result<(), StorageError>;
+    fn find_by_id(&self, id: &MedicationId) -> Result<Option<Medication>, StorageError>;
+    fn find_all(&self) -> Result<Vec<Medication>, StorageError>;
+    fn delete(&self, id: &MedicationId) -> Result<(), StorageError>;
 }
 ```
 
@@ -138,7 +141,7 @@ impl CreateMedicationService {
 }
 ```
 
-Each service defines its own error enum (e.g. `CreateMedicationError`) that uses `#[from]` to wrap both `DomainError` and `RepositoryError`.
+Each service defines its own error enum (e.g. `CreateMedicationError`) that uses `#[from]` to wrap both `DomainError` and `StorageError`.
 
 ### Value Objects Are Immutable
 
@@ -211,25 +214,30 @@ impl Container {
 
 ### Test Fakes
 
-Fake implementations of port traits are defined **inline** in the `#[cfg(test)]` module of the service file under test, using `Mutex<Vec<T>>` for interior mutability. There is no shared fakes module at this time.
+Shared fake implementations of all port traits live in `src/application/ports/fakes.rs`. Import them in `#[cfg(test)]` modules — do not duplicate inline fakes.
+
+Available fakes:
+- `FakeClock::at(hour, minute)` — returns a fixed `NaiveDateTime`
+- `FakeMedicationRepository::new()` / `::with(medications)` / `::failing()` — in-memory + `saved_count()`
+- `FakeDoseRecordRepository::new()` / `::with(record)` — in-memory + `saved_count()`
+- `FakeNotificationPort::new()` — records calls + `call_count()`
 
 ```rust
 #[cfg(test)]
 mod tests {
-    struct FakeMedicationRepository {
-        medications: Mutex<Vec<Medication>>,
-        fail_on_save: bool,
-    }
+    use crate::application::ports::fakes::{FakeClock, FakeMedicationRepository};
+    use std::sync::Arc;
 
-    impl MedicationRepository for FakeMedicationRepository {
-        fn save(&self, medication: &Medication) -> Result<(), RepositoryError> {
-            if self.fail_on_save {
-                return Err(RepositoryError::StorageError("forced failure".into()));
-            }
-            self.medications.lock().unwrap().push(medication.clone());
-            Ok(())
-        }
-        // ...
+    #[test]
+    fn execute_valid_input_saves_medication() {
+        let repo = Arc::new(FakeMedicationRepository::new());
+        let clock = Arc::new(FakeClock::at(8, 0));
+        let service = CreateMedicationService::new(repo.clone(), clock);
+
+        let result = service.execute(...);
+
+        assert!(result.is_ok());
+        assert_eq!(repo.saved_count(), 1);
     }
 }
 ```
@@ -237,7 +245,8 @@ mod tests {
 ### Error Types
 
 - Domain errors live in `domain/errors.rs` and use `thiserror`.
-- Infrastructure and application layers define their own error types.
+- Application-level infrastructure errors live in `application/errors.rs`: `StorageError`, `NotFoundError`, `ConflictError`, `DeliveryError`. These are shared across all port traits.
+- Each service defines its own error enum wrapping `DomainError` and the relevant application error via `#[from]`.
 - Never propagate raw `Box<dyn Error>` through domain or application layers.
 
 ```rust
@@ -270,6 +279,14 @@ Use domain language in all identifiers and comments. Avoid generic names like `M
 ### Repository Abstraction
 
 Repositories are domain-defined abstractions. They operate on Aggregate Roots only and hide all persistence details from the domain.
+
+---
+
+## Current State Notes
+
+- `#![allow(dead_code)]` in `main.rs` is intentional — large parts of the presentation layer (`app.rs`, `screen.rs`, `ui.rs`, `event_handler.rs`) are TUI work in progress and not yet wired into `main`.
+- `src/infrastructure/persistence/` and `src/infrastructure/container.rs` are currently empty stubs — no concrete repository adapters have been implemented yet.
+- `src/application/ports/create_medication_port.rs` and `list_all_medications_port.rs` define complete request/response DTOs and port traits but are not yet implemented by any service.
 
 ---
 
