@@ -101,124 +101,16 @@ impl ScheduleDosePort for ScheduleDoseService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::application::errors::{DeliveryError, StorageError};
+    use crate::application::ports::fakes::{
+        FakeClock, FakeDoseRecordRepository, FakeMedicationRepository, FakeNotificationPort,
+    };
     use crate::domain::{
         entities::medication::Medication,
         value_objects::{
-            dosage::Dosage, dose_record_id::DoseRecordId, medication_id::MedicationId,
+            dosage::Dosage, medication_id::MedicationId,
             medication_name::MedicationName, scheduled_time::ScheduledTime,
         },
     };
-    use chrono::NaiveDate;
-    use std::sync::Mutex;
-
-    // ── Fakes ─────────────────────────────────────────────────────────────
-
-    struct FakeClock {
-        datetime: chrono::NaiveDateTime,
-    }
-
-    impl FakeClock {
-        fn at(hour: u32, minute: u32) -> Self {
-            Self {
-                datetime: NaiveDate::from_ymd_opt(2025, 6, 1)
-                    .unwrap()
-                    .and_hms_opt(hour, minute, 0)
-                    .unwrap(),
-            }
-        }
-    }
-
-    impl ClockPort for FakeClock {
-        fn now(&self) -> chrono::NaiveDateTime {
-            self.datetime
-        }
-    }
-
-    struct FakeMedicationRepository {
-        medications: Vec<Medication>,
-    }
-
-    impl FakeMedicationRepository {
-        fn with(medications: Vec<Medication>) -> Self {
-            Self { medications }
-        }
-    }
-
-    impl MedicationRepository for FakeMedicationRepository {
-        fn save(&self, _: &Medication) -> Result<(), StorageError> {
-            Ok(())
-        }
-        fn find_by_id(&self, _: &MedicationId) -> Result<Option<Medication>, StorageError> {
-            Ok(None)
-        }
-        fn find_all(&self) -> Result<Vec<Medication>, StorageError> {
-            Ok(self.medications.clone())
-        }
-        fn delete(&self, _: &MedicationId) -> Result<(), StorageError> {
-            Ok(())
-        }
-    }
-
-    struct FakeDoseRecordRepository {
-        records: Mutex<Vec<DoseRecord>>,
-    }
-
-    impl FakeDoseRecordRepository {
-        fn new() -> Self {
-            Self {
-                records: Mutex::new(Vec::new()),
-            }
-        }
-        fn saved_count(&self) -> usize {
-            self.records.lock().unwrap().len()
-        }
-    }
-
-    impl DoseRecordRepository for FakeDoseRecordRepository {
-        fn save(&self, record: &DoseRecord) -> Result<(), StorageError> {
-            self.records.lock().unwrap().push(record.clone());
-            Ok(())
-        }
-        fn find_by_id(&self, _: &DoseRecordId) -> Result<Option<DoseRecord>, StorageError> {
-            Ok(None)
-        }
-        fn find_all_by_medication(&self, _: &MedicationId) -> Result<Vec<DoseRecord>, StorageError> {
-            Ok(Vec::new())
-        }
-        fn delete(&self, _: &DoseRecordId) -> Result<(), StorageError> {
-            Ok(())
-        }
-    }
-
-    struct FakeNotificationPort {
-        calls: Mutex<Vec<String>>,
-    }
-
-    impl FakeNotificationPort {
-        fn new() -> Self {
-            Self {
-                calls: Mutex::new(Vec::new()),
-            }
-        }
-        fn call_count(&self) -> usize {
-            self.calls.lock().unwrap().len()
-        }
-    }
-
-    impl NotificationPort for FakeNotificationPort {
-        fn notify_dose_due(
-            &self,
-            medication: &Medication,
-            _record: &DoseRecord,
-        ) -> Result<(), DeliveryError> {
-            self.calls
-                .lock()
-                .unwrap()
-                .push(medication.name().to_string());
-            Ok(())
-        }
-    }
 
     fn make_medication(name: &str, hour: u32, minute: u32) -> Medication {
         Medication::new(
@@ -351,3 +243,4 @@ mod tests {
         assert_eq!(notif.call_count(), 0);
     }
 }
+

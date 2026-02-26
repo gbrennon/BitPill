@@ -54,57 +54,8 @@ impl CreateMedicationPort for CreateMedicationService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::application::errors::StorageError;
+    use crate::application::ports::fakes::FakeMedicationRepository;
     use crate::domain::errors::DomainError;
-    use crate::domain::value_objects::medication_id::MedicationId;
-    use std::sync::Mutex;
-
-    struct FakeMedicationRepository {
-        medications: Mutex<Vec<Medication>>,
-        fail_on_save: bool,
-    }
-
-    impl FakeMedicationRepository {
-        fn new() -> Self {
-            Self {
-                medications: Mutex::new(Vec::new()),
-                fail_on_save: false,
-            }
-        }
-
-        fn failing() -> Self {
-            Self {
-                medications: Mutex::new(Vec::new()),
-                fail_on_save: true,
-            }
-        }
-
-        fn saved_count(&self) -> usize {
-            self.medications.lock().unwrap().len()
-        }
-    }
-
-    impl MedicationRepository for FakeMedicationRepository {
-        fn save(&self, medication: &Medication) -> Result<(), StorageError> {
-            if self.fail_on_save {
-                return Err(StorageError("forced failure".into()));
-            }
-            self.medications.lock().unwrap().push(medication.clone());
-            Ok(())
-        }
-
-        fn find_by_id(&self, _id: &MedicationId) -> Result<Option<Medication>, StorageError> {
-            Ok(None)
-        }
-
-        fn find_all(&self) -> Result<Vec<Medication>, StorageError> {
-            Ok(self.medications.lock().unwrap().clone())
-        }
-
-        fn delete(&self, _id: &MedicationId) -> Result<(), StorageError> {
-            Ok(())
-        }
-    }
 
     fn make_request(
         name: &str,
