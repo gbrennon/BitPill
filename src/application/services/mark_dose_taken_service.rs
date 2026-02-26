@@ -7,10 +7,7 @@ use crate::application::ports::dose_record_repository_port::DoseRecordRepository
 use crate::application::ports::mark_dose_taken_port::{
     MarkDoseTakenPort, MarkDoseTakenRequest, MarkDoseTakenResponse,
 };
-use crate::domain::{
-    errors::DomainError,
-    value_objects::dose_record_id::DoseRecordId,
-};
+use crate::domain::{errors::DomainError, value_objects::dose_record_id::DoseRecordId};
 
 pub struct MarkDoseTakenService {
     repository: Arc<dyn DoseRecordRepository>,
@@ -27,10 +24,9 @@ impl MarkDoseTakenPort for MarkDoseTakenService {
         &self,
         request: MarkDoseTakenRequest,
     ) -> Result<MarkDoseTakenResponse, ApplicationError> {
-        let uuid = Uuid::parse_str(&request.record_id)
-            .map_err(|_| ApplicationError::InvalidInput(
-                format!("invalid record id: {}", request.record_id),
-            ))?;
+        let uuid = Uuid::parse_str(&request.record_id).map_err(|_| {
+            ApplicationError::InvalidInput(format!("invalid record id: {}", request.record_id))
+        })?;
         let record_id = DoseRecordId::from_uuid(uuid);
 
         let mut record = self
@@ -52,8 +48,7 @@ mod tests {
     use super::*;
     use crate::application::ports::fakes::FakeDoseRecordRepository;
     use crate::domain::{
-        entities::dose_record::DoseRecord,
-        value_objects::medication_id::MedicationId,
+        entities::dose_record::DoseRecord, value_objects::medication_id::MedicationId,
     };
     use chrono::NaiveDate;
 
@@ -87,7 +82,10 @@ mod tests {
 
         let result = service.execute(make_request(&unknown_id, 8, 5));
 
-        assert!(matches!(result, Err(ApplicationError::NotFound(NotFoundError))));
+        assert!(matches!(
+            result,
+            Err(ApplicationError::NotFound(NotFoundError))
+        ));
     }
 
     #[test]
