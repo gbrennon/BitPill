@@ -88,8 +88,8 @@ src/domain/entities/medication.rs          → struct Medication
 src/domain/entities/dose_record.rs         → struct DoseRecord
 src/domain/value_objects/dosage.rs         → struct Dosage
 src/domain/value_objects/medication_id.rs  → struct MedicationId
-src/application/ports/medication_repository.rs → trait MedicationRepository
-src/application/ports/clock_port.rs        → trait ClockPort
+src/application/ports/medication_repository_port.rs → trait MedicationRepository
+src/application/ports/clock_port.rs             → trait ClockPort
 src/application/services/create_medication_service.rs → struct CreateMedicationService
 ```
 
@@ -99,8 +99,10 @@ Define every external capability as a `trait` inside `application/ports/`. Infra
 
 Port methods are **synchronous** — do not use `async fn` unless a specific async runtime is adopted.
 
+Port files use a `_port.rs` suffix (e.g., `medication_repository_port.rs`, `clock_port.rs`, `notification_port.rs`).
+
 ```rust
-// src/application/ports/medication_repository.rs
+// src/application/ports/medication_repository_port.rs
 use crate::application::errors::StorageError;
 use crate::domain::{entities::medication::Medication, value_objects::medication_id::MedicationId};
 
@@ -212,25 +214,30 @@ impl Container {
 
 ### Test Fakes
 
-Fake implementations of port traits are defined **inline** in the `#[cfg(test)]` module of the service file under test, using `Mutex<Vec<T>>` for interior mutability. There is no shared fakes module at this time.
+Shared fake implementations of all port traits live in `src/application/ports/fakes.rs`. Import them in `#[cfg(test)]` modules — do not duplicate inline fakes.
+
+Available fakes:
+- `FakeClock::at(hour, minute)` — returns a fixed `NaiveDateTime`
+- `FakeMedicationRepository::new()` / `::with(medications)` / `::failing()` — in-memory + `saved_count()`
+- `FakeDoseRecordRepository::new()` / `::with(record)` — in-memory + `saved_count()`
+- `FakeNotificationPort::new()` — records calls + `call_count()`
 
 ```rust
 #[cfg(test)]
 mod tests {
-    struct FakeMedicationRepository {
-        medications: Mutex<Vec<Medication>>,
-        fail_on_save: bool,
-    }
+    use crate::application::ports::fakes::{FakeClock, FakeMedicationRepository};
+    use std::sync::Arc;
 
-    impl MedicationRepository for FakeMedicationRepository {
-        fn save(&self, medication: &Medication) -> Result<(), StorageError> {
-            if self.fail_on_save {
-                return Err(StorageError("forced failure".into()));
-            }
-            self.medications.lock().unwrap().push(medication.clone());
-            Ok(())
-        }
-        // ...
+    #[test]
+    fn execute_valid_input_saves_medication() {
+        let repo = Arc::new(FakeMedicationRepository::new());
+        let clock = Arc::new(FakeClock::at(8, 0));
+        let service = CreateMedicationService::new(repo.clone(), clock);
+
+        let result = service.execute(...);
+
+        assert!(result.is_ok());
+        assert_eq!(repo.saved_count(), 1);
     }
 }
 ```
@@ -278,7 +285,8 @@ Repositories are domain-defined abstractions. They operate on Aggregate Roots on
 ## Current State Notes
 
 - `#![allow(dead_code)]` in `main.rs` is intentional — large parts of the presentation layer (`app.rs`, `screen.rs`, `ui.rs`, `event_handler.rs`) are TUI work in progress and not yet wired into `main`.
-- `src/application/ports/create_medication_port.rs` and `list_all_medications.rs` are incomplete design sketches with undefined types. Do not treat them as usable code.
+- `src/infrastructure/persistence/` and `src/infrastructure/container.rs` are currently empty stubs — no concrete repository adapters have been implemented yet.
+- `src/application/ports/create_medication_port.rs` and `list_all_medications_port.rs` define complete request/response DTOs and port traits but are not yet implemented by any service.
 
 ---
 
