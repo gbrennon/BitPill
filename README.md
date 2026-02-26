@@ -1,9 +1,10 @@
-# BitPill 💊
+# BitPill
 
 > **Work in progress.** A personal medication management application built in Rust.
-> *(More context about the health condition that motivated this project will be added soon.)*
+> *(More context about my health condition that motivated this project will be added soon.)*
 
-BitPill helps individuals manage their daily medications — tracking pills, dosages, and schedules in one place. It is being built with a focus on reliability and correctness, because when it comes to medication, errors matter.
+BitPill helps individuals manage their daily medications — tracking pills, dosages, and schedules in one place.
+It is being built with a focus on reliability and correctness, because when it comes to medication, errors matter.
 
 ---
 
@@ -53,12 +54,6 @@ The **default `just` recipe** runs formatting checks, linting, and tests with co
 
 ```bash
 just
-```
-
-To run coverage on its own:
-
-```bash
-just coverage
 ```
 
 ### Other tasks
