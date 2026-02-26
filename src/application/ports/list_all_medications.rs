@@ -1,14 +1,23 @@
-use thiserror::Error;
+use crate::application::errors::ApplicationError;
 
-struct ListAllMedicationsRequest {}
-
-struct ListAllMedicationsResponse {
-    medications: Vec<MedicationDto>,
+/// Data transfer object representing a medication returned from the list query.
+pub struct MedicationDto {
+    pub id: String,
+    pub name: String,
+    pub amount_mg: u32,
+    /// Scheduled administration times as `(hour, minute)` pairs.
+    pub scheduled_times: Vec<(u32, u32)>,
 }
 
-trait ListAllMedicationsPort {
+pub struct ListAllMedicationsRequest;
+
+pub struct ListAllMedicationsResponse {
+    pub medications: Vec<MedicationDto>,
+}
+
+pub trait ListAllMedicationsPort: Send + Sync {
     fn execute(
         &self,
         request: ListAllMedicationsRequest,
-    ) -> Result<ListAllMedicationsResponse, ListAllMedicationsError>;
+    ) -> Result<ListAllMedicationsResponse, ApplicationError>;
 }

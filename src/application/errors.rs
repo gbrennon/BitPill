@@ -9,6 +9,12 @@ pub enum ApplicationError {
     Domain(#[from] DomainError),
     #[error(transparent)]
     Storage(#[from] StorageError),
+    #[error(transparent)]
+    NotFound(#[from] NotFoundError),
+    #[error(transparent)]
+    Delivery(#[from] DeliveryError),
+    #[error("invalid input: {0}")]
+    InvalidInput(String),
 }
 
 /// Generic infrastructure storage failure that can be reused by repository ports.
