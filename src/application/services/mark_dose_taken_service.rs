@@ -50,13 +50,12 @@ impl MarkDoseTakenPort for MarkDoseTakenService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::application::errors::StorageError;
+    use crate::application::ports::fakes::FakeDoseRecordRepository;
     use crate::domain::{
         entities::dose_record::DoseRecord,
         value_objects::medication_id::MedicationId,
     };
     use chrono::NaiveDate;
-    use std::sync::Mutex;
 
     fn make_datetime(h: u32, m: u32) -> chrono::NaiveDateTime {
         NaiveDate::from_ymd_opt(2025, 1, 1)
@@ -67,67 +66,6 @@ mod tests {
 
     fn make_request(record_id: &DoseRecordId, h: u32, m: u32) -> MarkDoseTakenRequest {
         MarkDoseTakenRequest::new(record_id.to_string(), make_datetime(h, m))
-    }
-
-    struct FakeDoseRecordRepository {
-        records: Mutex<Vec<DoseRecord>>,
-    }
-
-    impl FakeDoseRecordRepository {
-        fn new() -> Self {
-            Self {
-                records: Mutex::new(Vec::new()),
-            }
-        }
-
-        fn with(record: DoseRecord) -> Self {
-            Self {
-                records: Mutex::new(vec![record]),
-            }
-        }
-    }
-
-    impl DoseRecordRepository for FakeDoseRecordRepository {
-        fn save(&self, record: &DoseRecord) -> Result<(), StorageError> {
-            let mut records = self.records.lock().unwrap();
-            if let Some(existing) = records.iter_mut().find(|r| r.id() == record.id()) {
-                *existing = record.clone();
-            } else {
-                records.push(record.clone());
-            }
-            Ok(())
-        }
-
-        fn find_by_id(
-            &self,
-            id: &DoseRecordId,
-        ) -> Result<Option<DoseRecord>, StorageError> {
-            Ok(self
-                .records
-                .lock()
-                .unwrap()
-                .iter()
-                .find(|r| r.id() == id)
-                .cloned())
-        }
-
-        fn find_all_by_medication(
-            &self,
-            medication_id: &MedicationId,
-        ) -> Result<Vec<DoseRecord>, StorageError> {
-            Ok(self
-                .records
-                .lock()
-                .unwrap()
-                .iter()
-                .filter(|r| r.medication_id() == medication_id)
-                .cloned()
-                .collect())
-        }
-
-        fn delete(&self, _id: &DoseRecordId) -> Result<(), StorageError> {
-            Ok(())
-        }
     }
 
     #[test]
