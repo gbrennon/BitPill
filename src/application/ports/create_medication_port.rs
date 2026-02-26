@@ -20,7 +20,7 @@ pub struct CreateMedicationResponse {
     pub id: String,
 }
 
-pub trait CreateMedicationPort {
+pub trait CreateMedicationPort: Send + Sync {
     fn execute(
         &self,
         request: CreateMedicationRequest,
