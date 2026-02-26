@@ -4,10 +4,8 @@ use chrono::NaiveDateTime;
 
 use crate::application::errors::{DeliveryError, StorageError};
 use crate::application::ports::{
-    clock_port::ClockPort,
-    dose_record_repository_port::DoseRecordRepository,
-    medication_repository_port::MedicationRepository,
-    notification_port::NotificationPort,
+    clock_port::ClockPort, dose_record_repository_port::DoseRecordRepository,
+    medication_repository_port::MedicationRepository, notification_port::NotificationPort,
 };
 use crate::domain::{
     entities::{dose_record::DoseRecord, medication::Medication},

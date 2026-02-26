@@ -8,11 +8,12 @@ use crate::application::ports::{
     dose_record_repository_port::DoseRecordRepository,
     medication_repository_port::MedicationRepository,
     notification_port::NotificationPort,
-    schedule_dose_port::{DoseRecordDto, ScheduleDosePort, ScheduleDoseRequest, ScheduleDoseResponse},
+    schedule_dose_port::{
+        DoseRecordDto, ScheduleDosePort, ScheduleDoseRequest, ScheduleDoseResponse,
+    },
 };
 use crate::domain::{
-    entities::dose_record::DoseRecord,
-    value_objects::scheduled_time::ScheduledTime,
+    entities::dose_record::DoseRecord, value_objects::scheduled_time::ScheduledTime,
 };
 
 /// Checks every registered medication against the current time and, for each
@@ -71,7 +72,8 @@ impl ScheduleDoseService {
             if is_due {
                 let record = DoseRecord::new(medication.id().clone(), now);
                 self.dose_record_repository.save(&record)?;
-                self.notification_port.notify_dose_due(medication, &record)?;
+                self.notification_port
+                    .notify_dose_due(medication, &record)?;
                 created.push(record);
             }
         }
@@ -107,8 +109,8 @@ mod tests {
     use crate::domain::{
         entities::medication::Medication,
         value_objects::{
-            dosage::Dosage, medication_id::MedicationId,
-            medication_name::MedicationName, scheduled_time::ScheduledTime,
+            dosage::Dosage, medication_id::MedicationId, medication_name::MedicationName,
+            scheduled_time::ScheduledTime,
         },
     };
 
@@ -193,8 +195,7 @@ mod tests {
     fn execute_notifies_all_medications_due_at_same_time() {
         let med_a = make_medication("Aspirin", 8, 0);
         let med_b = make_medication("Ibuprofen", 8, 0);
-        let (service, dose_repo, notif) =
-            make_service(vec![med_a, med_b], FakeClock::at(8, 0));
+        let (service, dose_repo, notif) = make_service(vec![med_a, med_b], FakeClock::at(8, 0));
 
         let result = service.execute().unwrap();
 
@@ -243,4 +244,3 @@ mod tests {
         assert_eq!(notif.call_count(), 0);
     }
 }
-
