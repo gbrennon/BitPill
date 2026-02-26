@@ -3,9 +3,6 @@ name = "bitpill"
 version = "0.1.0"
 edition = "2024"
 
-[dev-dependencies]
-evcxr_repl = "0.21"
-
 [dependencies]
 thiserror = "2"
 uuid = { version = "1", features = ["v7", "std"] }
