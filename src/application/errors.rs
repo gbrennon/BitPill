@@ -5,7 +5,7 @@ use thiserror::Error;
 #[error("storage error: {0}")]
 pub struct StorageError(pub String);
 
-/// A required resource does not exist. Raised in services when a lookup returns `None`.
+/// A required resource does not exist. Generic not-found error for shared use in the application layer.
 #[derive(Debug, Error, PartialEq, Eq)]
 #[error("not found")]
 pub struct NotFoundError;
