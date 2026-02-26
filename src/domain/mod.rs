@@ -26,7 +26,7 @@
 /// let morning  = ScheduledTime::new(8, 0).unwrap();
 ///
 /// // Create a Medication aggregate root.
-/// let medication = Medication::new(name, dosage, vec![morning]);
+/// let medication = Medication::new(MedicationId::create(), name, dosage, vec![morning]);
 ///
 /// // Create a DoseRecord and mark it as taken.
 /// let scheduled_at = NaiveDate::from_ymd_opt(2025, 6, 1)

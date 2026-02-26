@@ -11,7 +11,9 @@ use crate::domain::value_objects::{
 ///
 /// # Invariants
 ///
-/// - `id` is a randomly generated UUID v4 — unique per instance.
+/// - `id` is supplied by the caller — use [`MedicationId::create`] to generate
+///   a fresh UUID v7, or [`MedicationId::from_uuid`] to reconstitute one from
+///   storage.
 /// - `name` and `dosage` are validated value objects; they can only hold
 ///   legal values (non-empty name, non-zero dosage).
 /// - `scheduled_times` may be empty (unscheduled medication is allowed).
@@ -23,12 +25,14 @@ use crate::domain::value_objects::{
 ///     entities::medication::Medication,
 ///     value_objects::{
 ///         dosage::Dosage,
+///         medication_id::MedicationId,
 ///         medication_name::MedicationName,
 ///         scheduled_time::ScheduledTime,
 ///     },
 /// };
 ///
 /// let medication = Medication::new(
+///     MedicationId::create(),
 ///     MedicationName::new("Ibuprofen").unwrap(),
 ///     Dosage::new(400).unwrap(),
 ///     vec![ScheduledTime::new(8, 0).unwrap(), ScheduledTime::new(20, 0).unwrap()],
@@ -47,14 +51,15 @@ pub struct Medication {
 }
 
 impl Medication {
-    /// Creates a new `Medication` with an auto-generated unique ID.
+    /// Creates a new `Medication` with the supplied `id`.
     ///
-    /// `name` and `dosage` are pre-validated value objects — pass the results
-    /// of [`MedicationName::new`] and [`Dosage::new`] directly.
+    /// Use [`MedicationId::create`] to generate a fresh identifier, or
+    /// [`MedicationId::from_uuid`] to reconstitute one from storage.
+    /// `name` and `dosage` are pre-validated value objects.
     /// `scheduled_times` may be an empty `Vec` for unscheduled medications.
-    pub fn new(name: MedicationName, dosage: Dosage, scheduled_times: Vec<ScheduledTime>) -> Self {
+    pub fn new(id: MedicationId, name: MedicationName, dosage: Dosage, scheduled_times: Vec<ScheduledTime>) -> Self {
         Self {
-            id: MedicationId::new(),
+            id,
             name,
             dosage,
             scheduled_times,
@@ -93,6 +98,7 @@ mod tests {
 
     fn make_medication() -> Medication {
         Medication::new(
+            MedicationId::create(),
             MedicationName::new("Aspirin").unwrap(),
             Dosage::new(500).unwrap(),
             vec![
@@ -136,6 +142,7 @@ mod tests {
     #[test]
     fn new_with_no_scheduled_times_is_allowed() {
         let med = Medication::new(
+            MedicationId::create(),
             MedicationName::new("Aspirin").unwrap(),
             Dosage::new(500).unwrap(),
             vec![],
