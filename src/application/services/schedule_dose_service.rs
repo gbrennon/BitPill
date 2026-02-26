@@ -5,8 +5,8 @@ use chrono::{NaiveTime, Timelike};
 use crate::application::errors::ApplicationError;
 use crate::application::ports::{
     clock_port::ClockPort,
-    dose_record_repository::DoseRecordRepository,
-    medication_repository::MedicationRepository,
+    dose_record_repository_port::DoseRecordRepository,
+    medication_repository_port::MedicationRepository,
     notification_port::NotificationPort,
     schedule_dose_port::{DoseRecordDto, ScheduleDosePort, ScheduleDoseRequest, ScheduleDoseResponse},
 };

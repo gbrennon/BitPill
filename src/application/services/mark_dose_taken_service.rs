@@ -3,7 +3,7 @@ use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::application::errors::{ApplicationError, NotFoundError};
-use crate::application::ports::dose_record_repository::DoseRecordRepository;
+use crate::application::ports::dose_record_repository_port::DoseRecordRepository;
 use crate::application::ports::mark_dose_taken_port::{
     MarkDoseTakenPort, MarkDoseTakenRequest, MarkDoseTakenResponse,
 };
