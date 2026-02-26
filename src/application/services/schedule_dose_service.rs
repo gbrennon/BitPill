@@ -24,11 +24,9 @@ use crate::domain::{
 ///
 /// # Example
 ///
-/// ```rust
-/// // Wired automatically by Container::new().
-/// // In tests, inject fakes for full isolation.
-/// let created = service.execute().unwrap();
-/// println!("{} dose(s) scheduled this minute", created.len());
+/// ```no_run
+/// // In tests, inject fakes for full isolation (see the #[cfg(test)] module below).
+/// // In production, wire the service via the composition root.
 /// ```
 pub struct ScheduleDoseService {
     medication_repository: Arc<dyn MedicationRepository>,
