@@ -14,7 +14,7 @@ run:
 
 # Run all tests with coverage
 test:
-    cargo llvm-cov
+    cargo llvm-cov --ignore-filename-regex "ports/fakes"
 
 # Run a single test by name substring
 test-one NAME:
