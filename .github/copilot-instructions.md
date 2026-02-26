@@ -101,13 +101,14 @@ Port methods are **synchronous** — do not use `async fn` unless a specific asy
 
 ```rust
 // src/application/ports/medication_repository.rs
+use crate::application::errors::StorageError;
 use crate::domain::{entities::medication::Medication, value_objects::medication_id::MedicationId};
 
 pub trait MedicationRepository: Send + Sync {
-    fn save(&self, medication: &Medication) -> Result<(), RepositoryError>;
-    fn find_by_id(&self, id: &MedicationId) -> Result<Option<Medication>, RepositoryError>;
-    fn find_all(&self) -> Result<Vec<Medication>, RepositoryError>;
-    fn delete(&self, id: &MedicationId) -> Result<(), RepositoryError>;
+    fn save(&self, medication: &Medication) -> Result<(), StorageError>;
+    fn find_by_id(&self, id: &MedicationId) -> Result<Option<Medication>, StorageError>;
+    fn find_all(&self) -> Result<Vec<Medication>, StorageError>;
+    fn delete(&self, id: &MedicationId) -> Result<(), StorageError>;
 }
 ```
 
@@ -138,7 +139,7 @@ impl CreateMedicationService {
 }
 ```
 
-Each service defines its own error enum (e.g. `CreateMedicationError`) that uses `#[from]` to wrap both `DomainError` and `RepositoryError`.
+Each service defines its own error enum (e.g. `CreateMedicationError`) that uses `#[from]` to wrap both `DomainError` and `StorageError`.
 
 ### Value Objects Are Immutable
 
@@ -222,9 +223,9 @@ mod tests {
     }
 
     impl MedicationRepository for FakeMedicationRepository {
-        fn save(&self, medication: &Medication) -> Result<(), RepositoryError> {
+        fn save(&self, medication: &Medication) -> Result<(), StorageError> {
             if self.fail_on_save {
-                return Err(RepositoryError::StorageError("forced failure".into()));
+                return Err(StorageError("forced failure".into()));
             }
             self.medications.lock().unwrap().push(medication.clone());
             Ok(())
@@ -237,7 +238,8 @@ mod tests {
 ### Error Types
 
 - Domain errors live in `domain/errors.rs` and use `thiserror`.
-- Infrastructure and application layers define their own error types.
+- Application-level infrastructure errors live in `application/errors.rs`: `StorageError`, `NotFoundError`, `ConflictError`, `DeliveryError`. These are shared across all port traits.
+- Each service defines its own error enum wrapping `DomainError` and the relevant application error via `#[from]`.
 - Never propagate raw `Box<dyn Error>` through domain or application layers.
 
 ```rust
@@ -270,6 +272,13 @@ Use domain language in all identifiers and comments. Avoid generic names like `M
 ### Repository Abstraction
 
 Repositories are domain-defined abstractions. They operate on Aggregate Roots only and hide all persistence details from the domain.
+
+---
+
+## Current State Notes
+
+- `#![allow(dead_code)]` in `main.rs` is intentional — large parts of the presentation layer (`app.rs`, `screen.rs`, `ui.rs`, `event_handler.rs`) are TUI work in progress and not yet wired into `main`.
+- `src/application/ports/create_medication_port.rs` and `list_all_medications.rs` are incomplete design sketches with undefined types. Do not treat them as usable code.
 
 ---
 
