@@ -6,3 +6,6 @@ pub mod mark_dose_taken_port;
 pub mod medication_repository_port;
 pub mod notification_port;
 pub mod schedule_dose_port;
+
+#[cfg(test)]
+pub mod fakes;
