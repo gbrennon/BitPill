@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-/// Infrastructure storage failure. Shared across all repository ports.
+/// Generic infrastructure storage failure that can be reused by repository ports.
 #[derive(Debug, Error)]
 #[error("storage error: {0}")]
 pub struct StorageError(pub String);
