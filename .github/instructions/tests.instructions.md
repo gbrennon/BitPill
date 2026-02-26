@@ -11,4 +11,4 @@ applyTo: "**/*_test.rs, **/tests/**"
 - Place unit tests in a `#[cfg(test)]` module at the bottom of the file under test.
 - Integration tests go in `tests/` at the crate root and may use real infrastructure.
 - Test domain invariants and observable behaviour — never test private implementation details.
-- Fakes and stubs for port traits belong in a shared `tests/fakes/` or `src/application/ports/fakes/` module, reusable across test files.
+- Fakes and stubs for port traits live in `src/application/ports/fakes.rs` — use them instead of defining inline fakes.
