@@ -57,7 +57,12 @@ impl Medication {
     /// [`MedicationId::from_uuid`] to reconstitute one from storage.
     /// `name` and `dosage` are pre-validated value objects.
     /// `scheduled_times` may be an empty `Vec` for unscheduled medications.
-    pub fn new(id: MedicationId, name: MedicationName, dosage: Dosage, scheduled_times: Vec<ScheduledTime>) -> Self {
+    pub fn new(
+        id: MedicationId,
+        name: MedicationName,
+        dosage: Dosage,
+        scheduled_times: Vec<ScheduledTime>,
+    ) -> Self {
         Self {
             id,
             name,

@@ -2,17 +2,13 @@ use std::sync::Arc;
 
 use crate::application::errors::ApplicationError;
 use crate::application::ports::create_medication_port::{
-    CreateMedicationPort,
-    CreateMedicationRequest,
-    CreateMedicationResponse,
+    CreateMedicationPort, CreateMedicationRequest, CreateMedicationResponse,
 };
 use crate::application::ports::medication_repository_port::MedicationRepository;
 use crate::domain::{
     entities::medication::Medication,
     value_objects::{
-        dosage::Dosage,
-        medication_id::MedicationId,
-        medication_name::MedicationName,
+        dosage::Dosage, medication_id::MedicationId, medication_name::MedicationName,
         scheduled_time::ScheduledTime,
     },
 };
@@ -80,7 +76,9 @@ mod tests {
         let repo = Arc::new(FakeMedicationRepository::new());
         let service = CreateMedicationService::new(repo.clone());
 
-        service.execute(make_request("Ibuprofen", 200, vec![(8, 0)])).unwrap();
+        service
+            .execute(make_request("Ibuprofen", 200, vec![(8, 0)]))
+            .unwrap();
 
         assert_eq!(repo.saved_count(), 1);
     }
