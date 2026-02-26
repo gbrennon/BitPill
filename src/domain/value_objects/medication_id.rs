@@ -2,8 +2,9 @@ use uuid::Uuid;
 
 /// Unique identifier for a [`Medication`] aggregate root.
 ///
-/// Each call to [`MedicationId::new`] (or `Default::default`) generates a
-/// fresh UUID v7, guaranteeing uniqueness across the system.
+/// Use [`MedicationId::create`] to generate a fresh time-sortable UUID v7, or
+/// [`MedicationId::from_uuid`] to reconstitute an identifier from a UUID that
+/// was previously persisted or received from an external source.
 ///
 /// [`Medication`]: crate::domain::entities::medication::Medication
 ///
@@ -12,19 +13,27 @@ use uuid::Uuid;
 /// ```rust
 /// use bitpill::domain::value_objects::medication_id::MedicationId;
 ///
-/// let id = MedicationId::new();
+/// let id = MedicationId::create();
 /// assert!(!id.to_string().is_empty());
 ///
 /// // Every call produces a different ID.
-/// assert_ne!(MedicationId::new(), MedicationId::new());
+/// assert_ne!(MedicationId::create(), MedicationId::create());
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct MedicationId(Uuid);
 
 impl MedicationId {
-    /// Generates a new unique `MedicationId` using UUID v4.
-    pub fn new() -> Self {
-        Self(Uuid::new_v7())
+    /// Generates a new unique `MedicationId` using UUID v7 (time-sortable).
+    pub fn create() -> Self {
+        Self(Uuid::now_v7())
+    }
+
+    /// Wraps an existing [`Uuid`] as a `MedicationId`.
+    ///
+    /// Use this when reconstituting an identifier that was previously stored or
+    /// received from an external source rather than generating a new one.
+    pub fn from_uuid(uuid: Uuid) -> Self {
+        Self(uuid)
     }
 
     /// Returns the underlying [`Uuid`] value.
@@ -35,7 +44,7 @@ impl MedicationId {
 
 impl Default for MedicationId {
     fn default() -> Self {
-        Self::new()
+        Self::create()
     }
 }
 
@@ -50,25 +59,36 @@ mod tests {
     use super::*;
 
     #[test]
-    fn new_generates_unique_ids() {
-        let id_a = MedicationId::new();
-        let id_b = MedicationId::new();
+    fn create_generates_unique_ids() {
+        let id_a = MedicationId::create();
+        let id_b = MedicationId::create();
 
         assert_ne!(id_a, id_b);
     }
 
     #[test]
-    fn value_returns_the_inner_uuid() {
-        let id = MedicationId::new();
+    fn from_uuid_wraps_the_given_uuid() {
+        let uuid = Uuid::now_v7();
 
-        assert_eq!(id.value(), id.0);
+        let id = MedicationId::from_uuid(uuid);
+
+        assert_eq!(id.value(), uuid);
+    }
+
+    #[test]
+    fn value_returns_the_inner_uuid() {
+        let uuid = Uuid::now_v7();
+        let id = MedicationId::from_uuid(uuid);
+
+        assert_eq!(id.value(), uuid);
     }
 
     #[test]
     fn display_formats_as_uuid_string() {
-        let id = MedicationId::new();
+        let uuid = Uuid::now_v7();
+        let id = MedicationId::from_uuid(uuid);
 
-        assert_eq!(id.to_string(), id.value().to_string());
+        assert_eq!(id.to_string(), uuid.to_string());
     }
 
     #[test]

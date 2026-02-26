@@ -14,7 +14,7 @@ use crate::domain::{
 ///
 /// # Invariants
 ///
-/// - `id` is a randomly generated UUID v4 — unique per instance.
+/// - `id` is a time-sortable UUID v7 — unique per instance.
 /// - `taken_at` starts as `None` and can only be set once.
 /// - `medication_id` must reference an existing [`Medication`] aggregate root
 ///   (the domain does not enforce referential integrity; that is the
@@ -33,7 +33,7 @@ use crate::domain::{
 /// };
 /// use chrono::NaiveDate;
 ///
-/// let medication_id  = MedicationId::new();
+/// let medication_id  = MedicationId::create();
 /// let scheduled_at   = NaiveDate::from_ymd_opt(2025, 6, 1)
 ///     .unwrap()
 ///     .and_hms_opt(8, 0, 0)
@@ -69,7 +69,7 @@ impl DoseRecord {
     /// `taken_at` is initialised to `None`; the record is not yet taken.
     pub fn new(medication_id: MedicationId, scheduled_at: NaiveDateTime) -> Self {
         Self {
-            id: DoseRecordId::new(),
+            id: DoseRecordId::create(),
             medication_id,
             scheduled_at,
             taken_at: None,
@@ -129,7 +129,7 @@ mod tests {
     }
 
     fn make_dose_record() -> DoseRecord {
-        DoseRecord::new(MedicationId::new(), make_datetime(8, 0))
+        DoseRecord::new(MedicationId::create(), make_datetime(8, 0))
     }
 
     #[test]
@@ -172,7 +172,7 @@ mod tests {
     #[test]
     fn scheduled_at_returns_the_datetime_passed_to_constructor() {
         let scheduled_at = make_datetime(20, 0);
-        let record = DoseRecord::new(MedicationId::new(), scheduled_at);
+        let record = DoseRecord::new(MedicationId::create(), scheduled_at);
 
         assert_eq!(record.scheduled_at(), scheduled_at);
     }
