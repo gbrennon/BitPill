@@ -1,12 +1,10 @@
-use chrono::NaiveTime;
-
 use crate::domain::errors::DomainError;
 
 /// A validated clock time at which a dose is scheduled (hour and minute only).
 ///
-/// `ScheduledTime` is a value object wrapping [`NaiveTime`] with seconds fixed
-/// at zero. Instances are comparable and sortable so a medication's schedule
-/// can be ordered chronologically.
+/// `ScheduledTime` is a value object storing an hour and minute as primitives,
+/// with no dependency on any date/time library. Instances are comparable and
+/// sortable so a medication's schedule can be ordered chronologically.
 ///
 /// # Invariants
 ///
@@ -29,7 +27,10 @@ use crate::domain::errors::DomainError;
 /// assert!(matches!(ScheduledTime::new(8, 60), Err(DomainError::InvalidScheduledTime)));
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ScheduledTime(NaiveTime);
+pub struct ScheduledTime {
+    hour: u32,
+    minute: u32,
+}
 
 impl ScheduledTime {
     /// Creates a new `ScheduledTime` from an `hour` (0–23) and `minute` (0–59).
@@ -38,20 +39,26 @@ impl ScheduledTime {
     ///
     /// Returns [`DomainError::InvalidScheduledTime`] when either value is out of range.
     pub fn new(hour: u32, minute: u32) -> Result<Self, DomainError> {
-        NaiveTime::from_hms_opt(hour, minute, 0)
-            .map(Self)
-            .ok_or(DomainError::InvalidScheduledTime)
+        if hour > 23 || minute > 59 {
+            return Err(DomainError::InvalidScheduledTime);
+        }
+        Ok(Self { hour, minute })
     }
 
-    /// Returns the underlying [`NaiveTime`].
-    pub fn value(&self) -> NaiveTime {
-        self.0
+    /// Returns the hour component (0–23).
+    pub fn hour(&self) -> u32 {
+        self.hour
+    }
+
+    /// Returns the minute component (0–59).
+    pub fn minute(&self) -> u32 {
+        self.minute
     }
 }
 
 impl std::fmt::Display for ScheduledTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0.format("%H:%M"))
+        write!(f, "{:02}:{:02}", self.hour, self.minute)
     }
 }
 
@@ -89,10 +96,17 @@ mod tests {
     }
 
     #[test]
-    fn value_returns_the_inner_naive_time() {
-        let time = ScheduledTime::new(8, 0).unwrap();
+    fn hour_returns_stored_hour() {
+        let time = ScheduledTime::new(8, 30).unwrap();
 
-        assert_eq!(time.value(), NaiveTime::from_hms_opt(8, 0, 0).unwrap());
+        assert_eq!(time.hour(), 8);
+    }
+
+    #[test]
+    fn minute_returns_stored_minute() {
+        let time = ScheduledTime::new(8, 30).unwrap();
+
+        assert_eq!(time.minute(), 30);
     }
 
     #[test]
