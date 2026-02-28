@@ -5,6 +5,8 @@ use crate::domain::{
 };
 
 pub trait DoseRecordRepository: Send + Sync {
+    /// Persists a dose record. Acts as an **upsert**: inserts the record if no
+    /// entry with the same `id` exists, or replaces the existing one if it does.
     fn save(&self, record: &DoseRecord) -> Result<(), StorageError>;
     fn find_by_id(&self, id: &DoseRecordId) -> Result<Option<DoseRecord>, StorageError>;
     fn find_all_by_medication(

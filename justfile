@@ -8,9 +8,17 @@ default: fmt-check lint test
 build:
     cargo build
 
-# Run the application
+# Run the REST API server (default)
 run:
-    cargo run
+    cargo run --bin rest
+
+# Run the terminal UI
+run-tui:
+    cargo run --bin tui
+
+# Run both the REST server (background thread) and the TUI (foreground)
+run-both:
+    cargo run --bin app
 
 # Run all tests with coverage
 test:

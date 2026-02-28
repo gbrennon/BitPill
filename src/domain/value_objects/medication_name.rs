@@ -22,7 +22,7 @@ use crate::domain::errors::DomainError;
 /// assert!(matches!(MedicationName::new(""), Err(DomainError::EmptyMedicationName)));
 /// assert!(matches!(MedicationName::new("   "), Err(DomainError::EmptyMedicationName)));
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct MedicationName(String);
 
 impl MedicationName {

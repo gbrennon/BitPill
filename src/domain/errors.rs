@@ -30,4 +30,17 @@ pub enum DomainError {
     /// when the record was already marked as taken. A dose can only be taken once.
     #[error("dose has already been taken")]
     DoseAlreadyTaken,
+
+    /// Returned by
+    /// [`TakenAt::new`](crate::domain::value_objects::taken_at::TakenAt::new)
+    /// when `hour` ≥ 24 or `minute` ≥ 60.
+    #[error("invalid taken-at time: hour must be 0–23 and minute 0–59")]
+    InvalidTakenAt,
+
+    /// Returned by
+    /// [`TakenAt::new`](crate::domain::value_objects::taken_at::TakenAt::new)
+    /// when the supplied datetime is strictly after `now`. A dose cannot be
+    /// logged as taken in the future.
+    #[error("taken-at time cannot be in the future")]
+    TakenAtInFuture,
 }

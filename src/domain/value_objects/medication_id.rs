@@ -19,7 +19,7 @@ use uuid::Uuid;
 /// // Every call produces a different ID.
 /// assert_ne!(MedicationId::generate(), MedicationId::generate());
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct MedicationId(Uuid);
 
 impl From<Uuid> for MedicationId {

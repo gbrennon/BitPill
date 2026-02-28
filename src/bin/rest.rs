@@ -3,8 +3,6 @@ use std::sync::Arc;
 use bitpill::infrastructure::container::Container;
 use bitpill::presentation::rest::server::RestServer;
 
-/// Default entry point — starts the REST server.
-/// Use `just run-tui` or `just run-both` for other modes.
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     let container = Arc::new(Container::new());

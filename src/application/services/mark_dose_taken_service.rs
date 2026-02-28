@@ -7,7 +7,7 @@ use crate::application::ports::dose_record_repository_port::DoseRecordRepository
 use crate::application::ports::mark_dose_taken_port::{
     MarkDoseTakenPort, MarkDoseTakenRequest, MarkDoseTakenResponse,
 };
-use crate::domain::{errors::DomainError, value_objects::dose_record_id::DoseRecordId};
+use crate::domain::value_objects::dose_record_id::DoseRecordId;
 
 pub struct MarkDoseTakenService {
     repository: Arc<dyn DoseRecordRepository>,
@@ -27,7 +27,7 @@ impl MarkDoseTakenPort for MarkDoseTakenService {
         let uuid = Uuid::parse_str(&request.record_id).map_err(|_| {
             ApplicationError::InvalidInput(format!("invalid record id: {}", request.record_id))
         })?;
-        let record_id = DoseRecordId::from_uuid(uuid);
+        let record_id = DoseRecordId::from(uuid);
 
         let mut record = self
             .repository
@@ -48,7 +48,9 @@ mod tests {
     use super::*;
     use crate::application::ports::fakes::FakeDoseRecordRepository;
     use crate::domain::{
-        entities::dose_record::DoseRecord, value_objects::medication_id::MedicationId,
+        entities::dose_record::DoseRecord,
+        errors::DomainError,
+        value_objects::medication_id::MedicationId,
     };
     use chrono::NaiveDate;
 
@@ -65,7 +67,7 @@ mod tests {
 
     #[test]
     fn execute_marks_existing_dose_record_as_taken() {
-        let record = DoseRecord::new(MedicationId::create(), make_datetime(8, 0));
+        let record = DoseRecord::new(MedicationId::generate(), make_datetime(8, 0));
         let record_id = record.id().clone();
         let service = MarkDoseTakenService::new(Arc::new(FakeDoseRecordRepository::with(record)));
 
@@ -78,7 +80,7 @@ mod tests {
     #[test]
     fn execute_with_unknown_id_returns_not_found_error() {
         let service = MarkDoseTakenService::new(Arc::new(FakeDoseRecordRepository::new()));
-        let unknown_id = DoseRecordId::create();
+        let unknown_id = DoseRecordId::generate();
 
         let result = service.execute(make_request(&unknown_id, 8, 5));
 
@@ -100,7 +102,7 @@ mod tests {
 
     #[test]
     fn execute_on_already_taken_dose_returns_domain_error() {
-        let mut record = DoseRecord::new(MedicationId::create(), make_datetime(8, 0));
+        let mut record = DoseRecord::new(MedicationId::generate(), make_datetime(8, 0));
         record.mark_taken(make_datetime(8, 5)).unwrap();
         let record_id = record.id().clone();
         let service = MarkDoseTakenService::new(Arc::new(FakeDoseRecordRepository::with(record)));
