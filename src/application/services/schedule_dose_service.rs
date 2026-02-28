@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use chrono::{NaiveTime, Timelike};
+use chrono::Timelike;
 
 use crate::application::errors::ApplicationError;
 use crate::application::ports::{
@@ -12,9 +12,7 @@ use crate::application::ports::{
         DoseRecordDto, ScheduleDosePort, ScheduleDoseRequest, ScheduleDoseResponse,
     },
 };
-use crate::domain::{
-    entities::dose_record::DoseRecord, value_objects::scheduled_time::ScheduledTime,
-};
+use crate::domain::entities::dose_record::DoseRecord;
 
 /// Checks every registered medication against the current time and, for each
 /// one whose [`ScheduledTime`] matches, creates a [`DoseRecord`] and fires a
@@ -57,8 +55,6 @@ impl ScheduleDoseService {
     /// whose scheduled time matched the current minute).
     pub fn execute(&self) -> Result<Vec<DoseRecord>, ApplicationError> {
         let now = self.clock.now();
-        let now_time = NaiveTime::from_hms_opt(now.hour(), now.minute(), 0)
-            .expect("system clock always returns valid hour/minute");
 
         let medications = self.medication_repository.find_all()?;
         let mut created = Vec::new();
@@ -67,7 +63,7 @@ impl ScheduleDoseService {
             let is_due = medication
                 .scheduled_times()
                 .iter()
-                .any(|t: &ScheduledTime| t.value() == now_time);
+                .any(|t| t.hour() == now.hour() && t.minute() == now.minute());
 
             if is_due {
                 let record = DoseRecord::new(medication.id().clone(), now);
@@ -116,7 +112,7 @@ mod tests {
 
     fn make_medication(name: &str, hour: u32, minute: u32) -> Medication {
         Medication::new(
-            MedicationId::create(),
+            MedicationId::generate(),
             MedicationName::new(name).unwrap(),
             Dosage::new(500).unwrap(),
             vec![ScheduledTime::new(hour, minute).unwrap()],
@@ -230,7 +226,7 @@ mod tests {
     #[test]
     fn execute_medication_with_no_scheduled_times_is_ignored() {
         let medication = Medication::new(
-            MedicationId::create(),
+            MedicationId::generate(),
             MedicationName::new("On-demand").unwrap(),
             Dosage::new(100).unwrap(),
             vec![],

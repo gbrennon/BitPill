@@ -120,28 +120,27 @@ The `ClockPort` trait abstracts the system clock — inject it via `Arc<dyn Cloc
 
 Services in `application/services/` receive port traits via constructor injection and contain **no I/O**. Service methods are synchronous.
 
-```rust
-// src/application/services/create_medication_service.rs
-use std::sync::Arc;
-use crate::application::ports::medication_repository::MedicationRepository;
-use crate::domain::entities::medication::Medication;
+Each service **implements** the corresponding port trait from `application/ports/`. The port file defines the `Request`/`Response` DTOs and the trait; the service struct implements it.
 
+```rust
+// application/ports/create_medication_port.rs — defines the contract
+pub trait CreateMedicationPort: Send + Sync {
+    fn execute(&self, request: CreateMedicationRequest) -> Result<CreateMedicationResponse, ApplicationError>;
+}
+
+// application/services/create_medication_service.rs — implements it
 pub struct CreateMedicationService {
     repository: Arc<dyn MedicationRepository>,
 }
 
-impl CreateMedicationService {
-    pub fn new(repository: Arc<dyn MedicationRepository>) -> Self {
-        Self { repository }
-    }
-
-    pub fn execute(&self, name: impl Into<String>, amount_mg: u32, ...) -> Result<Medication, CreateMedicationError> {
+impl CreateMedicationPort for CreateMedicationService {
+    fn execute(&self, request: CreateMedicationRequest) -> Result<CreateMedicationResponse, ApplicationError> {
         // validate inputs, build domain objects, call repository
     }
 }
 ```
 
-Each service defines its own error enum (e.g. `CreateMedicationError`) that uses `#[from]` to wrap both `DomainError` and `StorageError`.
+All services return `ApplicationError` from `application/errors.rs` — **not** per-service error enums. `ApplicationError` wraps `DomainError`, `StorageError`, `NotFoundError`, `DeliveryError`, and `InvalidInput`.
 
 ### Value Objects Are Immutable
 
@@ -225,16 +224,16 @@ Available fakes:
 ```rust
 #[cfg(test)]
 mod tests {
-    use crate::application::ports::fakes::{FakeClock, FakeMedicationRepository};
+    use crate::application::ports::fakes::FakeMedicationRepository;
+    use crate::application::ports::create_medication_port::CreateMedicationRequest;
     use std::sync::Arc;
 
     #[test]
     fn execute_valid_input_saves_medication() {
         let repo = Arc::new(FakeMedicationRepository::new());
-        let clock = Arc::new(FakeClock::at(8, 0));
-        let service = CreateMedicationService::new(repo.clone(), clock);
+        let service = CreateMedicationService::new(repo.clone());
 
-        let result = service.execute(...);
+        let result = service.execute(CreateMedicationRequest::new("Aspirin", 500, vec![(8, 0)]));
 
         assert!(result.is_ok());
         assert_eq!(repo.saved_count(), 1);
@@ -245,8 +244,7 @@ mod tests {
 ### Error Types
 
 - Domain errors live in `domain/errors.rs` and use `thiserror`.
-- Application-level infrastructure errors live in `application/errors.rs`: `StorageError`, `NotFoundError`, `ConflictError`, `DeliveryError`. These are shared across all port traits.
-- Each service defines its own error enum wrapping `DomainError` and the relevant application error via `#[from]`.
+- Application-level errors live in `application/errors.rs` as `ApplicationError` (the return type for all services), plus shared subtypes: `StorageError`, `NotFoundError`, `ConflictError`, `DeliveryError`.
 - Never propagate raw `Box<dyn Error>` through domain or application layers.
 
 ```rust
@@ -284,9 +282,10 @@ Repositories are domain-defined abstractions. They operate on Aggregate Roots on
 
 ## Current State Notes
 
-- `#![allow(dead_code)]` in `main.rs` is intentional — large parts of the presentation layer (`app.rs`, `screen.rs`, `ui.rs`, `event_handler.rs`) are TUI work in progress and not yet wired into `main`.
 - `src/infrastructure/persistence/` and `src/infrastructure/container.rs` are currently empty stubs — no concrete repository adapters have been implemented yet.
-- `src/application/ports/create_medication_port.rs` and `list_all_medications_port.rs` define complete request/response DTOs and port traits but are not yet implemented by any service.
+- `main.rs` is a minimal stub (`fn main() {}`); the `presentation` module is not yet wired in. The `presentation/` source files (`app.rs`, `screen.rs`, `ui.rs`, `event_handler.rs`) are TUI work in progress.
+- `src/application/ports/fakes_placeholder.rs` is an empty scaffold file.
+- `MedicationId::create()` generates a UUID v7 (time-sortable); use `MedicationId::from_uuid(uuid)` to reconstitute from storage.
 
 ---
 

@@ -21,7 +21,7 @@ use crate::domain::errors::DomainError;
 ///
 /// assert!(matches!(Dosage::new(0), Err(DomainError::InvalidDosage)));
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Dosage {
     amount_mg: u32,
 }

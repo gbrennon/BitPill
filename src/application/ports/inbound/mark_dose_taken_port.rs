@@ -24,6 +24,14 @@ pub struct MarkDoseTakenResponse {
     pub record_id: String,
 }
 
+impl MarkDoseTakenResponse {
+    pub fn new(record_id: impl Into<String>) -> Self {
+        Self {
+            record_id: record_id.into(),
+        }
+    }
+}
+
 pub trait MarkDoseTakenPort: Send + Sync {
     fn execute(
         &self,

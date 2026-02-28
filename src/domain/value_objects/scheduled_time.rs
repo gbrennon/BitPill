@@ -26,7 +26,7 @@ use crate::domain::errors::DomainError;
 /// assert!(matches!(ScheduledTime::new(24, 0), Err(DomainError::InvalidScheduledTime)));
 /// assert!(matches!(ScheduledTime::new(8, 60), Err(DomainError::InvalidScheduledTime)));
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize)]
 pub struct ScheduledTime {
     hour: u32,
     minute: u32,

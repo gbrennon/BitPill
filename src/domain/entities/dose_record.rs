@@ -33,7 +33,7 @@ use crate::domain::{
 /// };
 /// use chrono::NaiveDate;
 ///
-/// let medication_id  = MedicationId::create();
+/// let medication_id  = MedicationId::generate();
 /// let scheduled_at   = NaiveDate::from_ymd_opt(2025, 6, 1)
 ///     .unwrap()
 ///     .and_hms_opt(8, 0, 0)
@@ -52,7 +52,7 @@ use crate::domain::{
 ///     Err(DomainError::DoseAlreadyTaken)
 /// ));
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
 pub struct DoseRecord {
     id: DoseRecordId,
     medication_id: MedicationId,
@@ -69,10 +69,19 @@ impl DoseRecord {
     /// `taken_at` is initialised to `None`; the record is not yet taken.
     pub fn new(medication_id: MedicationId, scheduled_at: NaiveDateTime) -> Self {
         Self {
-            id: DoseRecordId::create(),
+            id: DoseRecordId::generate(),
             medication_id,
             scheduled_at,
             taken_at: None,
+        }
+    }
+
+    pub fn with_id(id: DoseRecordId, medication_id: MedicationId, scheduled_at: NaiveDateTime, taken_at: NaiveDateTime) -> Self {
+        Self {
+            id,
+            medication_id,
+            scheduled_at,
+            taken_at: Some(taken_at),
         }
     }
 
@@ -129,7 +138,7 @@ mod tests {
     }
 
     fn make_dose_record() -> DoseRecord {
-        DoseRecord::new(MedicationId::create(), make_datetime(8, 0))
+        DoseRecord::new(MedicationId::generate(), make_datetime(8, 0))
     }
 
     #[test]
@@ -172,7 +181,7 @@ mod tests {
     #[test]
     fn scheduled_at_returns_the_datetime_passed_to_constructor() {
         let scheduled_at = make_datetime(20, 0);
-        let record = DoseRecord::new(MedicationId::create(), scheduled_at);
+        let record = DoseRecord::new(MedicationId::generate(), scheduled_at);
 
         assert_eq!(record.scheduled_at(), scheduled_at);
     }

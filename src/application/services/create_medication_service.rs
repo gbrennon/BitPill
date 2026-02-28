@@ -28,7 +28,7 @@ impl CreateMedicationPort for CreateMedicationService {
         &self,
         request: CreateMedicationRequest,
     ) -> Result<CreateMedicationResponse, ApplicationError> {
-        let id = MedicationId::create();
+        let id = MedicationId::generate();
         let name = MedicationName::new(request.name)?;
         let dosage = Dosage::new(request.amount_mg)?;
         let times = request
