@@ -8,25 +8,29 @@ default: fmt-check lint test
 build:
     cargo build
 
-# Run the REST API server (default)
-run:
-    cargo run --bin rest
+# Run the REST API server
+run-api:
+    cargo run --bin bitpill -- api
 
 # Run the terminal UI
 run-tui:
-    cargo run --bin tui
+    cargo run --bin bitpill -- tui
 
-# Run both the REST server (background thread) and the TUI (foreground)
+# Run both the REST server (background) and the TUI (foreground)
+run:
+    cargo run --bin bitpill
+
+# Legacy alias: run-both runs same as run
 run-both:
-    cargo run --bin app
+    just run
 
 # Run all tests with coverage
 test:
-    cargo llvm-cov --ignore-filename-regex "ports/fakes"
+    cargo llvm-cov --features test-helpers --ignore-filename-regex "ports/fakes"
 
 # Run a single test by name substring
 test-one NAME:
-    cargo test {{NAME}}
+	scripts/test-one.sh {{NAME}}
 
 # Lint (zero warnings enforced)
 lint:

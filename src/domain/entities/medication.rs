@@ -1,3 +1,4 @@
+use crate::domain::value_objects::medication_frequency::DoseFrequency;
 use crate::domain::value_objects::{
     dosage::Dosage, medication_id::MedicationId, medication_name::MedicationName,
     scheduled_time::ScheduledTime,
@@ -16,7 +17,7 @@ use crate::domain::value_objects::{
 ///   storage.
 /// - `name` and `dosage` are validated value objects; they can only hold
 ///   legal values (non-empty name, non-zero dosage).
-/// - `scheduled_times` may be empty (unscheduled medication is allowed).
+/// - `scheduled_time` may be empty (unscheduled medication is allowed).
 ///
 /// # Examples
 ///
@@ -40,14 +41,15 @@ use crate::domain::value_objects::{
 ///
 /// assert_eq!(medication.name().value(), "Ibuprofen");
 /// assert_eq!(medication.dosage().amount_mg(), 400);
-/// assert_eq!(medication.scheduled_times().len(), 2);
+/// assert_eq!(medication.scheduled_time().len(), 2);
 /// ```
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
 pub struct Medication {
     id: MedicationId,
     name: MedicationName,
     dosage: Dosage,
-    scheduled_times: Vec<ScheduledTime>,
+    scheduled_time: Vec<ScheduledTime>,
+    dose_frequency: DoseFrequency,
 }
 
 impl Medication {
@@ -56,18 +58,20 @@ impl Medication {
     /// Use [`MedicationId::generate`] to generate a fresh identifier, or
     /// `MedicationId::from(uuid)` to reconstitute one from storage.
     /// `name` and `dosage` are pre-validated value objects.
-    /// `scheduled_times` may be an empty `Vec` for unscheduled medications.
+    /// `scheduled_time` may be an empty `Vec` for unscheduled medications.
     pub fn new(
         id: MedicationId,
         name: MedicationName,
         dosage: Dosage,
-        scheduled_times: Vec<ScheduledTime>,
+        scheduled_time: Vec<ScheduledTime>,
+        dose_frequency: DoseFrequency,
     ) -> Self {
         Self {
             id,
             name,
             dosage,
-            scheduled_times,
+            scheduled_time,
+            dose_frequency,
         }
     }
 
@@ -79,13 +83,15 @@ impl Medication {
         id: MedicationId,
         name: MedicationName,
         dosage: Dosage,
-        scheduled_times: Vec<ScheduledTime>,
+        scheduled_time: Vec<ScheduledTime>,
+        dose_frequency: DoseFrequency,
     ) -> Self {
         Self {
             id,
             name,
             dosage,
-            scheduled_times,
+            scheduled_time,
+            dose_frequency,
         }
     }
 
@@ -107,8 +113,12 @@ impl Medication {
     /// Returns the list of scheduled administration times.
     ///
     /// An empty slice means the medication has no fixed schedule.
-    pub fn scheduled_times(&self) -> &[ScheduledTime] {
-        &self.scheduled_times
+    pub fn scheduled_time(&self) -> &[ScheduledTime] {
+        &self.scheduled_time
+    }
+
+    pub fn dose_frequency(&self) -> &DoseFrequency {
+        &self.dose_frequency
     }
 }
 
@@ -128,6 +138,7 @@ mod tests {
                 ScheduledTime::new(8, 0).unwrap(),
                 ScheduledTime::new(20, 0).unwrap(),
             ],
+            DoseFrequency::TwiceDaily,
         )
     }
 
@@ -154,23 +165,24 @@ mod tests {
     }
 
     #[test]
-    fn scheduled_times_returns_all_times_passed_to_constructor() {
+    fn scheduled_time_returns_all_times_passed_to_constructor() {
         let med = make_medication();
 
-        assert_eq!(med.scheduled_times().len(), 2);
-        assert_eq!(med.scheduled_times()[0].to_string(), "08:00");
-        assert_eq!(med.scheduled_times()[1].to_string(), "20:00");
+        assert_eq!(med.scheduled_time().len(), 2);
+        assert_eq!(med.scheduled_time()[0].to_string(), "08:00");
+        assert_eq!(med.scheduled_time()[1].to_string(), "20:00");
     }
 
     #[test]
-    fn new_with_no_scheduled_times_is_allowed() {
+    fn new_with_no_scheduled_time_is_allowed() {
         let med = Medication::new(
             MedicationId::generate(),
             MedicationName::new("Aspirin").unwrap(),
             Dosage::new(500).unwrap(),
             vec![],
+            DoseFrequency::OnceDaily,
         );
 
-        assert!(med.scheduled_times().is_empty());
+        assert!(med.scheduled_time().is_empty());
     }
 }

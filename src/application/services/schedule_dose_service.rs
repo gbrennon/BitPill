@@ -61,7 +61,7 @@ impl ScheduleDoseService {
 
         for medication in &medications {
             let is_due = medication
-                .scheduled_times()
+                .scheduled_time()
                 .iter()
                 .any(|t| t.hour() == now.hour() && t.minute() == now.minute());
 
@@ -106,7 +106,7 @@ mod tests {
         entities::medication::Medication,
         value_objects::{
             dosage::Dosage, medication_id::MedicationId, medication_name::MedicationName,
-            scheduled_time::ScheduledTime,
+            scheduled_time::ScheduledTime, medication_frequency::DoseFrequency,
         },
     };
 
@@ -116,6 +116,7 @@ mod tests {
             MedicationName::new(name).unwrap(),
             Dosage::new(500).unwrap(),
             vec![ScheduledTime::new(hour, minute).unwrap()],
+            DoseFrequency::OnceDaily,
         )
     }
 
@@ -224,12 +225,13 @@ mod tests {
     }
 
     #[test]
-    fn execute_medication_with_no_scheduled_times_is_ignored() {
+    fn execute_medication_with_no_scheduled_time_is_ignored() {
         let medication = Medication::new(
             MedicationId::generate(),
             MedicationName::new("On-demand").unwrap(),
             Dosage::new(100).unwrap(),
             vec![],
+            DoseFrequency::OnceDaily,
         );
         let (service, dose_repo, notif) = make_service(vec![medication], FakeClock::at(8, 0));
 

@@ -85,7 +85,7 @@ All branches are covered by unit tests using in-memory fakes (no I/O):
 | `execute_notifies_all_medications_due_at_same_time` | Multiple matches in one tick |
 | `execute_created_record_links_to_correct_medication` | `medication_id` is preserved |
 | `execute_created_record_scheduled_at_matches_clock_now` | `scheduled_at` comes from clock |
-| `execute_medication_with_no_scheduled_times_is_ignored` | On-demand medications skipped |
+| `execute_medication_with_no_scheduled_time_is_ignored` | On-demand medications skipped |
 
 ---
 

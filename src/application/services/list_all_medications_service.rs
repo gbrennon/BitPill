@@ -28,11 +28,12 @@ impl ListAllMedicationsPort for ListAllMedicationsService {
                 id: m.id().to_string(),
                 name: m.name().value().to_string(),
                 amount_mg: m.dosage().amount_mg(),
-                scheduled_times: m
-                    .scheduled_times()
+                scheduled_time: m
+                    .scheduled_time()
                     .iter()
                     .map(|t| (t.hour(), t.minute()))
                     .collect(),
+                dose_frequency: m.dose_frequency().to_string(),
             })
             .collect();
         Ok(ListAllMedicationsResponse { medications: dtos })
@@ -47,7 +48,7 @@ mod tests {
         entities::medication::Medication,
         value_objects::{
             dosage::Dosage, medication_id::MedicationId, medication_name::MedicationName,
-            scheduled_time::ScheduledTime,
+            scheduled_time::ScheduledTime, medication_frequency::DoseFrequency,
         },
     };
 
@@ -57,6 +58,7 @@ mod tests {
             MedicationName::new(name).unwrap(),
             Dosage::new(amount_mg).unwrap(),
             vec![ScheduledTime::new(8, 0).unwrap()],
+            DoseFrequency::OnceDaily,
         )
     }
 
@@ -95,6 +97,6 @@ mod tests {
 
         assert_eq!(dto.name, "Paracetamol");
         assert_eq!(dto.amount_mg, 1000);
-        assert_eq!(dto.scheduled_times, vec![(8, 0)]);
+        assert_eq!(dto.scheduled_time, vec![(8, 0)]);
     }
 }

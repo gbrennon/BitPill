@@ -58,7 +58,13 @@ impl TakenAt {
         if (year, month, day, hour, minute) > now {
             return Err(DomainError::TakenAtInFuture);
         }
-        Ok(Self { year, month, day, hour, minute })
+        Ok(Self {
+            year,
+            month,
+            day,
+            hour,
+            minute,
+        })
     }
 
     /// Returns the year component.

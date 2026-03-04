@@ -2,9 +2,7 @@ use std::sync::Mutex;
 
 use crate::application::errors::StorageError;
 use crate::application::ports::medication_repository_port::MedicationRepository;
-use crate::domain::{
-    entities::medication::Medication, value_objects::medication_id::MedicationId,
-};
+use crate::domain::{entities::medication::Medication, value_objects::medication_id::MedicationId};
 
 pub struct FakeMedicationRepository {
     medications: Mutex<Vec<Medication>>,
