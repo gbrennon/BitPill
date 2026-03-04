@@ -3,8 +3,7 @@ use chrono::Timelike;
 use bitpill::application::ports::clock_port::ClockPort;
 use bitpill::application::ports::scheduled_time_supplier_port::ScheduledTimeSupplier;
 use bitpill::infrastructure::clock::{
-    system_clock::SystemClock,
-    system_scheduled_time_supplier::SystemScheduledTimeSupplier,
+    system_clock::SystemClock, system_scheduled_time_supplier::SystemScheduledTimeSupplier,
 };
 
 #[test]

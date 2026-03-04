@@ -48,8 +48,7 @@ mod tests {
     use super::*;
     use crate::application::ports::fakes::FakeDoseRecordRepository;
     use crate::domain::{
-        entities::dose_record::DoseRecord,
-        errors::DomainError,
+        entities::dose_record::DoseRecord, errors::DomainError,
         value_objects::medication_id::MedicationId,
     };
     use chrono::NaiveDate;

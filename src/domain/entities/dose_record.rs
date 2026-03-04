@@ -76,7 +76,12 @@ impl DoseRecord {
         }
     }
 
-    pub fn with_id(id: DoseRecordId, medication_id: MedicationId, scheduled_at: NaiveDateTime, taken_at: NaiveDateTime) -> Self {
+    pub fn with_id(
+        id: DoseRecordId,
+        medication_id: MedicationId,
+        scheduled_at: NaiveDateTime,
+        taken_at: NaiveDateTime,
+    ) -> Self {
         Self {
             id,
             medication_id,

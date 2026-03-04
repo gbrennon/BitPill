@@ -52,14 +52,14 @@ curl http://localhost:8080/medications
     "id": "019535c4-...",
     "name": "Ibuprofen",
     "amount_mg": 400,
-    "scheduled_times": [[8, 0], [20, 0]]
+    "scheduled_time": [[8, 0], [20, 0]]
   }
 ]
 ```
 
 **Create a medication**
 
-`scheduled_times` is an array of `[hour, minute]` pairs (24-hour clock).
+`scheduled_time` is an array of `[hour, minute]` pairs (24-hour clock).
 
 ```bash
 curl -X POST http://localhost:8080/medications \
@@ -67,7 +67,7 @@ curl -X POST http://localhost:8080/medications \
   -d '{
     "name": "Ibuprofen",
     "amount_mg": 400,
-    "scheduled_times": [[8, 0], [20, 0]]
+    "scheduled_time": [[8, 0], [20, 0]]
   }'
 ```
 
@@ -152,7 +152,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 | Create form | `Esc` | Cancel and go back |
 | Schedule result | any key | Dismiss and go back |
 
-`scheduled_times` in the form accepts comma-separated `HH:MM` entries, e.g. `08:00,20:00`.
+`scheduled_time` in the form accepts comma-separated `HH:MM` entries, e.g. `08:00,20:00`.
 
 ---
 

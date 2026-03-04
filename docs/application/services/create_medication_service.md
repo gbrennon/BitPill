@@ -29,7 +29,7 @@ pub fn execute(
     &self,
     name: impl Into<String>,
     amount_mg: u32,
-    scheduled_times: Vec<(u32, u32)>,  // (hour, minute) pairs
+    scheduled_time: Vec<(u32, u32)>,  // (hour, minute) pairs
 ) -> Result<Medication, CreateMedicationError>
 ```
 

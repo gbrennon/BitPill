@@ -1,9 +1,6 @@
 use bitpill::application::ports::notification_port::NotificationPort;
 use bitpill::domain::{
-    entities::{
-        dose_record::DoseRecord,
-        medication::Medication,
-    },
+    entities::{dose_record::DoseRecord, medication::Medication},
     value_objects::{
         dosage::Dosage, medication_id::MedicationId, medication_name::MedicationName,
         scheduled_time::ScheduledTime,
@@ -18,6 +15,7 @@ fn make_medication() -> Medication {
         MedicationName::new("Aspirin").unwrap(),
         Dosage::new(500).unwrap(),
         vec![ScheduledTime::new(8, 0).unwrap()],
+        bitpill::domain::value_objects::medication_frequency::DoseFrequency::OnceDaily,
     )
 }
 

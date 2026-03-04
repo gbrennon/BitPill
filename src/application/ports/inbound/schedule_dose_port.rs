@@ -3,6 +3,7 @@ use chrono::NaiveDateTime;
 use crate::application::errors::ApplicationError;
 
 /// Data transfer object for a dose record created during a scheduling tick.
+#[derive(Clone)]
 pub struct DoseRecordDto {
     pub id: String,
     pub medication_id: String,

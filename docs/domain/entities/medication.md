@@ -13,7 +13,7 @@ name, dosage, and scheduled administration times.
 | `id` | `MedicationId` | UUID v7, supplied by the caller on `new`. Unique per instance. |
 | `name` | `MedicationName` | Validated, trimmed medication name. |
 | `dosage` | `Dosage` | Prescribed amount in milligrams (> 0). |
-| `scheduled_times` | `Vec<ScheduledTime>` | Ordered list of daily administration times. May be empty. |
+| `scheduled_time` | `Vec<ScheduledTime>` | Ordered list of daily administration times. May be empty. |
 
 ---
 
@@ -22,7 +22,7 @@ name, dosage, and scheduled administration times.
 - `id` is supplied by the caller — use [`MedicationId::create()`](../value_objects/medication_id.md) to generate a fresh UUID v7.
 - `name` and `dosage` are pre-validated value objects; illegal values are
   rejected before `Medication::new` is called.
-- `scheduled_times` may be empty (unscheduled/on-demand medication is valid).
+- `scheduled_time` may be empty (unscheduled/on-demand medication is valid).
 - The struct is immutable after creation — no setters are exposed.
 
 ---
@@ -34,7 +34,7 @@ pub fn new(
     id: MedicationId,
     name: MedicationName,
     dosage: Dosage,
-    scheduled_times: Vec<ScheduledTime>,
+    scheduled_time: Vec<ScheduledTime>,
 ) -> Medication
 ```
 
@@ -72,7 +72,7 @@ let medication = Medication::new(
 | `id()` | `&MedicationId` | The medication's unique identifier |
 | `name()` | `&MedicationName` | The validated name |
 | `dosage()` | `&Dosage` | The prescribed dosage |
-| `scheduled_times()` | `&[ScheduledTime]` | All scheduled administration times |
+| `scheduled_time()` | `&[ScheduledTime]` | All scheduled administration times |
 
 ---
 

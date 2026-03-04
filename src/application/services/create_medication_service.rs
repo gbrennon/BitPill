@@ -9,7 +9,7 @@ use crate::domain::{
     entities::medication::Medication,
     value_objects::{
         dosage::Dosage, medication_id::MedicationId, medication_name::MedicationName,
-        scheduled_time::ScheduledTime,
+        scheduled_time::ScheduledTime, medication_frequency::DoseFrequency,
     },
 };
 
@@ -32,12 +32,20 @@ impl CreateMedicationPort for CreateMedicationService {
         let name = MedicationName::new(request.name)?;
         let dosage = Dosage::new(request.amount_mg)?;
         let times = request
-            .scheduled_times
+            .scheduled_time
             .into_iter()
             .map(|(h, m)| ScheduledTime::new(h, m))
             .collect::<Result<Vec<_>, _>>()?;
 
-        let medication = Medication::new(id, name, dosage, times);
+        let dose_frequency = match request.dose_frequency.as_str() {
+            "OnceDaily" => DoseFrequency::OnceDaily,
+            "TwiceDaily" => DoseFrequency::TwiceDaily,
+            "ThriceDaily" => DoseFrequency::ThriceDaily,
+            "Custom" => DoseFrequency::Custom(times.clone()),
+            _ => DoseFrequency::OnceDaily,
+        };
+
+        let medication = Medication::new(id, name, dosage, times, dose_frequency);
 
         self.repository.save(&medication)?;
 
@@ -56,9 +64,9 @@ mod tests {
     fn make_request(
         name: &str,
         amount_mg: u32,
-        scheduled_times: Vec<(u32, u32)>,
+        scheduled_time: Vec<(u32, u32)>,
     ) -> CreateMedicationRequest {
-        CreateMedicationRequest::new(name, amount_mg, scheduled_times)
+        CreateMedicationRequest::new(name, amount_mg, scheduled_time, "OnceDaily")
     }
 
     #[test]

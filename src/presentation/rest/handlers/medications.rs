@@ -1,12 +1,14 @@
 use std::sync::Arc;
 
-use actix_web::{web, HttpResponse};
+use actix_web::{HttpResponse, web};
 use serde::{Deserialize, Serialize};
 
 use crate::application::errors::ApplicationError;
 use crate::application::ports::create_medication_port::{
     CreateMedicationPort, CreateMedicationRequest,
 };
+use crate::application::ports::inbound::get_medication_port::GetMedicationRequest;
+use crate::application::ports::inbound::update_medication_port::UpdateMedicationRequest;
 use crate::application::ports::list_all_medications_port::{
     ListAllMedicationsPort, ListAllMedicationsRequest,
 };
@@ -18,14 +20,15 @@ pub struct MedicationListItem {
     pub id: String,
     pub name: String,
     pub amount_mg: u32,
-    pub scheduled_times: Vec<(u32, u32)>,
+    pub scheduled_time: Vec<(u32, u32)>,
 }
 
 #[derive(Deserialize)]
 pub struct CreateMedicationBody {
     pub name: String,
     pub amount_mg: u32,
-    pub scheduled_times: Vec<(u32, u32)>,
+    pub scheduled_time: Vec<(u32, u32)>,
+    pub dose_frequency: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -51,7 +54,7 @@ pub async fn list_all(data: web::Data<Arc<Container>>) -> HttpResponse {
                     id: m.id,
                     name: m.name,
                     amount_mg: m.amount_mg,
-                    scheduled_times: m.scheduled_times,
+                    scheduled_time: m.scheduled_time,
                 })
                 .collect();
             HttpResponse::Ok().json(items)
@@ -62,12 +65,68 @@ pub async fn list_all(data: web::Data<Arc<Container>>) -> HttpResponse {
     }
 }
 
+pub async fn get_by_id(data: web::Data<Arc<Container>>, path: web::Path<String>) -> HttpResponse {
+    use crate::application::ports::inbound::get_medication_port::GetMedicationPort;
+
+    let id = path.into_inner();
+    let request = GetMedicationRequest { id };
+    match data.get_medication_service.execute(request) {
+        Ok(resp) => HttpResponse::Ok().json(MedicationListItem {
+            id: resp.medication.id,
+            name: resp.medication.name,
+            amount_mg: resp.medication.amount_mg,
+            scheduled_time: resp.medication.scheduled_time,
+        }),
+        Err(e) => HttpResponse::InternalServerError().json(ErrorBody {
+            error: e.to_string(),
+        }),
+    }
+}
+
+pub async fn update(
+    data: web::Data<Arc<Container>>,
+    path: web::Path<String>,
+    body: web::Json<CreateMedicationBody>,
+) -> HttpResponse {
+    let id = path.into_inner();
+    let request = UpdateMedicationRequest {
+        id,
+        name: body.name.clone(),
+        amount_mg: body.amount_mg,
+        scheduled_time: body.scheduled_time.clone(),
+        dose_frequency: "OnceDaily".to_string(),
+    };
+    use crate::application::ports::inbound::update_medication_port::UpdateMedicationPort;
+
+    match data.update_medication_service.execute(request) {
+        Ok(resp) => HttpResponse::Ok().json(CreateMedicationResponseBody { id: resp.id }),
+        Err(ApplicationError::Domain(
+            DomainError::InvalidDosage
+            | DomainError::EmptyMedicationName
+            | DomainError::InvalidScheduledTime,
+        )) => HttpResponse::BadRequest().json(ErrorBody {
+            error: "invalid input".into(),
+        }),
+        Err(e) => HttpResponse::InternalServerError().json(ErrorBody {
+            error: e.to_string(),
+        }),
+    }
+}
+
 pub async fn create(
     data: web::Data<Arc<Container>>,
     body: web::Json<CreateMedicationBody>,
 ) -> HttpResponse {
-    let request =
-        CreateMedicationRequest::new(body.name.clone(), body.amount_mg, body.scheduled_times.clone());
+    let freq = body
+        .dose_frequency
+        .clone()
+        .unwrap_or_else(|| "OnceDaily".to_string());
+    let request = CreateMedicationRequest::new(
+        body.name.clone(),
+        body.amount_mg,
+        body.scheduled_time.clone(),
+        freq,
+    );
 
     match data.create_medication_service.execute(request) {
         Ok(resp) => HttpResponse::Created().json(CreateMedicationResponseBody { id: resp.id }),
