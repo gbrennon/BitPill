@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use crate::application::errors::ApplicationError;
+use crate::application::ports::dose_record_repository_port::DoseRecordRepository;
 use crate::application::ports::inbound::list_dose_records_port::{
     DoseRecordDto, ListDoseRecordsPort, ListDoseRecordsRequest, ListDoseRecordsResponse,
 };
-use crate::application::ports::dose_record_repository_port::DoseRecordRepository;
 
 pub struct ListDoseRecordsService {
     repository: Arc<dyn DoseRecordRepository>,
@@ -23,7 +23,10 @@ impl ListDoseRecordsPort for ListDoseRecordsService {
     ) -> Result<ListDoseRecordsResponse, ApplicationError> {
         let medication_id = crate::domain::value_objects::medication_id::MedicationId::from(
             uuid::Uuid::parse_str(&request.medication_id).map_err(|_| {
-                ApplicationError::InvalidInput(format!("invalid medication id: {}", request.medication_id))
+                ApplicationError::InvalidInput(format!(
+                    "invalid medication id: {}",
+                    request.medication_id
+                ))
             })?,
         );
         let records = self.repository.find_all_by_medication(&medication_id)?;

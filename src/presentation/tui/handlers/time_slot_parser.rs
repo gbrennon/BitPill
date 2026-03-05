@@ -22,7 +22,11 @@ impl std::fmt::Display for SlotParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::InvalidFormat { slot_index } => {
-                write!(f, "Invalid time in slot {}: expected HH:MM or HH:MM:SS", slot_index + 1)
+                write!(
+                    f,
+                    "Invalid time in slot {}: expected HH:MM or HH:MM:SS",
+                    slot_index + 1
+                )
             }
             Self::OutOfRange { slot_index } => {
                 write!(f, "Time out of range in slot {}", slot_index + 1)
@@ -66,10 +70,7 @@ pub fn parse_slots(raw: &[String]) -> Result<ParsedSlots, SlotParseError> {
 /// Returns `Ok(())` when the number of parsed times is valid for `selected_frequency`.
 ///
 /// Fixed frequencies (0–2) require an exact count. Custom (3) requires at least 1.
-pub fn validate_slot_count(
-    selected_frequency: usize,
-    count: usize,
-) -> Result<(), String> {
+pub fn validate_slot_count(selected_frequency: usize, count: usize) -> Result<(), String> {
     let valid = match selected_frequency {
         0 => count == 1,
         1 => count == 2,

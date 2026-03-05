@@ -13,10 +13,10 @@ use crate::application::ports::list_all_medications_port::{
     ListAllMedicationsPort, ListAllMedicationsRequest, MedicationDto,
 };
 use crate::infrastructure::container::Container;
+use crate::presentation::tui::draw;
 use crate::presentation::tui::handlers::event_handler::EventHandler;
 use crate::presentation::tui::handlers::port::Handler;
 use crate::presentation::tui::screen::Screen;
-use crate::presentation::tui::draw;
 
 pub struct App {
     pub container: Arc<Container>,
@@ -48,7 +48,8 @@ impl App {
     /// Set a temporary status message that will expire after `duration_ms` milliseconds.
     pub fn set_status(&mut self, msg: impl Into<String>, duration_ms: u64) {
         self.status_message = Some(msg.into());
-        self.status_expires_at = Some(std::time::Instant::now() + Duration::from_millis(duration_ms));
+        self.status_expires_at =
+            Some(std::time::Instant::now() + Duration::from_millis(duration_ms));
     }
 
     pub fn clear_status(&mut self) {

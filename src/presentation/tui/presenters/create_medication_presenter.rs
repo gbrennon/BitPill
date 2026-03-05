@@ -20,7 +20,11 @@ pub struct CreateMedicationPresenterDto<'a> {
 impl CreateMedicationPresenter {
     /// Render the Create Medication form screen from supplied data.
     pub fn present(&self, f: &mut Frame, dto: &CreateMedicationPresenterDto) {
-        let subtitle = if dto.insert_mode { "Create Medication (INSERT)" } else { "Create Medication" };
+        let subtitle = if dto.insert_mode {
+            "Create Medication (INSERT)"
+        } else {
+            "Create Medication"
+        };
         render_medication_form(
             f,
             subtitle,

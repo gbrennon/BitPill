@@ -1,12 +1,14 @@
-use std::sync::Arc;
-use tempfile::tempdir;
+use bitpill::application::ports::create_medication_port::{
+    CreateMedicationPort, CreateMedicationRequest,
+};
 use bitpill::infrastructure::container::Container;
 use bitpill::presentation::tui::app::App;
-use bitpill::presentation::tui::screen::Screen;
 use bitpill::presentation::tui::handlers::edit_medication_handler::EditMedicationHandler;
 use bitpill::presentation::tui::handlers::port::Handler;
-use bitpill::application::ports::create_medication_port::{CreateMedicationRequest, CreateMedicationPort};
+use bitpill::presentation::tui::screen::Screen;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use std::sync::Arc;
+use tempfile::tempdir;
 
 #[test]
 fn handle_enter_updates_medication() {
@@ -19,7 +21,10 @@ fn handle_enter_updates_medication() {
 
     // create initial medication via service
     let req = CreateMedicationRequest::new("Initial", 50, vec![(8, 0)], "OnceDaily".to_string());
-    let resp = container.create_medication_service.execute(req).expect("create failed");
+    let resp = container
+        .create_medication_service
+        .execute(req)
+        .expect("create failed");
     let med_id = resp.id;
 
     let mut app = App::new(container.clone());
@@ -39,5 +44,8 @@ fn handle_enter_updates_medication() {
     handler.handle(&mut app, key);
 
     assert!(matches!(app.current_screen, Screen::HomeScreen));
-    assert_eq!(app.status_message.as_deref(), Some("Medication updated successfully"));
+    assert_eq!(
+        app.status_message.as_deref(),
+        Some("Medication updated successfully")
+    );
 }

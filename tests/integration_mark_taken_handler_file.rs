@@ -1,11 +1,11 @@
-use std::sync::Arc;
-use tempfile::tempdir;
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use bitpill::application::ports::inbound::list_all_medications_port::MedicationDto;
 use bitpill::infrastructure::container::Container;
 use bitpill::presentation::tui::app::App;
 use bitpill::presentation::tui::handlers::medication_list_handler::MedicationListHandler;
 use bitpill::presentation::tui::handlers::port::Handler;
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use std::sync::Arc;
+use tempfile::tempdir;
 
 #[test]
 fn handler_saves_dose_record_to_file() {
@@ -34,6 +34,10 @@ fn handler_saves_dose_record_to_file() {
 
     // Now pressing 's' should show an instruction to open details
     assert!(app.status_message.is_some());
-    assert!(app.status_message.as_ref().unwrap().contains("Open medication details"));
+    assert!(
+        app.status_message
+            .as_ref()
+            .unwrap()
+            .contains("Open medication details")
+    );
 }
-

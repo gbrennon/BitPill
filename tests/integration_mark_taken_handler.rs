@@ -1,12 +1,12 @@
-use std::sync::Arc;
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use bitpill::application::ports::fakes::FakeDoseRecordRepository;
+use bitpill::application::ports::inbound::list_all_medications_port::MedicationDto;
 use bitpill::application::ports::outbound::dose_record_repository_port::DoseRecordRepository;
 use bitpill::application::services::mark_medication_taken_service::MarkMedicationTakenService;
 use bitpill::presentation::tui::app::App;
 use bitpill::presentation::tui::handlers::medication_list_handler::MedicationListHandler;
 use bitpill::presentation::tui::handlers::port::Handler;
-use bitpill::application::ports::inbound::list_all_medications_port::MedicationDto;
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use std::sync::Arc;
 
 #[test]
 fn medication_list_handler_saves_taken_dose_record_on_s() {
@@ -33,6 +33,10 @@ fn medication_list_handler_saves_taken_dose_record_on_s() {
 
     // Now pressing 's' on the list should instruct the user to open details to mark as taken.
     assert!(app.status_message.is_some());
-    assert!(app.status_message.as_ref().unwrap().contains("Open medication details"));
+    assert!(
+        app.status_message
+            .as_ref()
+            .unwrap()
+            .contains("Open medication details")
+    );
 }
-

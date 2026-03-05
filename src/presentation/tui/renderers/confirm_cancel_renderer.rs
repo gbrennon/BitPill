@@ -7,7 +7,12 @@ pub struct ConfirmCancelRenderer;
 
 impl ScreenRenderer for ConfirmCancelRenderer {
     fn render(&self, f: &mut Frame, app: &App) {
-        render_modal(f, f.area(), "Discard Changes", "Discard changes and return?  (y/N)");
+        render_modal(
+            f,
+            f.area(),
+            "Discard Changes",
+            "Discard changes and return?  (y/N)",
+        );
         let _ = app;
     }
 }

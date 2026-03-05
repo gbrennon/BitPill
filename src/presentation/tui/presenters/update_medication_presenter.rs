@@ -17,7 +17,11 @@ pub struct UpdateMedicationPresenterDto<'a> {
 
 impl UpdateMedicationPresenter {
     pub fn present(&self, f: &mut Frame, dto: &UpdateMedicationPresenterDto) {
-        let subtitle = if dto.insert_mode { "Edit Medication (INSERT)" } else { "Edit Medication" };
+        let subtitle = if dto.insert_mode {
+            "Edit Medication (INSERT)"
+        } else {
+            "Edit Medication"
+        };
         render_medication_form(
             f,
             subtitle,

@@ -24,7 +24,10 @@ impl Default for JsonDoseRecordRepository {
 impl JsonDoseRecordRepository {
     pub fn new(path: PathBuf) -> Self {
         let records = Self::load_from_path(&path).unwrap_or_default();
-        Self { path, records: Mutex::new(records) }
+        Self {
+            path,
+            records: Mutex::new(records),
+        }
     }
 
     pub fn with_default_path() -> Self {
@@ -103,8 +106,7 @@ mod tests {
     use super::*;
     use crate::application::ports::dose_record_repository_port::DoseRecordRepository;
     use crate::domain::{
-        entities::dose_record::DoseRecord,
-        value_objects::medication_id::MedicationId,
+        entities::dose_record::DoseRecord, value_objects::medication_id::MedicationId,
     };
     use chrono::NaiveDate;
     use tempfile::tempdir;
@@ -143,7 +145,9 @@ mod tests {
         let record = make_record();
 
         repo.save(&record).expect("save should succeed");
-        let all = repo.find_all_by_medication(&make_med_id()).expect("find_all should succeed");
+        let all = repo
+            .find_all_by_medication(&make_med_id())
+            .expect("find_all should succeed");
 
         assert_eq!(all.len(), 1);
     }

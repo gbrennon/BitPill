@@ -75,7 +75,11 @@ mod tests {
         let service = EditMedicationService::new(repo);
 
         let result = service.execute(EditMedicationRequest::new(
-            &id, "Updated", 200, vec![(9, 0)], "OnceDaily",
+            &id,
+            "Updated",
+            200,
+            vec![(9, 0)],
+            "OnceDaily",
         ));
 
         assert!(result.is_ok());
@@ -88,13 +92,21 @@ mod tests {
         let id = seed_medication(repo.clone());
         let service = EditMedicationService::new(repo.clone());
 
-        service.execute(EditMedicationRequest::new(
-            &id, "UpdatedName", 250, vec![(10, 30)], "TwiceDaily",
-        )).unwrap();
+        service
+            .execute(EditMedicationRequest::new(
+                &id,
+                "UpdatedName",
+                250,
+                vec![(10, 30)],
+                "TwiceDaily",
+            ))
+            .unwrap();
 
         // FakeMedicationRepository appends on save; the last entry is the updated one
         let saved = repo.find_all().unwrap();
-        let med = saved.iter().rev()
+        let med = saved
+            .iter()
+            .rev()
             .find(|m| m.id().to_string() == id)
             .unwrap();
         assert_eq!(med.name().value(), "UpdatedName");
@@ -107,7 +119,11 @@ mod tests {
         let service = EditMedicationService::new(repo);
 
         let result = service.execute(EditMedicationRequest::new(
-            "not-a-uuid", "Name", 100, vec![(8, 0)], "OnceDaily",
+            "not-a-uuid",
+            "Name",
+            100,
+            vec![(8, 0)],
+            "OnceDaily",
         ));
 
         assert!(result.is_err());
@@ -120,7 +136,11 @@ mod tests {
         let service = EditMedicationService::new(repo);
 
         let result = service.execute(EditMedicationRequest::new(
-            &id, "", 100, vec![(8, 0)], "OnceDaily",
+            &id,
+            "",
+            100,
+            vec![(8, 0)],
+            "OnceDaily",
         ));
 
         assert!(result.is_err());
