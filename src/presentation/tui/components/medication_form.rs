@@ -1,6 +1,7 @@
 use crate::presentation::tui::templates::form_template::{FormField, FormTemplate};
 use ratatui::Frame;
 
+#[allow(clippy::too_many_arguments)]
 pub fn render_medication_form<'a>(
     f: &mut Frame,
     subtitle: &str,
