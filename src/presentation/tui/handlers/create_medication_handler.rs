@@ -99,20 +99,20 @@ impl Handler for CreateMedicationHandler {
                 let parsed_amount: u32 = match amount_mg.trim().parse() {
                     Ok(v) => v,
                     Err(_) => {
-                        app.status_message = Some("Invalid amount_mg value".into());
+                        app.current_screen = Screen::ValidationError { message: "Invalid amount_mg value".into(), previous: Box::new(app.current_screen.clone()) };
                         return HandlerResult::Continue;
                     }
                 };
 
                 match parse_slots(&nav.scheduled_time) {
                     Err(e) => {
-                        app.status_message = Some(e.to_string());
+                        app.current_screen = Screen::ValidationError { message: e.to_string(), previous: Box::new(app.current_screen.clone()) };
                         set_screen(app, name, amount_mg, selected_frequency, nav, insert_mode);
                         return HandlerResult::Continue;
                     }
                     Ok(parsed) => {
                         if let Err(msg) = validate_slot_count(selected_frequency, parsed.times.len()) {
-                            app.status_message = Some(msg);
+                            app.current_screen = Screen::ValidationError { message: msg.clone(), previous: Box::new(app.current_screen.clone()) };
                             let new_nav = NavigationState {
                                 focused_field,
                                 scheduled_time: parsed.normalized,

@@ -15,44 +15,58 @@ impl Default for MarkDoseHandler {
 
 impl Handler for MarkDoseHandler {
     fn handle(&mut self, app: &mut App, key: KeyEvent) -> HandlerResult {
-        match &app.current_screen {
-            Screen::MarkDose { medication_id, records, selected_index } => {
-                match key.code {
-                    crossterm::event::KeyCode::Esc => {
-                        app.current_screen = Screen::HomeScreen;
-                    }
-                    crossterm::event::KeyCode::Char('j') | crossterm::event::KeyCode::Down => {
-                        let idx = (*selected_index + 1).min(records.len().saturating_sub(1));
-                        app.current_screen = Screen::MarkDose {
-                            medication_id: medication_id.clone(),
-                            records: records.to_vec(),
-                            selected_index: idx,
-                        };
-                    }
-                    crossterm::event::KeyCode::Char('k') | crossterm::event::KeyCode::Up => {
-                        let idx = selected_index.saturating_sub(1);
-                        app.current_screen = Screen::MarkDose {
-                            medication_id: medication_id.clone(),
-                            records: records.to_vec(),
-                            selected_index: idx,
-                        };
-                    }
-                    crossterm::event::KeyCode::Enter => {
-                        if records.is_empty() {
-                            app.set_status("No records to mark", 3000);
-                            app.current_screen = Screen::HomeScreen;
-                        } else {
-                            let rec = &records[*selected_index];
-                            let req = MarkDoseTakenRequest::new(rec.id.clone(), chrono::Local::now().naive_local());
-                            match crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort::execute(&app.container.mark_dose_taken_service, req) {
-                                Ok(_) => app.set_status("Marked as taken", 3000),
-                                Err(e) => app.status_message = Some(format!("Error: {e}")),
-                            }
-                            app.current_screen = Screen::HomeScreen;
-                            app.load_medications();
+        // Extract current mark-dose state up-front to avoid borrowing `app` mutably while it's still borrowed immutably.
+        let (med_id, recs, sel_idx) = if let Screen::MarkDose { medication_id, records, selected_index } = &app.current_screen {
+            (medication_id.clone(), records.clone(), *selected_index)
+        } else {
+            return HandlerResult::Continue;
+        };
+
+        match key.code {
+            crossterm::event::KeyCode::Esc => {
+                app.current_screen = Screen::HomeScreen;
+            }
+            crossterm::event::KeyCode::Char('j') | crossterm::event::KeyCode::Down => {
+                let idx = (sel_idx + 1).min(recs.len().saturating_sub(1));
+                app.current_screen = Screen::MarkDose {
+                    medication_id: med_id.clone(),
+                    records: recs.to_vec(),
+                    selected_index: idx,
+                };
+            }
+            crossterm::event::KeyCode::Char('k') | crossterm::event::KeyCode::Up => {
+                let idx = sel_idx.saturating_sub(1);
+                app.current_screen = Screen::MarkDose {
+                    medication_id: med_id.clone(),
+                    records: recs.to_vec(),
+                    selected_index: idx,
+                };
+            }
+            crossterm::event::KeyCode::Enter => {
+                if recs.is_empty() {
+                    app.set_status("No records to mark", 3000);
+                    app.current_screen = Screen::HomeScreen;
+                } else {
+                    let rec = &recs[sel_idx];
+                    if rec.id.starts_with("slot:") {
+                        match crate::application::ports::inbound::mark_medication_taken_port::MarkMedicationTakenPort::execute(
+                            &app.container.mark_medication_taken_service,
+                            crate::application::ports::inbound::mark_medication_taken_port::MarkMedicationTakenRequest::new(rec.medication_id.clone(), rec.scheduled_at),
+                        ) {
+                            Ok(_) => app.set_status("Marked scheduled slot as taken", 3000),
+                            Err(e) => app.status_message = Some(format!("Error: {e}")),
                         }
+                        app.load_medications();
+                        app.current_screen = Screen::MedicationDetails { id: rec.medication_id.clone() };
+                    } else {
+                        let req = MarkDoseTakenRequest::new(rec.id.clone(), chrono::Local::now().naive_local());
+                        match crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort::execute(&app.container.mark_dose_taken_service, req) {
+                            Ok(_) => app.set_status("Marked as taken", 3000),
+                            Err(e) => app.status_message = Some(format!("Error: {e}")),
+                        }
+                        app.current_screen = Screen::HomeScreen;
+                        app.load_medications();
                     }
-                    _ => {}
                 }
             }
             _ => {}

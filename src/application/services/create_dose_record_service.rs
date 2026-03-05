@@ -34,7 +34,7 @@ impl CreateDoseRecordPort for CreateDoseRecordsService {
 mod tests {
     use super::*;
     use std::sync::Arc;
-    use chrono::{NaiveDate, NaiveDateTime};
+    use chrono::NaiveDate;
     use crate::application::ports::fakes::FakeDoseRecordRepository;
 
     #[test]
@@ -42,7 +42,7 @@ mod tests {
         let repo = Arc::new(FakeDoseRecordRepository::new());
         let service = CreateDoseRecordsService::new(repo.clone());
         let med_id = uuid::Uuid::nil().to_string();
-        let scheduled_at = NaiveDate::from_ymd(2020, 1, 1).and_hms(9, 0, 0);
+        let scheduled_at = NaiveDate::from_ymd_opt(2020, 1, 1).unwrap().and_hms_opt(9, 0, 0).unwrap();
         let req = CreateDoseRecordRequest::new(med_id.clone(), scheduled_at);
         let res = service.execute(req).expect("execute should succeed");
         assert!(!res.id.is_empty());

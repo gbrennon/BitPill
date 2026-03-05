@@ -13,6 +13,7 @@ pub struct MedicationDto {
     pub name: String,
     pub amount_mg: u32,
     pub scheduled_time: Vec<(u32, u32)>,
+    pub dose_frequency: String,
 }
 
 pub trait GetMedicationPort: Send + Sync {

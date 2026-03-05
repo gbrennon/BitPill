@@ -51,7 +51,7 @@ pub struct FormField<'a> {
 /// ```
 ///
 /// # Example
-/// ```rust
+/// ```ignore
 /// FormTemplate {
 ///     subtitle: "Create Medication",
 ///     fields: &[

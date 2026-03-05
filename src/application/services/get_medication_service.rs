@@ -37,6 +37,13 @@ impl GetMedicationPort for GetMedicationService {
                         .iter()
                         .map(|t| (t.hour(), t.minute()))
                         .collect(),
+                    dose_frequency: match m.dose_frequency() {
+                        crate::domain::value_objects::medication_frequency::DoseFrequency::OnceDaily => "OnceDaily".into(),
+                        crate::domain::value_objects::medication_frequency::DoseFrequency::TwiceDaily => "TwiceDaily".into(),
+                        crate::domain::value_objects::medication_frequency::DoseFrequency::ThriceDaily => "ThriceDaily".into(),
+                        crate::domain::value_objects::medication_frequency::DoseFrequency::Custom(_) => "Custom".into(),
+                        crate::domain::value_objects::medication_frequency::DoseFrequency::EveryXHours(_) => "EveryXHours".into(),
+                    },
                 },
             }),
             None => Err(ApplicationError::NotFound(NotFoundError)),

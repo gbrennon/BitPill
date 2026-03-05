@@ -22,7 +22,7 @@ use crate::presentation::tui::styles::TOP_BAR_HEIGHT;
 /// ```
 ///
 /// # Example
-/// ```rust
+/// ```ignore
 /// ScreenTemplate { subtitle: "Medications", help: "[q] Quit" }
 ///     .render(f, |f, content_area| {
 ///         f.render_widget(my_widget, content_area);

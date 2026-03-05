@@ -31,5 +31,8 @@ fn medication_list_handler_saves_taken_dose_record_on_s() {
     let key = KeyEvent::new(KeyCode::Char('s'), KeyModifiers::NONE);
     handler.handle(&mut app, key);
 
-    assert_eq!(fake_repo.saved_count(), 1);
+    // Now pressing 's' on the list should instruct the user to open details to mark as taken.
+    assert!(app.status_message.is_some());
+    assert!(app.status_message.as_ref().unwrap().contains("Open medication details"));
 }
+
