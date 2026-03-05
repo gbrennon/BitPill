@@ -88,10 +88,8 @@ impl App {
             }
 
             // Clear temporary status messages when expired
-            if let Some(exp) = app.status_expires_at {
-                if std::time::Instant::now() >= exp {
-                    app.clear_status();
-                }
+            if let Some(exp) = app.status_expires_at && std::time::Instant::now() >= exp {
+                app.clear_status();
             }
 
             if app.should_quit {
