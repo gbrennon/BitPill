@@ -28,7 +28,7 @@ This document explains how to maintain, debug, and extend the BitPill Rust proje
 - Presenters define a trait in `presenters/presenter_port.rs` and implement rendering logic in that module.
 
 ## Testing
-- Unit tests: keep fast and isolated; use fakes in `src/application/ports/fakes.rs` instead of real I/O.
+- Unit tests: keep fast and isolated; use in-memory fakes and do not perform I/O. Shared/test helper fakes should live under `tests/fakes/` (or in `src/application/ports/fakes/` when feature-gated) and be available under `#[cfg(any(test, feature = "test-helpers"))]`.
 - Integration/E2E tests: put under `tests/` and use `ratatui::backend::TestBackend` for TUI rendering checks.
 - Always run `just test` after changes. Use `just test-one` for rapid feedback.
 - Tests should follow Arrange/Act/Assert and use descriptive names.
