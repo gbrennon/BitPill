@@ -8,151 +8,79 @@ It is being built with a focus on reliability and correctness, because when it c
 
 ---
 
+## Why did I build this?
+
+I built BitPill to solve a personal problem: managing my complex medication regimen for a chronic condition.
+
+This was developed because my medications are expensive and if I dont take them correctly, I risk my health and waste money.
+
+I can have convulsions if I miss doses, so I need a reliable way to track when to take each medication and ensure I dont forget.
+
+By building my own, I can tailor it exactly to my needs and ensure it works correctly.
+
+---
+
 ## Prerequisites
 
 - [Rust](https://rustup.rs/) (edition 2024, stable toolchain)
 - [just](https://github.com/casey/just) — task runner (`cargo install just` or via your package manager)
 
-Install all other dev tools with:
+### Observation
 
-```bash
-just tools
-```
+BitPill is designed to be simple to run locally without a lot of external dependencies.
+
+It uses JSON as the storage format and keeps data in memory for simplicity. This means there are no database setup steps required.
+
+If you have `Rust` and `just` installed you can install all dependency tools with `just tools`.
 
 ---
 
-## Starting the Server
+## Starting the application
 
-BitPill ships a REST API built with [actix-web](https://actix.rs/). By default `just run` starts it on **port 8080**.
+BitPill ships a TUI built with [ratatui](https://ratatui.rs).
+
+A REST API is in WIP state but its built with [actix-web](https://actix.rs/).
+
+By default `just run` starts it on **port 8080** and also launches the TUI in the foreground.
+
+You can choose to run just one of them if you prefer:
 
 ```bash
-just run         # REST server only  (http://localhost:8080)
+just run-api     # REST server only  (http://localhost:8080)
 just run-tui     # Terminal UI only
-just run-both    # REST server in background + TUI in foreground
 ```
-
-### REST API
-
-#### Medications
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/medications` | List all medications |
-| `POST` | `/medications` | Create a medication |
-
-**List all medications**
-
-```bash
-curl http://localhost:8080/medications
-```
-
-```json
-[
-  {
-    "id": "019535c4-...",
-    "name": "Ibuprofen",
-    "amount_mg": 400,
-    "scheduled_time": [[8, 0], [20, 0]]
-  }
-]
-```
-
-**Create a medication**
-
-`scheduled_time` is an array of `[hour, minute]` pairs (24-hour clock).
-
-```bash
-curl -X POST http://localhost:8080/medications \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Ibuprofen",
-    "amount_mg": 400,
-    "scheduled_time": [[8, 0], [20, 0]]
-  }'
-```
-
-```json
-{ "id": "019535c4-..." }
-```
-
-#### Doses
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/doses/schedule` | Schedule doses for the current minute |
-| `POST` | `/doses/{id}/mark-taken` | Mark a dose record as taken |
-
-**Schedule doses** (call this on a cron/timer each minute)
-
-```bash
-curl -X POST http://localhost:8080/doses/schedule
-```
-
-```json
-{ "created_count": 2 }
-```
-
-**Mark a dose as taken**
-
-`taken_at` must be in `YYYY-MM-DDTHH:MM:SS` format and cannot be in the future.
-
-```bash
-curl -X POST http://localhost:8080/doses/019535c4-.../mark-taken \
-  -H "Content-Type: application/json" \
-  -d '{ "taken_at": "2025-06-01T08:00:00" }'
-```
-
-```json
-{ "record_id": "019535c4-..." }
-```
-
-#### Error responses
-
-All error responses share the same shape:
-
-```json
-{ "error": "description of what went wrong" }
-```
-
-| Status | Meaning |
-|--------|---------|
-| `400` | Invalid input (bad dosage, empty name, bad datetime format) |
-| `404` | Dose record not found |
-| `500` | Unexpected server error |
-
----
 
 ## Terminal UI (TUI)
 
-BitPill also ships a terminal interface built with [ratatui](https://ratatui.rs/).
+This project was intended to be a terminal application from the start, so the TUI is the primary interface and the REST API is a secondary delivery adapter that still needs work.
+
 To launch it instead of the REST server, replace `main.rs` with:
-
-```rust
-use std::sync::Arc;
-use bitpill::infrastructure::container::Container;
-use bitpill::presentation::tui::app::App;
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let container = Arc::new(Container::new());
-    App::run(container)
-}
-```
 
 ### TUI keyboard shortcuts
 
 | Screen | Key | Action |
 |--------|-----|--------|
 | Medication list | `c` | Open the create-medication form |
-| Medication list | `s` | Run a scheduling tick |
 | Medication list | `j` / `↓` | Move selection down |
 | Medication list | `k` / `↑` | Move selection up |
 | Medication list | `q` | Quit |
+| Medication list | `v` | Open medication details for selected item |
+| Medication details | `s` | Open Mark-as-taken selection for today's slots/records |
 | Create form | `Tab` | Cycle between fields (Name → Amount → Times) |
 | Create form | `Enter` | Submit the form |
 | Create form | `Esc` | Cancel and go back |
 | Schedule result | any key | Dismiss and go back |
 
 `scheduled_time` in the form accepts comma-separated `HH:MM` entries, e.g. `08:00,20:00`.
+
+Validation and modals
+
+- Input validation errors (e.g., invalid amount or malformed time slots) are shown in a modal over the current screen. The background is dimmed to focus the modal; press Esc or Enter (or any key) to dismiss and return to the form.
+- Shortcuts are contextual: actions such as "mark as taken" are only available on screens that support them (for example, `s` for marking doses is only active inside the Medication Details screen).
+
+### REST API
+
+wip
 
 ---
 
@@ -162,8 +90,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ```bash
 just test        # full suite with coverage (cargo llvm-cov)
-just test-one <name>  # single test by name substring
-# e.g.: just test-one new_with_zero_amount_returns_error
 ```
 
 ### Default recipe (CI-equivalent)
@@ -180,7 +106,7 @@ just
 just build       # cargo build
 just run         # REST server (http://localhost:8080)
 just run-tui     # Terminal UI
-just run-both    # REST server (background) + TUI (foreground)
+just run-api     # REST server (background) + TUI (foreground)
 just test        # tests + coverage report
 just lint        # cargo clippy -- -D warnings
 just fmt         # cargo fmt
