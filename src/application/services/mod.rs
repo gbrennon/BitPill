@@ -10,3 +10,8 @@ pub mod mark_medication_taken_service;
 pub mod schedule_dose_service;
 pub mod settings_service;
 pub mod update_medication_service;
+
+// Additional unit tests to improve application layer coverage
+#[cfg(test)]
+pub mod additional_tests;
+
