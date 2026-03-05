@@ -11,7 +11,10 @@ pub fn medication_table<'a>(
     medications: &'a [MedicationDto],
     selected: Option<usize>,
 ) -> Table<'a> {
-    let header_cells = columns.iter().map(|c| Cell::from(*c)).collect::<Vec<Cell>>();
+    let header_cells = columns
+        .iter()
+        .map(|c| Cell::from(*c))
+        .collect::<Vec<Cell>>();
     let header = Row::new(header_cells).style(title_style());
 
     let rows = medications
@@ -19,7 +22,10 @@ pub fn medication_table<'a>(
         .enumerate()
         .map(|(i, m)| {
             // Build cells to match requested columns: Name, mg, optionally Actions
-            let mut cells = vec![Cell::from(m.name.clone()), Cell::from(m.amount_mg.to_string())];
+            let mut cells = vec![
+                Cell::from(m.name.clone()),
+                Cell::from(m.amount_mg.to_string()),
+            ];
             if columns.len() >= 3 {
                 cells.push(Cell::from("[e] Edit"));
             }
@@ -33,8 +39,18 @@ pub fn medication_table<'a>(
 
     // Choose column width constraints based on how many columns requested
     let table = match columns.len() {
-        2 => Table::new(rows, [Constraint::Percentage(70), Constraint::Percentage(30)]),
-        _ => Table::new(rows, [Constraint::Percentage(60), Constraint::Percentage(20), Constraint::Percentage(20)]),
+        2 => Table::new(
+            rows,
+            [Constraint::Percentage(70), Constraint::Percentage(30)],
+        ),
+        _ => Table::new(
+            rows,
+            [
+                Constraint::Percentage(60),
+                Constraint::Percentage(20),
+                Constraint::Percentage(20),
+            ],
+        ),
     };
 
     table.column_spacing(1).header(header).block(

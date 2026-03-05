@@ -2,7 +2,6 @@
 ///
 /// All functions are pure: they take form state by value or reference and return
 /// updated state, with no access to `App` or any I/O.
-
 /// Carries the mutable navigation fields that both form handlers share.
 #[derive(Clone, Debug, PartialEq)]
 pub struct NavigationState {
@@ -62,11 +61,12 @@ pub fn resize_slots_for_frequency(
 ///
 /// For Custom frequency (`selected_frequency == 3`), pressing down past the
 /// last slot appends a new empty slot.
-pub fn navigate_down(
-    state: NavigationState,
-    selected_frequency: usize,
-) -> NavigationState {
-    let NavigationState { focused_field, mut scheduled_time, mut scheduled_idx } = state;
+pub fn navigate_down(state: NavigationState, selected_frequency: usize) -> NavigationState {
+    let NavigationState {
+        focused_field,
+        mut scheduled_time,
+        mut scheduled_idx,
+    } = state;
     if focused_field == 3 {
         let slots = slots_for(selected_frequency, &scheduled_time);
         if selected_frequency == 3 && scheduled_idx + 1 >= slots {
@@ -75,23 +75,43 @@ pub fn navigate_down(
         } else if scheduled_idx + 1 < slots {
             scheduled_idx += 1;
         }
-        NavigationState { focused_field, scheduled_time, scheduled_idx }
+        NavigationState {
+            focused_field,
+            scheduled_time,
+            scheduled_idx,
+        }
     } else {
         let next = (focused_field + 1).min(3);
-        NavigationState { focused_field: next, scheduled_time, scheduled_idx }
+        NavigationState {
+            focused_field: next,
+            scheduled_time,
+            scheduled_idx,
+        }
     }
 }
 
 /// Moves focus up: decrements the slot index within field 3, or moves to the
 /// previous field (capped at 0).
 pub fn navigate_up(state: NavigationState) -> NavigationState {
-    let NavigationState { focused_field, scheduled_time, mut scheduled_idx } = state;
+    let NavigationState {
+        focused_field,
+        scheduled_time,
+        mut scheduled_idx,
+    } = state;
     if focused_field == 3 {
         if scheduled_idx > 0 {
             scheduled_idx -= 1;
-            NavigationState { focused_field, scheduled_time, scheduled_idx }
+            NavigationState {
+                focused_field,
+                scheduled_time,
+                scheduled_idx,
+            }
         } else {
-            NavigationState { focused_field: focused_field.saturating_sub(1), scheduled_time, scheduled_idx }
+            NavigationState {
+                focused_field: focused_field.saturating_sub(1),
+                scheduled_time,
+                scheduled_idx,
+            }
         }
     } else {
         NavigationState {
@@ -112,19 +132,44 @@ pub fn navigate_right(
     state: NavigationState,
     selected_frequency: usize,
 ) -> (usize, NavigationState) {
-    let NavigationState { focused_field, mut scheduled_time, mut scheduled_idx } = state;
+    let NavigationState {
+        focused_field,
+        mut scheduled_time,
+        mut scheduled_idx,
+    } = state;
     if focused_field == 2 {
         let sel = (selected_frequency + 1).min(3);
         resize_slots_for_frequency(sel, &mut scheduled_time, &mut scheduled_idx);
-        (sel, NavigationState { focused_field, scheduled_time, scheduled_idx })
+        (
+            sel,
+            NavigationState {
+                focused_field,
+                scheduled_time,
+                scheduled_idx,
+            },
+        )
     } else if focused_field == 3 {
         let slots = slots_for(selected_frequency, &scheduled_time);
         if scheduled_idx + 1 < slots {
             scheduled_idx += 1;
         }
-        (selected_frequency, NavigationState { focused_field, scheduled_time, scheduled_idx })
+        (
+            selected_frequency,
+            NavigationState {
+                focused_field,
+                scheduled_time,
+                scheduled_idx,
+            },
+        )
     } else {
-        (selected_frequency, NavigationState { focused_field, scheduled_time, scheduled_idx })
+        (
+            selected_frequency,
+            NavigationState {
+                focused_field,
+                scheduled_time,
+                scheduled_idx,
+            },
+        )
     }
 }
 
@@ -136,16 +181,41 @@ pub fn navigate_left(
     state: NavigationState,
     selected_frequency: usize,
 ) -> (usize, NavigationState) {
-    let NavigationState { focused_field, mut scheduled_time, mut scheduled_idx } = state;
+    let NavigationState {
+        focused_field,
+        mut scheduled_time,
+        mut scheduled_idx,
+    } = state;
     if focused_field == 2 {
         let sel = selected_frequency.saturating_sub(1);
         resize_slots_for_frequency(sel, &mut scheduled_time, &mut scheduled_idx);
-        (sel, NavigationState { focused_field, scheduled_time, scheduled_idx })
+        (
+            sel,
+            NavigationState {
+                focused_field,
+                scheduled_time,
+                scheduled_idx,
+            },
+        )
     } else if focused_field == 3 && scheduled_idx > 0 {
         scheduled_idx -= 1;
-        (selected_frequency, NavigationState { focused_field, scheduled_time, scheduled_idx })
+        (
+            selected_frequency,
+            NavigationState {
+                focused_field,
+                scheduled_time,
+                scheduled_idx,
+            },
+        )
     } else {
-        (selected_frequency, NavigationState { focused_field, scheduled_time, scheduled_idx })
+        (
+            selected_frequency,
+            NavigationState {
+                focused_field,
+                scheduled_time,
+                scheduled_idx,
+            },
+        )
     }
 }
 
@@ -216,7 +286,11 @@ mod tests {
 
     #[test]
     fn resize_slots_truncates_vec_for_once_daily() {
-        let mut slots = vec!["08:00".to_string(), "12:00".to_string(), "20:00".to_string()];
+        let mut slots = vec![
+            "08:00".to_string(),
+            "12:00".to_string(),
+            "20:00".to_string(),
+        ];
         let mut idx = 2;
         resize_slots_for_frequency(0, &mut slots, &mut idx);
         assert_eq!(slots.len(), 1);
@@ -348,7 +422,11 @@ mod tests {
 
     #[test]
     fn remove_custom_slot_removes_selected_slot() {
-        let slots = vec!["08:00".to_string(), "12:00".to_string(), "20:00".to_string()];
+        let slots = vec![
+            "08:00".to_string(),
+            "12:00".to_string(),
+            "20:00".to_string(),
+        ];
         let (result, idx) = remove_custom_slot(slots, 1);
         assert_eq!(result, vec!["08:00", "20:00"]);
         assert_eq!(idx, 1);

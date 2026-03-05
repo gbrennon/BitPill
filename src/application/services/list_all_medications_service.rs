@@ -47,8 +47,8 @@ mod tests {
     use crate::domain::{
         entities::medication::Medication,
         value_objects::{
-            dosage::Dosage, medication_id::MedicationId, medication_name::MedicationName,
-            scheduled_time::ScheduledTime, medication_frequency::DoseFrequency,
+            dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+            medication_name::MedicationName, scheduled_time::ScheduledTime,
         },
     };
 

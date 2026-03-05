@@ -35,11 +35,21 @@ impl MedicationListPresenter {
             mode: "NORMAL",
         }
         .render(f, |f, area| {
-            let selected = if medications.is_empty() { None } else { Some(selected_index) };
-            if medications.is_empty() {
-                f.render_widget(medication_table("", &["Name", "mg"], medications, selected), area);
+            let selected = if medications.is_empty() {
+                None
             } else {
-                f.render_widget(medication_table("", &["Name", "mg", "Actions"], medications, selected), area);
+                Some(selected_index)
+            };
+            if medications.is_empty() {
+                f.render_widget(
+                    medication_table("", &["Name", "mg"], medications, selected),
+                    area,
+                );
+            } else {
+                f.render_widget(
+                    medication_table("", &["Name", "mg", "Actions"], medications, selected),
+                    area,
+                );
             }
         });
     }

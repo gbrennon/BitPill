@@ -3,12 +3,11 @@ use std::sync::Arc;
 use crate::application::ports::settings_repository_port::SettingsRepositoryPortBox;
 use crate::application::services::{
     create_medication_service::CreateMedicationService,
-    get_medication_service::GetMedicationService,
+    edit_medication_service::EditMedicationService, get_medication_service::GetMedicationService,
     list_all_medications_service::ListAllMedicationsService,
-    mark_dose_taken_service::MarkDoseTakenService, mark_medication_taken_service::MarkMedicationTakenService,
-    schedule_dose_service::ScheduleDoseService,
-    update_medication_service::UpdateMedicationService,
-    edit_medication_service::EditMedicationService,
+    mark_dose_taken_service::MarkDoseTakenService,
+    mark_medication_taken_service::MarkMedicationTakenService,
+    schedule_dose_service::ScheduleDoseService, update_medication_service::UpdateMedicationService,
 };
 use crate::infrastructure::{
     clock::system_clock::SystemClock,
@@ -25,15 +24,19 @@ use crate::infrastructure::{
 pub struct Container {
     pub create_medication_service: CreateMedicationService,
     pub list_all_medications_service: ListAllMedicationsService,
-    pub list_dose_records_service: crate::application::services::list_dose_records_service::ListDoseRecordsService,
-    pub create_dose_record_service: crate::application::services::create_dose_record_service::CreateDoseRecordsService,
+    pub list_dose_records_service:
+        crate::application::services::list_dose_records_service::ListDoseRecordsService,
+    pub create_dose_record_service:
+        crate::application::services::create_dose_record_service::CreateDoseRecordsService,
     pub mark_dose_taken_service: MarkDoseTakenService,
-    pub mark_medication_taken_service: crate::application::services::mark_medication_taken_service::MarkMedicationTakenService,
+    pub mark_medication_taken_service:
+        crate::application::services::mark_medication_taken_service::MarkMedicationTakenService,
     pub schedule_dose_service: ScheduleDoseService,
     pub get_medication_service: GetMedicationService,
     pub update_medication_service: UpdateMedicationService,
     pub edit_medication_service: EditMedicationService,
-    pub delete_medication_service: crate::application::services::delete_medication_service::DeleteMedicationService,
+    pub delete_medication_service:
+        crate::application::services::delete_medication_service::DeleteMedicationService,
     pub settings_repository: std::sync::Arc<
         crate::application::ports::settings_repository_port::SettingsRepositoryPortBox,
     >,
@@ -98,10 +101,9 @@ impl Container {
         let clock = Arc::new(SystemClock);
         let settings_repo: Arc<SettingsRepositoryPortBox> =
             Arc::new(JsonSettingsRepository::new(settings_path));
-        let settings_service =
-            crate::application::services::settings_service::SettingsService::new(
-                settings_repo.clone(),
-            );
+        let settings_service = crate::application::services::settings_service::SettingsService::new(
+            settings_repo.clone(),
+        );
         Self {
             create_medication_service: CreateMedicationService::new(medication_repo.clone()),
             list_all_medications_service: ListAllMedicationsService::new(medication_repo.clone()),

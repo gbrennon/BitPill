@@ -29,7 +29,6 @@ impl Handler for MedicationListHandler {
             Err(_) => false,
         };
         match key.code {
-
             crossterm::event::KeyCode::Char('j') | crossterm::event::KeyCode::Char('l') => {
                 if !app.medications.is_empty() {
                     app.selected_index =
@@ -104,7 +103,10 @@ impl Handler for MedicationListHandler {
             crossterm::event::KeyCode::Char('d') => {
                 if !app.medications.is_empty() {
                     let med = &app.medications[app.selected_index];
-                    app.current_screen = Screen::ConfirmDelete { id: med.id.clone(), name: med.name.clone() };
+                    app.current_screen = Screen::ConfirmDelete {
+                        id: med.id.clone(),
+                        name: med.name.clone(),
+                    };
                 }
             }
             crossterm::event::KeyCode::Char('e') => {
@@ -184,7 +186,10 @@ mod tests {
         let key = KeyEvent::new(KeyCode::Char('c'), KeyModifiers::NONE);
         handler.handle(&mut app, key);
 
-        assert!(matches!(app.current_screen, Screen::CreateMedication { .. }));
+        assert!(matches!(
+            app.current_screen,
+            Screen::CreateMedication { .. }
+        ));
     }
 
     #[test]
@@ -192,10 +197,23 @@ mod tests {
         let container = Arc::new(crate::infrastructure::container::Container::new());
         let mut app = App::new(container);
         let mut handler = MedicationListHandler::default();
-        app.medications = vec![crate::application::ports::inbound::list_all_medications_port::MedicationDto { id: "med1".to_string(), name: "A".to_string(), amount_mg: 10, dose_frequency: "OnceDaily".to_string(), scheduled_time: vec![(8, 0)] }];
+        app.medications = vec![
+            crate::application::ports::inbound::list_all_medications_port::MedicationDto {
+                id: "med1".to_string(),
+                name: "A".to_string(),
+                amount_mg: 10,
+                dose_frequency: "OnceDaily".to_string(),
+                scheduled_time: vec![(8, 0)],
+            },
+        ];
         let key = KeyEvent::new(KeyCode::Char('s'), KeyModifiers::NONE);
         handler.handle(&mut app, key);
         assert!(app.status_message.is_some());
-        assert!(app.status_message.as_ref().unwrap().contains("Open medication details"));
+        assert!(
+            app.status_message
+                .as_ref()
+                .unwrap()
+                .contains("Open medication details")
+        );
     }
 }

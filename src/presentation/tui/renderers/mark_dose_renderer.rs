@@ -1,7 +1,5 @@
 use crate::presentation::tui::app::App;
-use crate::presentation::tui::presenters::mark_dose_presenter::{
-    MarkDoseInput, MarkDosePresenter,
-};
+use crate::presentation::tui::presenters::mark_dose_presenter::{MarkDoseInput, MarkDosePresenter};
 use crate::presentation::tui::renderers::ScreenRenderer;
 use crate::presentation::tui::screen::Screen;
 use ratatui::Frame;
@@ -10,7 +8,11 @@ pub struct MarkDoseRenderer;
 
 impl ScreenRenderer for MarkDoseRenderer {
     fn render(&self, f: &mut Frame, app: &App) {
-        let Screen::MarkDose { medication_id, records, selected_index } = &app.current_screen
+        let Screen::MarkDose {
+            medication_id,
+            records,
+            selected_index,
+        } = &app.current_screen
         else {
             return;
         };

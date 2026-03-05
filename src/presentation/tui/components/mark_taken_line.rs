@@ -1,9 +1,14 @@
 // Renders a line for a scheduled slot or dose record with a checkbox indicating taken status.
-use chrono::NaiveDateTime;
-use ratatui::text::{Span, Line};
 use crate::presentation::tui::styles::highlight_style;
+use chrono::NaiveDateTime;
+use ratatui::text::{Line, Span};
 
-pub fn mark_taken_line(selected: bool, h: u32, mm: u32, taken_at: Option<NaiveDateTime>) -> Line<'static> {
+pub fn mark_taken_line(
+    selected: bool,
+    h: u32,
+    mm: u32,
+    taken_at: Option<NaiveDateTime>,
+) -> Line<'static> {
     // selection marker
     let marker = if selected { ">" } else { " " };
     // Checkbox

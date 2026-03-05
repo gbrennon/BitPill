@@ -7,10 +7,12 @@ fn modal_renders_e2e() {
     let backend = TestBackend::new(80, 24);
     let mut terminal = Terminal::new(backend).unwrap();
 
-    terminal.draw(|f| {
-        let area = f.area();
-        render_modal(f, area, "My Modal", "Hello Modal\nSecond Line");
-    }).unwrap();
+    terminal
+        .draw(|f| {
+            let area = f.area();
+            render_modal(f, area, "My Modal", "Hello Modal\nSecond Line");
+        })
+        .unwrap();
 
     let buffer = terminal.backend().buffer();
     assert!(!buffer.content.is_empty());

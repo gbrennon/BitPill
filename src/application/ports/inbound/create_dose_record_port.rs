@@ -21,5 +21,8 @@ pub struct CreateDoseRecordResponse {
 }
 
 pub trait CreateDoseRecordPort: Send + Sync {
-    fn execute(&self, request: CreateDoseRecordRequest) -> Result<CreateDoseRecordResponse, ApplicationError>;
+    fn execute(
+        &self,
+        request: CreateDoseRecordRequest,
+    ) -> Result<CreateDoseRecordResponse, ApplicationError>;
 }

@@ -1,5 +1,5 @@
-use chrono::NaiveDateTime;
 use crate::application::errors::ApplicationError;
+use chrono::NaiveDateTime;
 
 #[derive(Clone)]
 pub struct DoseRecordDto {
