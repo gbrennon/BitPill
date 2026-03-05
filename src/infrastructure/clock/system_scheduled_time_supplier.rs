@@ -13,3 +13,16 @@ impl ScheduledTimeSupplier for SystemScheduledTimeSupplier {
             .expect("system clock always returns a valid hour (0–23) and minute (0–59)")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn current_returns_valid_hour_and_minute() {
+        let sup = SystemScheduledTimeSupplier;
+        let st = sup.current();
+        assert!(st.hour() <= 23);
+        assert!(st.minute() <= 59);
+    }
+}
