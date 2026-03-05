@@ -39,7 +39,7 @@ If you have `Rust` and `just` installed you can install all dependency tools wit
 
 BitPill ships a TUI built with [ratatui](https://ratatui.rs).
 
-A REST API is in WIP state but its built with [actix-web](https://actix.rs/).
+A REST API is in WIP state but it’s built with [actix-web](https://actix.rs/).
 
 By default `just run` starts it on **port 8080** and also launches the TUI in the foreground.
 
