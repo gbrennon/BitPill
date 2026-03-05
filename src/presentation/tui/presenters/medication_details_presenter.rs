@@ -31,11 +31,11 @@ impl MedicationDetailsPresenter {
                 // Basic medication info
                 lines.push(Line::from(vec![
                     Span::styled("ID: ", highlight_style()),
-                    Span::raw(format!("{}", m.id)),
+                    Span::raw(m.id.to_string()),
                 ]));
                 lines.push(Line::from(vec![
                     Span::styled("Name: ", highlight_style()),
-                    Span::raw(format!("{}", m.name)),
+                    Span::raw(m.name.to_string()),
                 ]));
                 lines.push(Line::from(vec![
                     Span::styled("Dosage: ", highlight_style()),
@@ -64,7 +64,7 @@ impl MedicationDetailsPresenter {
                     // scheduled NaiveDateTime for today
                     let scheduled_dt_opt = chrono::NaiveDate::from_ymd_opt(
                         today.year(),
-                        today.month() as u32,
+                        today.month(),
                         today.day(),
                     )
                     .and_then(|d| d.and_hms_opt(*h, *mm, 0));
