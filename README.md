@@ -73,7 +73,7 @@ To launch it instead of the REST server, replace `main.rs` with:
 
 `scheduled_time` in the form accepts comma-separated `HH:MM` entries, e.g. `08:00,20:00`.
 
-Validation and modals
+### Validation and modals
 
 - Input validation errors (e.g., invalid amount or malformed time slots) are shown in a modal over the current screen. The background is dimmed to focus the modal; press Esc or Enter (or any key) to dismiss and return to the form.
 - Shortcuts are contextual: actions such as "mark as taken" are only available on screens that support them (for example, `s` for marking doses is only active inside the Medication Details screen).
