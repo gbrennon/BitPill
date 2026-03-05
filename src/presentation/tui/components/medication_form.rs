@@ -14,8 +14,8 @@ pub fn render_medication_form<'a>(
     frequency_options: &'a [&'a str],
     selected_frequency: usize,
 ) {
-    let help = status_message
-        .unwrap_or(" [i] Insert  [Tab] Next field  [Enter] Submit  [Esc] Cancel");
+    let help =
+        status_message.unwrap_or(" [i] Insert  [Tab] Next field  [Enter] Submit  [Esc] Cancel");
 
     let mode = if insert_mode { "INSERT" } else { "NORMAL" };
 
@@ -79,7 +79,11 @@ pub fn render_medication_form<'a>(
                 choices: None,
                 selected_choice: None,
                 lines: scheduled_lines,
-                highlighted_line: if focused_field == 3 { Some(scheduled_idx) } else { None },
+                highlighted_line: if focused_field == 3 {
+                    Some(scheduled_idx)
+                } else {
+                    None
+                },
                 values: Some(scheduled_time),
             },
         ],

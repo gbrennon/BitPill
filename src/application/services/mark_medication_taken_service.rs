@@ -5,8 +5,8 @@ use crate::application::ports::dose_record_repository_port::DoseRecordRepository
 use crate::application::ports::inbound::mark_medication_taken_port::{
     MarkMedicationTakenPort, MarkMedicationTakenRequest, MarkMedicationTakenResponse,
 };
-use crate::domain::value_objects::medication_id::MedicationId;
 use crate::domain::entities::dose_record::DoseRecord;
+use crate::domain::value_objects::medication_id::MedicationId;
 
 pub struct MarkMedicationTakenService {
     repository: Arc<dyn DoseRecordRepository>,
@@ -19,29 +19,40 @@ impl MarkMedicationTakenService {
 }
 
 impl MarkMedicationTakenPort for MarkMedicationTakenService {
-    fn execute(&self, request: MarkMedicationTakenRequest) -> Result<MarkMedicationTakenResponse, ApplicationError> {
-        let med_id = MedicationId::from(
-            uuid::Uuid::parse_str(&request.medication_id)
-                .map_err(|_| ApplicationError::InvalidInput(format!("invalid medication id: {}", request.medication_id)))?,
-        );
+    fn execute(
+        &self,
+        request: MarkMedicationTakenRequest,
+    ) -> Result<MarkMedicationTakenResponse, ApplicationError> {
+        let med_id =
+            MedicationId::from(uuid::Uuid::parse_str(&request.medication_id).map_err(|_| {
+                ApplicationError::InvalidInput(format!(
+                    "invalid medication id: {}",
+                    request.medication_id
+                ))
+            })?);
 
         let mut record = DoseRecord::new(med_id, request.taken_at);
         record.mark_taken(request.taken_at)?;
         self.repository.save(&record)?;
 
-        Ok(MarkMedicationTakenResponse { id: record.id().to_string() })
+        Ok(MarkMedicationTakenResponse {
+            id: record.id().to_string(),
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Arc;
-    use chrono::{NaiveDate, NaiveDateTime};
     use crate::application::ports::fakes::FakeDoseRecordRepository;
+    use chrono::{NaiveDate, NaiveDateTime};
+    use std::sync::Arc;
 
     fn make_datetime(h: u32, m: u32) -> NaiveDateTime {
-        NaiveDate::from_ymd_opt(2025, 1, 1).unwrap().and_hms_opt(h, m, 0).unwrap()
+        NaiveDate::from_ymd_opt(2025, 1, 1)
+            .unwrap()
+            .and_hms_opt(h, m, 0)
+            .unwrap()
     }
 
     #[test]
@@ -66,7 +77,10 @@ mod tests {
         let res = service.execute(req).expect("execute should succeed");
 
         let record_id = DoseRecordId::from(uuid::Uuid::parse_str(&res.id).unwrap());
-        let saved = repo.find_by_id(&record_id).unwrap().expect("record should exist");
+        let saved = repo
+            .find_by_id(&record_id)
+            .unwrap()
+            .expect("record should exist");
         assert!(saved.is_taken());
     }
 

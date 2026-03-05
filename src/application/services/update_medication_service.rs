@@ -8,8 +8,8 @@ use crate::application::ports::inbound::update_medication_port::{
 use crate::application::ports::outbound::medication_repository_port::MedicationRepository;
 use crate::domain::entities::medication::Medication;
 use crate::domain::value_objects::{
-    dosage::Dosage, medication_id::MedicationId, medication_name::MedicationName,
-    scheduled_time::ScheduledTime, medication_frequency::DoseFrequency,
+    dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+    medication_name::MedicationName, scheduled_time::ScheduledTime,
 };
 
 pub struct UpdateMedicationService {

@@ -5,8 +5,8 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph};
 
 use crate::presentation::tui::components::bottom_bar::bottom_bar;
-use crate::presentation::tui::components::title_bar::render_title_bar;
 use crate::presentation::tui::components::schedule_time::schedule_time;
+use crate::presentation::tui::components::title_bar::render_title_bar;
 use crate::presentation::tui::styles::{BORDER_COLOR, COPY_COLOR, TOP_BAR_HEIGHT, content_style};
 
 /// A single editable field rendered inside a [`FormTemplate`].
@@ -103,8 +103,15 @@ impl<'a> FormTemplate<'a> {
                 .style(content_style());
             // When focused, make borders and title bold
             if field.focused {
-                block = block.title(Span::styled(field.label, label_style.add_modifier(Modifier::BOLD)));
-                block = block.border_style(content_style().fg(BORDER_COLOR).add_modifier(Modifier::BOLD));
+                block = block.title(Span::styled(
+                    field.label,
+                    label_style.add_modifier(Modifier::BOLD),
+                ));
+                block = block.border_style(
+                    content_style()
+                        .fg(BORDER_COLOR)
+                        .add_modifier(Modifier::BOLD),
+                );
             } else {
                 block = block.title(Span::styled(field.label, label_style));
             }
@@ -126,7 +133,8 @@ impl<'a> FormTemplate<'a> {
                     })
                     .collect();
                 let content = parts.join("  ");
-                let paragraph = Paragraph::new(Line::from(Span::styled(content, value_text_style))).block(block);
+                let paragraph = Paragraph::new(Line::from(Span::styled(content, value_text_style)))
+                    .block(block);
                 f.render_widget(paragraph, chunks[i + 1]);
             } else {
                 // If the field provides a backing values slice, always render the dedicated schedule_time component
@@ -143,7 +151,11 @@ impl<'a> FormTemplate<'a> {
                         .split('\n')
                         .enumerate()
                         .map(|(li, l)| {
-                            let mut style = if field.focused { content_style().add_modifier(Modifier::BOLD) } else { content_style().fg(COPY_COLOR) };
+                            let mut style = if field.focused {
+                                content_style().add_modifier(Modifier::BOLD)
+                            } else {
+                                content_style().fg(COPY_COLOR)
+                            };
                             if field.focused && field.highlighted_line == Some(li) {
                                 style = style.fg(BORDER_COLOR).add_modifier(Modifier::REVERSED);
                             }
@@ -154,7 +166,9 @@ impl<'a> FormTemplate<'a> {
                     f.render_widget(paragraph, chunks[i + 1]);
                 } else {
                     let content = field.value.to_string();
-                    let paragraph = Paragraph::new(Line::from(Span::styled(content, value_text_style))).block(block);
+                    let paragraph =
+                        Paragraph::new(Line::from(Span::styled(content, value_text_style)))
+                            .block(block);
                     f.render_widget(paragraph, chunks[i + 1]);
                 }
             }

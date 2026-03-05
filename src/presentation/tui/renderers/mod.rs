@@ -1,7 +1,7 @@
 use crate::presentation::tui::app::App;
 use crate::presentation::tui::styles::content_style;
-use ratatui::widgets::Block;
 use ratatui::Frame;
+use ratatui::widgets::Block;
 
 mod confirm_cancel_renderer;
 mod confirm_delete_renderer;
@@ -60,15 +60,30 @@ pub fn render(f: &mut Frame, app: &App) {
             // dim the background by drawing a semi-transparent overlay (simulated)
             let dim = Block::default().style(content_style().fg(Color::DarkGray));
             f.render_widget(dim, f.area());
-            crate::presentation::tui::components::modal::render_modal(f, f.area(), "Validation error", message);
+            crate::presentation::tui::components::modal::render_modal(
+                f,
+                f.area(),
+                "Validation error",
+                message,
+            );
         }
         Screen::ConfirmQuit { previous } => {
             render_view(f, app, previous);
-            crate::presentation::tui::components::modal::render_modal(f, f.area(), "Confirm Quit", "Quit application?  (y/N)");
+            crate::presentation::tui::components::modal::render_modal(
+                f,
+                f.area(),
+                "Confirm Quit",
+                "Quit application?  (y/N)",
+            );
         }
         Screen::ConfirmCancel { previous } => {
             render_view(f, app, previous);
-            crate::presentation::tui::components::modal::render_modal(f, f.area(), "Confirm", "Discard changes?  (y/N)");
+            crate::presentation::tui::components::modal::render_modal(
+                f,
+                f.area(),
+                "Confirm",
+                "Discard changes?  (y/N)",
+            );
         }
         Screen::HomeScreen => HomeScreenRenderer.render(f, app),
         Screen::CreateMedication { .. } => CreateMedicationRenderer.render(f, app),
@@ -78,7 +93,12 @@ pub fn render(f: &mut Frame, app: &App) {
         Screen::ConfirmDelete { .. } => {
             // confirm delete doesn't track previous; just dim and show modal
             HomeScreenRenderer.render(f, app);
-            crate::presentation::tui::components::modal::render_modal(f, f.area(), "Confirm Delete", "Delete this medication?  (y/N)");
+            crate::presentation::tui::components::modal::render_modal(
+                f,
+                f.area(),
+                "Confirm Delete",
+                "Delete this medication?  (y/N)",
+            );
         }
         Screen::Settings { .. } => SettingsRenderer.render(f, app),
     }

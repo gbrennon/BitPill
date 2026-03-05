@@ -1,12 +1,12 @@
 use crate::application::ports::inbound::edit_medication_port::EditMedicationRequest;
 use crate::presentation::tui::app::App;
 use crate::presentation::tui::handlers::medication_form_navigation::{
-    navigate_down, navigate_left, navigate_right, navigate_up, remove_custom_slot, NavigationState,
+    NavigationState, navigate_down, navigate_left, navigate_right, navigate_up, remove_custom_slot,
 };
+use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
 use crate::presentation::tui::handlers::time_slot_parser::{
     frequency_str, parse_slots, validate_slot_count,
 };
-use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
 use crate::presentation::tui::screen::Screen;
 use crossterm::event::KeyEvent;
 
@@ -20,23 +20,55 @@ impl Default for EditMedicationHandler {
 
 impl Handler for EditMedicationHandler {
     fn handle(&mut self, app: &mut App, key: KeyEvent) -> HandlerResult {
-        let (id, name, amount_mg, selected_frequency, scheduled_time, scheduled_idx, focused_field, insert_mode) =
-            match &app.current_screen {
-                Screen::EditMedication {
-                    id, name, amount_mg, selected_frequency,
-                    scheduled_time, scheduled_idx, focused_field, insert_mode,
-                } => (
-                    id.clone(), name.clone(), amount_mg.clone(), *selected_frequency,
-                    scheduled_time.clone(), *scheduled_idx, *focused_field, *insert_mode,
-                ),
-                _ => return HandlerResult::Continue,
-            };
+        let (
+            id,
+            name,
+            amount_mg,
+            selected_frequency,
+            scheduled_time,
+            scheduled_idx,
+            focused_field,
+            insert_mode,
+        ) = match &app.current_screen {
+            Screen::EditMedication {
+                id,
+                name,
+                amount_mg,
+                selected_frequency,
+                scheduled_time,
+                scheduled_idx,
+                focused_field,
+                insert_mode,
+            } => (
+                id.clone(),
+                name.clone(),
+                amount_mg.clone(),
+                *selected_frequency,
+                scheduled_time.clone(),
+                *scheduled_idx,
+                *focused_field,
+                *insert_mode,
+            ),
+            _ => return HandlerResult::Continue,
+        };
 
-        let nav = NavigationState { focused_field, scheduled_time, scheduled_idx };
+        let nav = NavigationState {
+            focused_field,
+            scheduled_time,
+            scheduled_idx,
+        };
 
-        let set_screen = |app: &mut App, id: String, name: String, amount_mg: String, sel_freq: usize, nav: NavigationState, insert_mode: bool| {
+        let set_screen = |app: &mut App,
+                          id: String,
+                          name: String,
+                          amount_mg: String,
+                          sel_freq: usize,
+                          nav: NavigationState,
+                          insert_mode: bool| {
             app.current_screen = Screen::EditMedication {
-                id, name, amount_mg,
+                id,
+                name,
+                amount_mg,
                 selected_frequency: sel_freq,
                 scheduled_time: nav.scheduled_time,
                 scheduled_idx: nav.scheduled_idx,
@@ -50,12 +82,21 @@ impl Handler for EditMedicationHandler {
                 if insert_mode {
                     set_screen(app, id, name, amount_mg, selected_frequency, nav, false);
                 } else {
-                    Self::handle_esc_normal_mode(app, &id, &name, &amount_mg, selected_frequency, &nav.scheduled_time);
+                    Self::handle_esc_normal_mode(
+                        app,
+                        &id,
+                        &name,
+                        &amount_mg,
+                        selected_frequency,
+                        &nav.scheduled_time,
+                    );
                 }
             }
             crossterm::event::KeyCode::Tab
             | crossterm::event::KeyCode::Right
-            | crossterm::event::KeyCode::Char('l') if !insert_mode => {
+            | crossterm::event::KeyCode::Char('l')
+                if !insert_mode =>
+            {
                 let (sel, new_nav) = navigate_right(nav, selected_frequency);
                 set_screen(app, id, name, amount_mg, sel, new_nav, insert_mode);
             }
@@ -63,7 +104,15 @@ impl Handler for EditMedicationHandler {
                 if !insert_mode =>
             {
                 let new_nav = navigate_down(nav, selected_frequency);
-                set_screen(app, id, name, amount_mg, selected_frequency, new_nav, insert_mode);
+                set_screen(
+                    app,
+                    id,
+                    name,
+                    amount_mg,
+                    selected_frequency,
+                    new_nav,
+                    insert_mode,
+                );
             }
             crossterm::event::KeyCode::Char('h') | crossterm::event::KeyCode::Left
                 if !insert_mode =>
@@ -75,7 +124,15 @@ impl Handler for EditMedicationHandler {
                 if !insert_mode =>
             {
                 let new_nav = navigate_up(nav);
-                set_screen(app, id, name, amount_mg, selected_frequency, new_nav, insert_mode);
+                set_screen(
+                    app,
+                    id,
+                    name,
+                    amount_mg,
+                    selected_frequency,
+                    new_nav,
+                    insert_mode,
+                );
             }
             crossterm::event::KeyCode::Char('d')
                 if !insert_mode
@@ -83,45 +140,88 @@ impl Handler for EditMedicationHandler {
                     && selected_frequency == 3
                     && nav.scheduled_time.len() > 1 =>
             {
-                let (new_slots, new_idx) = remove_custom_slot(nav.scheduled_time, nav.scheduled_idx);
-                let new_nav = NavigationState { focused_field, scheduled_time: new_slots, scheduled_idx: new_idx };
-                set_screen(app, id, name, amount_mg, selected_frequency, new_nav, insert_mode);
+                let (new_slots, new_idx) =
+                    remove_custom_slot(nav.scheduled_time, nav.scheduled_idx);
+                let new_nav = NavigationState {
+                    focused_field,
+                    scheduled_time: new_slots,
+                    scheduled_idx: new_idx,
+                };
+                set_screen(
+                    app,
+                    id,
+                    name,
+                    amount_mg,
+                    selected_frequency,
+                    new_nav,
+                    insert_mode,
+                );
             }
             crossterm::event::KeyCode::Enter => {
                 let parsed_amount: u32 = match amount_mg.trim().parse() {
                     Ok(v) => v,
                     Err(_) => {
-                        app.current_screen = Screen::ValidationError { message: "Invalid amount_mg value".into(), previous: Box::new(app.current_screen.clone()) };
+                        app.current_screen = Screen::ValidationError {
+                            message: "Invalid amount_mg value".into(),
+                            previous: Box::new(app.current_screen.clone()),
+                        };
                         return HandlerResult::Continue;
                     }
                 };
 
                 match parse_slots(&nav.scheduled_time) {
                     Err(e) => {
-                        app.current_screen = Screen::ValidationError { message: e.to_string(), previous: Box::new(app.current_screen.clone()) };
-                        set_screen(app, id, name, amount_mg, selected_frequency, nav, insert_mode);
+                        app.current_screen = Screen::ValidationError {
+                            message: e.to_string(),
+                            previous: Box::new(app.current_screen.clone()),
+                        };
+                        set_screen(
+                            app,
+                            id,
+                            name,
+                            amount_mg,
+                            selected_frequency,
+                            nav,
+                            insert_mode,
+                        );
                         return HandlerResult::Continue;
                     }
                     Ok(parsed) => {
-                        if let Err(msg) = validate_slot_count(selected_frequency, parsed.times.len()) {
-                            app.current_screen = Screen::ValidationError { message: msg.clone(), previous: Box::new(app.current_screen.clone()) };
+                        if let Err(msg) =
+                            validate_slot_count(selected_frequency, parsed.times.len())
+                        {
+                            app.current_screen = Screen::ValidationError {
+                                message: msg.clone(),
+                                previous: Box::new(app.current_screen.clone()),
+                            };
                             let new_nav = NavigationState {
                                 focused_field,
                                 scheduled_time: parsed.normalized,
                                 scheduled_idx,
                             };
-                            set_screen(app, id, name, amount_mg, selected_frequency, new_nav, insert_mode);
+                            set_screen(
+                                app,
+                                id,
+                                name,
+                                amount_mg,
+                                selected_frequency,
+                                new_nav,
+                                insert_mode,
+                            );
                             return HandlerResult::Continue;
                         }
 
                         use crate::application::ports::inbound::edit_medication_port::EditMedicationPort;
-                        match app.container.edit_medication_service.execute(EditMedicationRequest {
-                            id: id.clone(),
-                            name: name.clone(),
-                            amount_mg: parsed_amount,
-                            scheduled_time: parsed.times,
-                            dose_frequency: frequency_str(selected_frequency).to_string(),
-                        }) {
+                        match app
+                            .container
+                            .edit_medication_service
+                            .execute(EditMedicationRequest {
+                                id: id.clone(),
+                                name: name.clone(),
+                                amount_mg: parsed_amount,
+                                scheduled_time: parsed.times,
+                                dose_frequency: frequency_str(selected_frequency).to_string(),
+                            }) {
                             Ok(_) => {
                                 app.load_medications();
                                 app.set_status("Medication updated successfully", 3000);
@@ -136,23 +236,51 @@ impl Handler for EditMedicationHandler {
                 }
             }
             crossterm::event::KeyCode::Backspace if insert_mode => {
-                let NavigationState { focused_field, mut scheduled_time, scheduled_idx } = nav;
+                let NavigationState {
+                    focused_field,
+                    mut scheduled_time,
+                    scheduled_idx,
+                } = nav;
                 let mut name = name;
                 let mut amount_mg = amount_mg;
                 match focused_field {
-                    0 => { name.pop(); }
-                    1 => { amount_mg.pop(); }
-                    3 => { if scheduled_time.len() > scheduled_idx { scheduled_time[scheduled_idx].pop(); } }
+                    0 => {
+                        name.pop();
+                    }
+                    1 => {
+                        amount_mg.pop();
+                    }
+                    3 => {
+                        if scheduled_time.len() > scheduled_idx {
+                            scheduled_time[scheduled_idx].pop();
+                        }
+                    }
                     _ => {}
                 }
-                let new_nav = NavigationState { focused_field, scheduled_time, scheduled_idx };
-                set_screen(app, id, name, amount_mg, selected_frequency, new_nav, insert_mode);
+                let new_nav = NavigationState {
+                    focused_field,
+                    scheduled_time,
+                    scheduled_idx,
+                };
+                set_screen(
+                    app,
+                    id,
+                    name,
+                    amount_mg,
+                    selected_frequency,
+                    new_nav,
+                    insert_mode,
+                );
             }
             crossterm::event::KeyCode::Char('i') if !insert_mode => {
                 set_screen(app, id, name, amount_mg, selected_frequency, nav, true);
             }
             crossterm::event::KeyCode::Char(c) if insert_mode => {
-                let NavigationState { focused_field, mut scheduled_time, scheduled_idx } = nav;
+                let NavigationState {
+                    focused_field,
+                    mut scheduled_time,
+                    scheduled_idx,
+                } = nav;
                 let mut name = name;
                 let mut amount_mg = amount_mg;
                 match focused_field {
@@ -166,8 +294,20 @@ impl Handler for EditMedicationHandler {
                     }
                     _ => {}
                 }
-                let new_nav = NavigationState { focused_field, scheduled_time, scheduled_idx };
-                set_screen(app, id, name, amount_mg, selected_frequency, new_nav, insert_mode);
+                let new_nav = NavigationState {
+                    focused_field,
+                    scheduled_time,
+                    scheduled_idx,
+                };
+                set_screen(
+                    app,
+                    id,
+                    name,
+                    amount_mg,
+                    selected_frequency,
+                    new_nav,
+                    insert_mode,
+                );
             }
             _ => {}
         }
@@ -209,7 +349,10 @@ impl EditMedicationHandler {
                     let m = iter.next().and_then(|s| s.parse::<u32>().ok());
                     match (h, m) {
                         (Some(h), Some(m)) => parsed_slots.push((h, m)),
-                        _ => { parse_error = true; break; }
+                        _ => {
+                            parse_error = true;
+                            break;
+                        }
                     }
                 }
                 parse_error
@@ -217,7 +360,10 @@ impl EditMedicationHandler {
                     || parsed_amount.map_or(true, |a| a != orig.amount_mg)
                     || orig.dose_frequency != frequency_str(selected_frequency)
                     || parsed_slots.len() != orig.scheduled_time.len()
-                    || parsed_slots.iter().zip(orig.scheduled_time.iter()).any(|(a, b)| a.0 != b.0 || a.1 != b.1)
+                    || parsed_slots
+                        .iter()
+                        .zip(orig.scheduled_time.iter())
+                        .any(|(a, b)| a.0 != b.0 || a.1 != b.1)
             }
             Err(_) => true,
         };
@@ -255,7 +401,9 @@ mod tests {
     }
 
     fn new_app() -> App {
-        App::new(std::sync::Arc::new(crate::infrastructure::container::Container::new()))
+        App::new(std::sync::Arc::new(
+            crate::infrastructure::container::Container::new(),
+        ))
     }
 
     // --- Esc ---
@@ -269,7 +417,10 @@ mod tests {
 
         assert!(matches!(
             app.current_screen,
-            Screen::EditMedication { insert_mode: false, .. }
+            Screen::EditMedication {
+                insert_mode: false,
+                ..
+            }
         ));
     }
 
@@ -284,7 +435,10 @@ mod tests {
 
         assert!(matches!(
             app.current_screen,
-            Screen::EditMedication { insert_mode: true, .. }
+            Screen::EditMedication {
+                insert_mode: true,
+                ..
+            }
         ));
     }
 
@@ -299,7 +453,10 @@ mod tests {
 
         assert!(matches!(
             app.current_screen,
-            Screen::EditMedication { focused_field: 1, .. }
+            Screen::EditMedication {
+                focused_field: 1,
+                ..
+            }
         ));
     }
 
@@ -312,7 +469,10 @@ mod tests {
 
         assert!(matches!(
             app.current_screen,
-            Screen::EditMedication { focused_field: 0, .. }
+            Screen::EditMedication {
+                focused_field: 0,
+                ..
+            }
         ));
     }
 
@@ -325,7 +485,10 @@ mod tests {
 
         assert!(matches!(
             app.current_screen,
-            Screen::EditMedication { focused_field: 1, .. }
+            Screen::EditMedication {
+                focused_field: 1,
+                ..
+            }
         ));
     }
 
@@ -335,16 +498,24 @@ mod tests {
     fn handle_l_on_frequency_field_advances_frequency() {
         let mut app = new_app();
         app.current_screen = Screen::EditMedication {
-            id: "id".into(), name: "A".into(), amount_mg: "100".into(),
-            selected_frequency: 0, scheduled_time: vec!["08:00".into()],
-            scheduled_idx: 0, focused_field: 2, insert_mode: false,
+            id: "id".into(),
+            name: "A".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["08:00".into()],
+            scheduled_idx: 0,
+            focused_field: 2,
+            insert_mode: false,
         };
 
         press(&mut app, KeyCode::Char('l'));
 
         assert!(matches!(
             app.current_screen,
-            Screen::EditMedication { selected_frequency: 1, .. }
+            Screen::EditMedication {
+                selected_frequency: 1,
+                ..
+            }
         ));
     }
 
@@ -354,14 +525,24 @@ mod tests {
     fn handle_j_on_custom_last_slot_appends_new_slot() {
         let mut app = new_app();
         app.current_screen = Screen::EditMedication {
-            id: "id".into(), name: "A".into(), amount_mg: "100".into(),
-            selected_frequency: 3, scheduled_time: vec!["08:00".into()],
-            scheduled_idx: 0, focused_field: 3, insert_mode: false,
+            id: "id".into(),
+            name: "A".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 3,
+            scheduled_time: vec!["08:00".into()],
+            scheduled_idx: 0,
+            focused_field: 3,
+            insert_mode: false,
         };
 
         press(&mut app, KeyCode::Char('j'));
 
-        if let Screen::EditMedication { scheduled_time, scheduled_idx, .. } = &app.current_screen {
+        if let Screen::EditMedication {
+            scheduled_time,
+            scheduled_idx,
+            ..
+        } = &app.current_screen
+        {
             assert_eq!(scheduled_time.len(), 2);
             assert_eq!(*scheduled_idx, 1);
         } else {
@@ -373,9 +554,14 @@ mod tests {
     fn handle_d_on_custom_removes_slot() {
         let mut app = new_app();
         app.current_screen = Screen::EditMedication {
-            id: "id".into(), name: "A".into(), amount_mg: "100".into(),
-            selected_frequency: 3, scheduled_time: vec!["08:00".into(), "12:00".into()],
-            scheduled_idx: 0, focused_field: 3, insert_mode: false,
+            id: "id".into(),
+            name: "A".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 3,
+            scheduled_time: vec!["08:00".into(), "12:00".into()],
+            scheduled_idx: 0,
+            focused_field: 3,
+            insert_mode: false,
         };
 
         press(&mut app, KeyCode::Char('d'));
@@ -427,7 +613,10 @@ mod tests {
         handler.handle(&mut app, KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE));
         assert!(matches!(
             app.current_screen,
-            Screen::EditMedication { insert_mode: false, .. }
+            Screen::EditMedication {
+                insert_mode: false,
+                ..
+            }
         ));
     }
 
@@ -435,13 +624,12 @@ mod tests {
 
     fn new_app_with_tempdir() -> (App, tempfile::TempDir) {
         let dir = tempfile::tempdir().unwrap();
-        let container = std::sync::Arc::new(
-            crate::infrastructure::container::Container::new_with_paths(
+        let container =
+            std::sync::Arc::new(crate::infrastructure::container::Container::new_with_paths(
                 dir.path().join("meds.json"),
                 dir.path().join("records.json"),
                 dir.path().join("settings.json"),
-            ),
-        );
+            ));
         (App::new(container), dir)
     }
 
@@ -450,7 +638,11 @@ mod tests {
             CreateMedicationPort, CreateMedicationRequest,
         };
         let req = CreateMedicationRequest::new("Aspirin", 100, vec![(8, 0)], "OnceDaily");
-        app.container.create_medication_service.execute(req).unwrap().id
+        app.container
+            .create_medication_service
+            .execute(req)
+            .unwrap()
+            .id
     }
 
     #[test]

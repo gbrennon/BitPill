@@ -1,19 +1,20 @@
 use crossterm::event::{KeyCode, KeyEvent};
 
+use crate::application::ports::inbound::settings_port::SettingsPort;
 use crate::presentation::tui::app::App;
 use crate::presentation::tui::handlers::create_medication_handler::CreateMedicationHandler;
+use crate::presentation::tui::handlers::mark_dose_handler::MarkDoseHandler;
 use crate::presentation::tui::handlers::medication_list_handler::MedicationListHandler;
 use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
-use crate::presentation::tui::handlers::mark_dose_handler::MarkDoseHandler;
 use crate::presentation::tui::screen::Screen;
-use crate::application::ports::inbound::settings_port::SettingsPort;
 use chrono::Datelike;
 
 #[derive(Default)]
 pub struct EventHandler {
     medication_list_handler: MedicationListHandler,
     create_medication_handler: CreateMedicationHandler,
-    edit_medication_handler: crate::presentation::tui::handlers::edit_medication_handler::EditMedicationHandler,
+    edit_medication_handler:
+        crate::presentation::tui::handlers::edit_medication_handler::EditMedicationHandler,
     mark_dose_handler: MarkDoseHandler,
 }
 
@@ -22,7 +23,9 @@ impl Handler for EventHandler {
         // Global quit: pressing 'q' anywhere opens a quit confirmation modal.
         if let KeyCode::Char('q') = key.code {
             if !matches!(app.current_screen, Screen::ConfirmQuit { .. }) {
-                app.current_screen = Screen::ConfirmQuit { previous: Box::new(app.current_screen.clone()) };
+                app.current_screen = Screen::ConfirmQuit {
+                    previous: Box::new(app.current_screen.clone()),
+                };
                 return HandlerResult::Continue;
             }
         }
@@ -85,13 +88,21 @@ impl Handler for EventHandler {
                             };
 
                             // untaken records to present directly
-                            let mut records: Vec<DoseRecordDto> = all_today_records.iter().cloned().filter(|r| r.taken_at.is_none()).collect();
+                            let mut records: Vec<DoseRecordDto> = all_today_records
+                                .iter()
+                                .cloned()
+                                .filter(|r| r.taken_at.is_none())
+                                .collect();
 
                             // append synthetic scheduled slots only if there isn't a taken record matching that slot
                             for (i, (h, mm)) in m.scheduled_time.iter().enumerate() {
-                                let scheduled_dt = chrono::NaiveDate::from_ymd_opt(today.year(), today.month() as u32, today.day())
-                                    .and_then(|d| d.and_hms_opt(*h, *mm, 0))
-                                    .unwrap_or(Local::now().naive_local());
+                                let scheduled_dt = chrono::NaiveDate::from_ymd_opt(
+                                    today.year(),
+                                    today.month() as u32,
+                                    today.day(),
+                                )
+                                .and_then(|d| d.and_hms_opt(*h, *mm, 0))
+                                .unwrap_or(Local::now().naive_local());
 
                                 // if any record was already taken near this scheduled_dt, skip adding a synthetic slot
                                 let already_taken = all_today_records.iter().any(|r| {
@@ -107,19 +118,33 @@ impl Handler for EventHandler {
                                 }
 
                                 // if an untaken record already exists for this scheduled_dt, skip duplicate
-                                let has_untaken = records.iter().any(|r| (r.scheduled_at - scheduled_dt).num_minutes().abs() <= 15);
+                                let has_untaken = records.iter().any(|r| {
+                                    (r.scheduled_at - scheduled_dt).num_minutes().abs() <= 15
+                                });
                                 if has_untaken {
                                     continue;
                                 }
 
                                 let id_str = format!("slot:{}", i);
-                                records.push(DoseRecordDto { id: id_str, medication_id: m.id.clone(), scheduled_at: scheduled_dt, taken_at: None });
+                                records.push(DoseRecordDto {
+                                    id: id_str,
+                                    medication_id: m.id.clone(),
+                                    scheduled_at: scheduled_dt,
+                                    taken_at: None,
+                                });
                             }
 
                             if records.is_empty() {
-                                app.set_status("No untaken records or scheduled slots for today", 3000);
+                                app.set_status(
+                                    "No untaken records or scheduled slots for today",
+                                    3000,
+                                );
                             } else {
-                                app.current_screen = Screen::MarkDose { medication_id: id.clone(), records, selected_index: 0 };
+                                app.current_screen = Screen::MarkDose {
+                                    medication_id: id.clone(),
+                                    records,
+                                    selected_index: 0,
+                                };
                             }
                         }
                     }
@@ -130,11 +155,17 @@ impl Handler for EventHandler {
             Screen::Settings { vim_enabled } => {
                 match key.code {
                     KeyCode::Char(' ') => {
-                        app.current_screen = Screen::Settings { vim_enabled: !*vim_enabled };
+                        app.current_screen = Screen::Settings {
+                            vim_enabled: !*vim_enabled,
+                        };
                     }
                     KeyCode::Char('s') => {
                         // persist settings: read current state value and update
-                        let value = if let Screen::Settings { vim_enabled } = &app.current_screen { *vim_enabled } else { *vim_enabled };
+                        let value = if let Screen::Settings { vim_enabled } = &app.current_screen {
+                            *vim_enabled
+                        } else {
+                            *vim_enabled
+                        };
                         let new = serde_json::json!({ "vim_navigation": value });
                         match app.container.get_settings_service().execute(crate::application::ports::inbound::settings_port::SettingsRequest { op: crate::application::ports::inbound::settings_port::SettingsOperation::Update { settings: new.clone() } }) {
                             Ok(_) => app.set_status("Settings saved", 2000),

@@ -32,20 +32,34 @@ pub enum ViewState {
         focused_field: u8,
         insert_mode: bool,
     },
-    MedicationDetails { id: String },
+    MedicationDetails {
+        id: String,
+    },
     MarkDose {
         medication_id: String,
         records: Vec<DoseRecordDto>,
         selected_index: usize,
     },
     /// Confirmation modal for deleting a medication
-    ConfirmDelete { id: String, name: String },
+    ConfirmDelete {
+        id: String,
+        name: String,
+    },
     /// Confirmation modal for cancelling an in-progress form (create/edit).
-    ConfirmCancel { previous: Box<ViewState> },
+    ConfirmCancel {
+        previous: Box<ViewState>,
+    },
     /// Settings screen
-    Settings { vim_enabled: bool },
+    Settings {
+        vim_enabled: bool,
+    },
     /// Confirmation modal for quitting the application. Holds the previous view to return to on cancel.
-    ConfirmQuit { previous: Box<ViewState> },
+    ConfirmQuit {
+        previous: Box<ViewState>,
+    },
     /// Validation/modal to show input errors; holds the previous view to return to when dismissed.
-    ValidationError { message: String, previous: Box<ViewState> },
+    ValidationError {
+        message: String,
+        previous: Box<ViewState>,
+    },
 }

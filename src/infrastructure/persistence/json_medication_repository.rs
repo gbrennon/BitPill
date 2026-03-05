@@ -21,7 +21,10 @@ impl Default for JsonMedicationRepository {
 impl JsonMedicationRepository {
     pub fn new(path: PathBuf) -> Self {
         let medications = Self::load_from_path(&path).unwrap_or_default();
-        Self { path, medications: Mutex::new(medications) }
+        Self {
+            path,
+            medications: Mutex::new(medications),
+        }
     }
 
     pub fn with_default_path() -> Self {
@@ -100,8 +103,8 @@ mod tests {
 
     fn make_medication(name: &str) -> Medication {
         use crate::domain::value_objects::{
-            dosage::Dosage, medication_frequency::DoseFrequency,
-            medication_id::MedicationId, medication_name::MedicationName,
+            dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+            medication_name::MedicationName,
         };
         Medication::new(
             MedicationId::generate(),
