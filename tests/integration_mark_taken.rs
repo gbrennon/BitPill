@@ -1,14 +1,18 @@
-use std::fs;
-use std::sync::Arc;
-use tempfile::tempdir;
-use chrono::NaiveDate;
-use bitpill::infrastructure::container::Container;
-use bitpill::application::ports::inbound::create_dose_record_port::{CreateDoseRecordRequest, CreateDoseRecordPort};
-use bitpill::application::ports::inbound::mark_medication_taken_port::{MarkMedicationTakenPort, MarkMedicationTakenRequest};
 use bitpill::application::ports::fakes::FakeDoseRecordRepository;
+use bitpill::application::ports::inbound::create_dose_record_port::{
+    CreateDoseRecordPort, CreateDoseRecordRequest,
+};
+use bitpill::application::ports::inbound::mark_medication_taken_port::{
+    MarkMedicationTakenPort, MarkMedicationTakenRequest,
+};
 use bitpill::application::ports::outbound::dose_record_repository_port::DoseRecordRepository;
 use bitpill::application::services::mark_medication_taken_service::MarkMedicationTakenService;
 use bitpill::domain::value_objects::dose_record_id::DoseRecordId;
+use bitpill::infrastructure::container::Container;
+use chrono::NaiveDate;
+use std::fs;
+use std::sync::Arc;
+use tempfile::tempdir;
 
 #[test]
 fn create_dose_record_persists_to_disk() {
@@ -21,9 +25,13 @@ fn create_dose_record_persists_to_disk() {
     );
 
     let med_id = uuid::Uuid::nil().to_string();
-    let scheduled_at = NaiveDate::from_ymd_opt(2020, 1, 1).unwrap().and_hms_opt(9, 0, 0).unwrap();
+    let scheduled_at = NaiveDate::from_ymd_opt(2020, 1, 1)
+        .unwrap()
+        .and_hms_opt(9, 0, 0)
+        .unwrap();
     let req = CreateDoseRecordRequest::new(med_id.clone(), scheduled_at);
-    let res = CreateDoseRecordPort::execute(&container.create_dose_record_service, req).expect("create should succeed");
+    let res = CreateDoseRecordPort::execute(&container.create_dose_record_service, req)
+        .expect("create should succeed");
     assert!(!res.id.is_empty());
 
     let data = fs::read_to_string(&dose_path).unwrap();
@@ -55,6 +63,9 @@ fn mark_medication_taken_service_stores_record_as_taken() {
         .expect("repo call should succeed")
         .expect("record should exist");
 
-    assert!(saved.is_taken(), "record saved by MarkMedicationTakenService must be taken");
+    assert!(
+        saved.is_taken(),
+        "record saved by MarkMedicationTakenService must be taken"
+    );
     assert_eq!(saved.taken_at(), Some(taken_at));
 }

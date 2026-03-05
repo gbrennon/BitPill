@@ -33,6 +33,6 @@ pub struct EditMedicationResponse {
 pub trait EditMedicationPort: Send + Sync {
     fn execute(
         &self,
-        request: EditMedicationRequest
+        request: EditMedicationRequest,
     ) -> Result<EditMedicationResponse, ApplicationError>;
 }

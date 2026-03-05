@@ -16,7 +16,12 @@ impl Default for MarkDoseHandler {
 impl Handler for MarkDoseHandler {
     fn handle(&mut self, app: &mut App, key: KeyEvent) -> HandlerResult {
         // Extract current mark-dose state up-front to avoid borrowing `app` mutably while it's still borrowed immutably.
-        let (med_id, recs, sel_idx) = if let Screen::MarkDose { medication_id, records, selected_index } = &app.current_screen {
+        let (med_id, recs, sel_idx) = if let Screen::MarkDose {
+            medication_id,
+            records,
+            selected_index,
+        } = &app.current_screen
+        {
             (medication_id.clone(), records.clone(), *selected_index)
         } else {
             return HandlerResult::Continue;
@@ -57,9 +62,14 @@ impl Handler for MarkDoseHandler {
                             Err(e) => app.status_message = Some(format!("Error: {e}")),
                         }
                         app.load_medications();
-                        app.current_screen = Screen::MedicationDetails { id: rec.medication_id.clone() };
+                        app.current_screen = Screen::MedicationDetails {
+                            id: rec.medication_id.clone(),
+                        };
                     } else {
-                        let req = MarkDoseTakenRequest::new(rec.id.clone(), chrono::Local::now().naive_local());
+                        let req = MarkDoseTakenRequest::new(
+                            rec.id.clone(),
+                            chrono::Local::now().naive_local(),
+                        );
                         match crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort::execute(&app.container.mark_dose_taken_service, req) {
                             Ok(_) => app.set_status("Marked as taken", 3000),
                             Err(e) => app.status_message = Some(format!("Error: {e}")),

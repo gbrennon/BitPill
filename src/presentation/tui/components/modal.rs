@@ -1,8 +1,8 @@
 use ratatui::Frame;
 use ratatui::layout::Rect;
-use ratatui::widgets::{Block, Borders, Paragraph, Clear};
+use ratatui::widgets::{Block, Borders, Clear, Paragraph};
 
-use crate::presentation::tui::styles::{content_style, bar_style};
+use crate::presentation::tui::styles::{bar_style, content_style};
 
 /// Internal struct to hold padding values for modal content. Not strictly necessary but improves readability.
 /// Could be expanded in the future if we want to support different padding for x/y or more complex layouts.
@@ -13,7 +13,7 @@ use crate::presentation::tui::styles::{content_style, bar_style};
 /// If we wanted to be more concise, we could just use two separate variables for pad_x and pad_y, but I think this struct approach is cleaner and more scalable. It also allows us to easily pass around padding values as a single unit if needed in the future, rather than having to manage multiple separate variables. So while it may seem like a bit of an over-engineering for just two values, I think it pays off in terms of code clarity and future flexibility.
 /// In summary, this InternalPadding struct is a simple way to encapsulate the padding values for the modal content, making the code more readable and maintainable while also allowing for future extensibility if we want to add more complex padding options down the line.
 #[derive(Debug)]
-struct InternalPadding{
+struct InternalPadding {
     x: u16,
     y: u16,
 }
@@ -32,7 +32,10 @@ pub fn render_modal(f: &mut Frame, area: Rect, title: &str, content: &str) {
 
     // Clear the area behind the modal and render bordered block
     f.render_widget(Clear, r);
-    let block = Block::default().title(title).borders(Borders::ALL).style(bar_style());
+    let block = Block::default()
+        .title(title)
+        .borders(Borders::ALL)
+        .style(bar_style());
     f.render_widget(block, r);
 
     // Small padding inside the block so content doesn't touch borders.
@@ -42,8 +45,12 @@ pub fn render_modal(f: &mut Frame, area: Rect, title: &str, content: &str) {
 
     let padding = InternalPadding { x: 1, y: 1 };
     // subtract 2 for the left+right borders, then subtract padding on both sides
-    let inner_w_raw = width.saturating_sub(2).saturating_sub(padding.x.saturating_mul(2));
-    let inner_h_raw = height.saturating_sub(2).saturating_sub(padding.y.saturating_mul(2));
+    let inner_w_raw = width
+        .saturating_sub(2)
+        .saturating_sub(padding.x.saturating_mul(2));
+    let inner_h_raw = height
+        .saturating_sub(2)
+        .saturating_sub(padding.y.saturating_mul(2));
 
     // compute inner origin inside the block: x + 1 for left border, + padding
     let inner_x = x + 1 + padding.x;

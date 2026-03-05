@@ -21,7 +21,9 @@ impl ScreenRenderer for MedicationDetailsRenderer {
         let records = match medication {
             Some(m) => match ListDoseRecordsPort::execute(
                 &app.container.list_dose_records_service,
-                ListDoseRecordsRequest { medication_id: m.id.clone() },
+                ListDoseRecordsRequest {
+                    medication_id: m.id.clone(),
+                },
             ) {
                 Ok(resp) => resp.records,
                 Err(_) => vec![],
@@ -29,6 +31,12 @@ impl ScreenRenderer for MedicationDetailsRenderer {
             None => vec![],
         };
 
-        MedicationDetailsPresenter.present(f, &MedicationDetailsInput { medication, records });
+        MedicationDetailsPresenter.present(
+            f,
+            &MedicationDetailsInput {
+                medication,
+                records,
+            },
+        );
     }
 }

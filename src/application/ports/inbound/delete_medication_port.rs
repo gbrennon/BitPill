@@ -7,5 +7,8 @@ pub struct DeleteMedicationRequest {
 pub struct DeleteMedicationResponse {}
 
 pub trait DeleteMedicationPort: Send + Sync {
-    fn execute(&self, request: DeleteMedicationRequest) -> Result<DeleteMedicationResponse, ApplicationError>;
+    fn execute(
+        &self,
+        request: DeleteMedicationRequest,
+    ) -> Result<DeleteMedicationResponse, ApplicationError>;
 }

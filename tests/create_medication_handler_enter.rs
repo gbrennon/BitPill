@@ -1,11 +1,11 @@
-use std::sync::Arc;
-use tempfile::tempdir;
 use bitpill::infrastructure::container::Container;
 use bitpill::presentation::tui::app::App;
-use bitpill::presentation::tui::screen::Screen;
 use bitpill::presentation::tui::handlers::create_medication_handler::CreateMedicationHandler;
 use bitpill::presentation::tui::handlers::port::Handler;
+use bitpill::presentation::tui::screen::Screen;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use std::sync::Arc;
+use tempfile::tempdir;
 
 #[test]
 fn handle_enter_creates_medication() {
@@ -31,5 +31,8 @@ fn handle_enter_creates_medication() {
     handler.handle(&mut app, key);
 
     assert!(matches!(app.current_screen, Screen::HomeScreen));
-    assert_eq!(app.status_message.as_deref(), Some("Medication created successfully"));
+    assert_eq!(
+        app.status_message.as_deref(),
+        Some("Medication created successfully")
+    );
 }
