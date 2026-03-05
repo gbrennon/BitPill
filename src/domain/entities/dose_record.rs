@@ -190,4 +190,19 @@ mod tests {
 
         assert_eq!(record.scheduled_at(), scheduled_at);
     }
+
+    #[test]
+    fn with_id_allows_constructing_taken_record() {
+        let id = DoseRecordId::generate();
+        let med_id = MedicationId::generate();
+        let scheduled_at = make_datetime(9, 0);
+        let taken_at = make_datetime(9, 5);
+        let record = DoseRecord::with_id(id.clone(), med_id.clone(), scheduled_at, taken_at);
+
+        assert_eq!(record.id(), &id);
+        assert_eq!(record.medication_id(), &med_id);
+        assert_eq!(record.scheduled_at(), scheduled_at);
+        assert_eq!(record.taken_at(), Some(taken_at));
+        assert!(record.is_taken());
+    }
 }

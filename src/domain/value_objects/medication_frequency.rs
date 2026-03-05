@@ -77,4 +77,19 @@ mod tests {
         assert_eq!(times, expected_times);
         assert_eq!(times.len(), 2);
     }
+
+    #[test]
+    fn display_handles_every_x_hours_and_custom() {
+        let freq = DoseFrequency::EveryXHours(6);
+        assert_eq!(freq.to_string(), "Every 6 Hours");
+
+        let custom_times = vec![ScheduledTime::new(9, 0).unwrap(), ScheduledTime::new(21, 0).unwrap()];
+        let freq_custom = DoseFrequency::Custom(custom_times.clone());
+        assert!(freq_custom.to_string().contains("Custom"));
+        assert!(freq_custom.to_string().contains("09:00"));
+        assert!(freq_custom.to_string().contains("21:00"));
+
+        // scheduled_time for EveryXHours is empty
+        assert!(DoseFrequency::EveryXHours(4).scheduled_time().is_empty());
+    }
 }
