@@ -1,21 +1,22 @@
 use bitpill::infrastructure::container::Container;
 use bitpill::presentation::tui::app::App;
+use bitpill::presentation::tui::app_services::AppServices;
 use bitpill::presentation::tui::handlers::create_medication_handler::CreateMedicationHandler;
 use bitpill::presentation::tui::handlers::port::Handler;
 use bitpill::presentation::tui::screen::Screen;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use std::sync::Arc;
 use tempfile::tempdir;
 
 #[test]
 fn handle_enter_creates_medication() {
     let dir = tempdir().unwrap();
-    let container = Arc::new(Container::new_with_paths(
+    let container = Container::new_with_paths(
         dir.path().join("medications.json"),
         dir.path().join("doses.json"),
         dir.path().join("settings.json"),
-    ));
-    let mut app = App::new(container.clone());
+    );
+    let services = AppServices::from_container(&container);
+    let mut app = App::new(services);
     app.current_screen = Screen::CreateMedication {
         name: "TestMed".into(),
         amount_mg: "100".into(),

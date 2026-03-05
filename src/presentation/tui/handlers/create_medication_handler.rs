@@ -1,4 +1,4 @@
-use crate::application::ports::create_medication_port::CreateMedicationRequest;
+use crate::application::dtos::requests::CreateMedicationRequest;
 use crate::presentation::tui::app::App;
 use crate::presentation::tui::handlers::medication_form_navigation::{
     NavigationState, navigate_down, navigate_left, navigate_right, navigate_up, remove_custom_slot,
@@ -195,8 +195,7 @@ impl Handler for CreateMedicationHandler {
                             parsed.times,
                             frequency_str(selected_frequency),
                         );
-                        use crate::application::ports::inbound::create_medication_port::CreateMedicationPort;
-                        match app.container.create_medication_service.execute(request) {
+                        match app.services.create_medication.execute(request) {
                             Ok(_) => {
                                 app.load_medications();
                                 app.selected_index = 0;
@@ -312,9 +311,7 @@ mod tests {
     }
 
     fn new_app() -> App {
-        App::new(std::sync::Arc::new(
-            crate::infrastructure::container::Container::new(),
-        ))
+        App::new(crate::presentation::tui::app_services::AppServices::fake())
     }
 
     // --- Esc ---
@@ -530,5 +527,117 @@ mod tests {
         let mut handler: Box<dyn Handler> = Box::new(CreateMedicationHandler);
         handler.handle(&mut app, KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE));
         assert!(matches!(app.current_screen, Screen::ConfirmCancel { .. }));
+    }
+
+    #[test]
+    fn handle_on_wrong_screen_returns_continue() {
+        let mut app = new_app();
+        app.current_screen = Screen::HomeScreen;
+
+        let result = CreateMedicationHandler.handle(
+            &mut app,
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+        );
+
+        assert!(matches!(result, HandlerResult::Continue));
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn handle_h_in_normal_mode_navigates_left() {
+        // focused_field=2 with frequency=1 → navigate_left decrements frequency
+        let mut app = new_app();
+        app.current_screen = Screen::CreateMedication {
+            name: "A".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 1,
+            scheduled_time: vec!["08:00".into()],
+            scheduled_idx: 0,
+            focused_field: 2,
+            insert_mode: false,
+        };
+
+        press(&mut app, KeyCode::Char('h'));
+
+        assert!(matches!(
+            app.current_screen,
+            Screen::CreateMedication { selected_frequency: 0, focused_field: 2, .. }
+        ));
+    }
+
+    #[test]
+    fn handle_enter_with_invalid_amount_shows_validation_error() {
+        let mut app = new_app();
+        app.current_screen = Screen::CreateMedication {
+            name: "A".into(),
+            amount_mg: "not-a-number".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["08:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        };
+
+        press(&mut app, KeyCode::Enter);
+
+        assert!(matches!(app.current_screen, Screen::ValidationError { .. }));
+    }
+
+    #[test]
+    fn handle_enter_with_invalid_time_slot_preserves_create_screen() {
+        // parse_slots fails → ValidationError is set then overwritten by set_screen
+        let mut app = new_app();
+        app.current_screen = Screen::CreateMedication {
+            name: "A".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["not-a-time".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        };
+
+        press(&mut app, KeyCode::Enter);
+
+        // set_screen overwrites the ValidationError back to CreateMedication
+        assert!(matches!(app.current_screen, Screen::CreateMedication { .. }));
+    }
+
+    #[test]
+    fn handle_enter_with_wrong_slot_count_preserves_create_screen() {
+        // TwiceDaily (selected_frequency=1) with only 1 slot → slot count mismatch
+        // ValidationError is set then overwritten by set_screen (preserving nav state)
+        let mut app = new_app();
+        app.current_screen = Screen::CreateMedication {
+            name: "A".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 1,
+            scheduled_time: vec!["08:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        };
+
+        press(&mut app, KeyCode::Enter);
+
+        assert!(matches!(app.current_screen, Screen::CreateMedication { .. }));
+    }
+
+    #[test]
+    fn handle_enter_with_valid_data_creates_medication_and_goes_home() {
+        let mut app = new_app();
+        app.current_screen = Screen::CreateMedication {
+            name: "Aspirin".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["08:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        };
+
+        press(&mut app, KeyCode::Enter);
+
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
     }
 }

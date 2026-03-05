@@ -4,13 +4,9 @@ use actix_web::{HttpResponse, web};
 use serde::{Deserialize, Serialize};
 
 use crate::application::errors::ApplicationError;
-use crate::application::ports::create_medication_port::{
-    CreateMedicationPort, CreateMedicationRequest,
-};
-use crate::application::ports::inbound::get_medication_port::GetMedicationRequest;
-use crate::application::ports::inbound::update_medication_port::UpdateMedicationRequest;
-use crate::application::ports::list_all_medications_port::{
-    ListAllMedicationsPort, ListAllMedicationsRequest,
+use crate::application::dtos::requests::{
+    CreateMedicationRequest, GetMedicationRequest, ListAllMedicationsRequest,
+    UpdateMedicationRequest,
 };
 use crate::domain::errors::DomainError;
 use crate::infrastructure::container::Container;
@@ -66,8 +62,6 @@ pub async fn list_all(data: web::Data<Arc<Container>>) -> HttpResponse {
 }
 
 pub async fn get_by_id(data: web::Data<Arc<Container>>, path: web::Path<String>) -> HttpResponse {
-    use crate::application::ports::inbound::get_medication_port::GetMedicationPort;
-
     let id = path.into_inner();
     let request = GetMedicationRequest { id };
     match data.get_medication_service.execute(request) {
@@ -96,8 +90,6 @@ pub async fn update(
         scheduled_time: body.scheduled_time.clone(),
         dose_frequency: "OnceDaily".to_string(),
     };
-    use crate::application::ports::inbound::update_medication_port::UpdateMedicationPort;
-
     match data.update_medication_service.execute(request) {
         Ok(resp) => HttpResponse::Ok().json(CreateMedicationResponseBody { id: resp.id }),
         Err(ApplicationError::Domain(

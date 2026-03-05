@@ -1,22 +1,22 @@
 use bitpill::infrastructure::container::Container;
 use bitpill::presentation::tui::app::App;
+use bitpill::presentation::tui::app_services::AppServices;
 use bitpill::presentation::tui::draw;
 use ratatui::Terminal;
 use ratatui::backend::TestBackend;
-use std::sync::Arc;
 use tempfile::tempdir;
 
 #[test]
 fn medication_list_screen_renders_items_e2e() {
     let dir = tempdir().unwrap();
-    let container = Arc::new(Container::new_with_paths(
+    let container = Container::new_with_paths(
         dir.path().join("medications.json"),
         dir.path().join("doses.json"),
         dir.path().join("settings.json"),
-    ));
-    let mut app = App::new(container);
+    );
+    let mut app = App::new(AppServices::from_container(&container));
     app.medications.push(
-        bitpill::application::ports::inbound::list_all_medications_port::MedicationDto {
+        bitpill::application::dtos::responses::MedicationDto {
             id: "id-1".to_string(),
             name: "Aspirin".to_string(),
             amount_mg: 500,
@@ -25,7 +25,7 @@ fn medication_list_screen_renders_items_e2e() {
         },
     );
     app.medications.push(
-        bitpill::application::ports::inbound::list_all_medications_port::MedicationDto {
+        bitpill::application::dtos::responses::MedicationDto {
             id: "id-2".to_string(),
             name: "Ibuprofen".to_string(),
             amount_mg: 200,

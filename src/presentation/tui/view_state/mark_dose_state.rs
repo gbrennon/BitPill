@@ -1,4 +1,4 @@
-use crate::application::ports::inbound::list_dose_records_port::DoseRecordDto;
+use crate::application::dtos::responses::DoseRecordDto;
 
 #[derive(Clone)]
 pub struct MarkDoseState {
