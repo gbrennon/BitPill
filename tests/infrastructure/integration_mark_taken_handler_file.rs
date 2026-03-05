@@ -1,23 +1,24 @@
-use bitpill::application::ports::inbound::list_all_medications_port::MedicationDto;
+use bitpill::application::dtos::responses::MedicationDto;
 use bitpill::infrastructure::container::Container;
 use bitpill::presentation::tui::app::App;
+use bitpill::presentation::tui::app_services::AppServices;
 use bitpill::presentation::tui::handlers::medication_list_handler::MedicationListHandler;
 use bitpill::presentation::tui::handlers::port::Handler;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use std::sync::Arc;
 use tempfile::tempdir;
 
 #[test]
 fn handler_saves_dose_record_to_file() {
     let dir = tempdir().unwrap();
     let dose_path = dir.path().join("dose_records.json");
-    let container = Arc::new(Container::new_with_paths(
+    let container = Container::new_with_paths(
         dir.path().join("medications.json"),
         dose_path.clone(),
         dir.path().join("settings.json"),
-    ));
+    );
 
-    let mut app = App::new(container);
+    let services = AppServices::from_container(&container);
+    let mut app = App::new(services);
     let med = MedicationDto {
         id: "00000000-0000-0000-0000-000000000001".to_string(),
         name: "Test".to_string(),

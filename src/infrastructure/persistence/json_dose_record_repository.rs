@@ -167,6 +167,41 @@ mod tests {
     }
 
     #[test]
+    fn save_updates_existing_record_when_saved_twice() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("doses.json");
+        let repo = JsonDoseRecordRepository::new(path);
+        let record = make_record();
+
+        repo.save(&record).expect("first save should succeed");
+        repo.save(&record).expect("second save (update path) should succeed");
+        let all = repo
+            .find_all_by_medication(&make_med_id())
+            .expect("find_all should succeed");
+
+        assert_eq!(all.len(), 1); // update, not insert
+    }
+
+    #[test]
+    fn with_default_path_uses_env_var_when_set() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("doses_default_test.json");
+        unsafe {
+            std::env::set_var("BITPILL_DOSE_RECORDS_FILE", path.to_str().unwrap());
+        }
+
+        let repo1 = JsonDoseRecordRepository::with_default_path();
+        let _repo2 = JsonDoseRecordRepository::default();
+        let record = make_record();
+        repo1.save(&record).expect("save should succeed");
+
+        unsafe {
+            std::env::remove_var("BITPILL_DOSE_RECORDS_FILE");
+        }
+        assert!(path.exists());
+    }
+
+    #[test]
     fn data_persists_across_separate_repository_instances() {
         let dir = tempdir().unwrap();
         let path = dir.path().join("doses.json");

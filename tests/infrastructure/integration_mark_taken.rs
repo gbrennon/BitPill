@@ -1,10 +1,7 @@
 use bitpill::application::ports::fakes::FakeDoseRecordRepository;
-use bitpill::application::ports::inbound::create_dose_record_port::{
-    CreateDoseRecordPort, CreateDoseRecordRequest,
-};
-use bitpill::application::ports::inbound::mark_medication_taken_port::{
-    MarkMedicationTakenPort, MarkMedicationTakenRequest,
-};
+use bitpill::application::dtos::requests::{CreateDoseRecordRequest, MarkMedicationTakenRequest};
+use bitpill::application::ports::inbound::create_dose_record_port::CreateDoseRecordPort;
+use bitpill::application::ports::inbound::mark_medication_taken_port::MarkMedicationTakenPort;
 use bitpill::application::ports::outbound::dose_record_repository_port::DoseRecordRepository;
 use bitpill::application::services::mark_medication_taken_service::MarkMedicationTakenService;
 use bitpill::domain::value_objects::dose_record_id::DoseRecordId;
