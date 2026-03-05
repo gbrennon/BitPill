@@ -357,7 +357,7 @@ impl EditMedicationHandler {
                 }
                 parse_error
                     || orig.name != name
-                    || parsed_amount.map_or(true, |a| a != orig.amount_mg)
+                    || (parsed_amount != Some(orig.amount_mg))
                     || orig.dose_frequency != frequency_str(selected_frequency)
                     || parsed_slots.len() != orig.scheduled_time.len()
                     || parsed_slots

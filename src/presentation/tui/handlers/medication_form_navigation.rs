@@ -2,7 +2,6 @@
 ///
 /// All functions are pure: they take form state by value or reference and return
 /// updated state, with no access to `App` or any I/O.
-
 /// Carries the mutable navigation fields that both form handlers share.
 #[derive(Clone, Debug, PartialEq)]
 pub struct NavigationState {

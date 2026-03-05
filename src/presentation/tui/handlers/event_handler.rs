@@ -21,13 +21,11 @@ pub struct EventHandler {
 impl Handler for EventHandler {
     fn handle(&mut self, app: &mut App, key: KeyEvent) -> HandlerResult {
         // Global quit: pressing 'q' anywhere opens a quit confirmation modal.
-        if let KeyCode::Char('q') = key.code {
-            if !matches!(app.current_screen, Screen::ConfirmQuit { .. }) {
-                app.current_screen = Screen::ConfirmQuit {
-                    previous: Box::new(app.current_screen.clone()),
-                };
-                return HandlerResult::Continue;
-            }
+        if let KeyCode::Char('q') = key.code && !matches!(app.current_screen, Screen::ConfirmQuit { .. }) {
+            app.current_screen = Screen::ConfirmQuit {
+                previous: Box::new(app.current_screen.clone()),
+            };
+            return HandlerResult::Continue;
         }
 
         match &app.current_screen {
@@ -90,15 +88,15 @@ impl Handler for EventHandler {
                             // untaken records to present directly
                             let mut records: Vec<DoseRecordDto> = all_today_records
                                 .iter()
-                                .cloned()
                                 .filter(|r| r.taken_at.is_none())
+                                .cloned()
                                 .collect();
 
                             // append synthetic scheduled slots only if there isn't a taken record matching that slot
                             for (i, (h, mm)) in m.scheduled_time.iter().enumerate() {
                                 let scheduled_dt = chrono::NaiveDate::from_ymd_opt(
                                     today.year(),
-                                    today.month() as u32,
+                                    today.month(),
                                     today.day(),
                                 )
                                 .and_then(|d| d.and_hms_opt(*h, *mm, 0))

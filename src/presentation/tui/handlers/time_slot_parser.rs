@@ -1,7 +1,6 @@
 /// Time-slot parsing and validation for the medication form.
 ///
 /// All functions are pure: no `App` or I/O access.
-
 /// A successfully parsed set of time slots.
 #[derive(Debug, PartialEq)]
 pub struct ParsedSlots {
