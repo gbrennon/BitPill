@@ -1,9 +1,9 @@
 # BitPill
 
 > **Work in progress.** A personal medication management application built in Rust.
-> *(More context about my health condition that motivated this project will be added soon.)*
 
 BitPill helps individuals manage their daily medications — tracking pills, dosages, and schedules in one place.
+
 It is being built with a focus on reliability and correctness, because when it comes to medication, errors matter.
 
 ---
@@ -12,7 +12,7 @@ It is being built with a focus on reliability and correctness, because when it c
 
 I built BitPill to solve a personal problem: managing my complex medication regimen for a chronic condition.
 
-This was developed because my medications are expensive and if I dont take them correctly, I risk my health and waste money.
+This was developed because my medications are expensive and if I don't take them correctly, I risk my health and waste money.
 
 I can have convulsions if I miss doses, so I need a reliable way to track when to take each medication and ensure I dont forget.
 
@@ -29,7 +29,9 @@ By building my own, I can tailor it exactly to my needs and ensure it works corr
 
 BitPill is designed to be simple to run locally without a lot of external dependencies.
 
-It uses JSON as the storage format and keeps data in memory for simplicity. This means there are no database setup steps required.
+It uses JSON as the storage format and keeps data in memory for simplicity.
+
+This means there are no database setup steps required.
 
 If you have `Rust` and `just` installed you can install all dependency tools with `just tools`.
 
@@ -58,20 +60,37 @@ To launch it instead of the REST server, replace `main.rs` with:
 
 ### TUI keyboard shortcuts
 
+#### VIM Modes
+
+The TUI uses a VIM-like modal interface with two main modes:
+
+- **Normal mode** for navigation.
+- **Insert mode** for typing into form fields.
+
+When you first open the app, you start in Normal mode. Press `i` to enter Insert mode when a form field is selected, and `Esc` to return to Normal mode.
+
+##### Normal mode
+
 | Screen | Key | Action |
 |--------|-----|--------|
 | Medication list | `c` | Open the create-medication form |
 | Medication list | `j` / `↓` | Move selection down |
 | Medication list | `k` / `↑` | Move selection up |
 | Medication list | `q` | Quit |
-| Medication list | `v` | Open medication details for selected item |
+| Medication list | `Enter` or `v` | Open medication details for selected item |
 | Medication details | `s` | Open Mark-as-taken selection for today's slots/records |
 | Create form | `Tab` | Cycle between fields (Name → Amount → Times) |
 | Create form | `Enter` | Submit the form |
 | Create form | `Esc` | Cancel and go back |
 | Schedule result | any key | Dismiss and go back |
 
-`scheduled_time` in the form accepts comma-separated `HH:MM` entries, e.g. `08:00,20:00`.
+Pressing use `h`, `j`, `k` or `l`, to navigate between fields, and `Enter` will submit the form.
+
+##### Insert mode
+
+You have to be in insert mode to type into form fields.
+
+Press `i` to enter insert mode when a form field is selected, and `Esc` to exit back to normal mode.
 
 ### Validation and modals
 
