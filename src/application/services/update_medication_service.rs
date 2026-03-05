@@ -158,4 +158,14 @@ mod tests {
         let res = svc_fail.execute(req);
         assert!(matches!(res, Err(crate::application::errors::ApplicationError::Storage(_))));
     }
+
+    // Moved from additional_tests.rs
+    #[test]
+    fn update_medication_invalid_id_returns_error() {
+        let repo = Arc::new(FakeMedicationRepository::new());
+        let service = UpdateMedicationService::new(repo);
+        let req = UpdateMedicationRequest::new("not-a-uuid", "Name", 100, vec![(8,0)], "OnceDaily");
+        let res = service.execute(req);
+        assert!(res.is_err());
+    }
 }
