@@ -4,7 +4,7 @@ use actix_web::{HttpResponse, web};
 use serde::{Deserialize, Serialize};
 
 use crate::application::errors::{ApplicationError, NotFoundError};
-use crate::application::ports::mark_dose_taken_port::{MarkDoseTakenPort, MarkDoseTakenRequest};
+use crate::application::dtos::requests::MarkDoseTakenRequest;
 use crate::infrastructure::container::Container;
 use chrono::NaiveDateTime;
 

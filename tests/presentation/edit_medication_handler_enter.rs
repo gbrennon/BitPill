@@ -1,23 +1,21 @@
-use bitpill::application::ports::create_medication_port::{
-    CreateMedicationPort, CreateMedicationRequest,
-};
+use bitpill::application::dtos::requests::CreateMedicationRequest;
 use bitpill::infrastructure::container::Container;
 use bitpill::presentation::tui::app::App;
+use bitpill::presentation::tui::app_services::AppServices;
 use bitpill::presentation::tui::handlers::edit_medication_handler::EditMedicationHandler;
 use bitpill::presentation::tui::handlers::port::Handler;
 use bitpill::presentation::tui::screen::Screen;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use std::sync::Arc;
 use tempfile::tempdir;
 
 #[test]
 fn handle_enter_updates_medication() {
     let dir = tempdir().unwrap();
-    let container = Arc::new(Container::new_with_paths(
+    let container = Container::new_with_paths(
         dir.path().join("medications.json"),
         dir.path().join("doses.json"),
         dir.path().join("settings.json"),
-    ));
+    );
 
     // create initial medication via service
     let req = CreateMedicationRequest::new("Initial", 50, vec![(8, 0)], "OnceDaily".to_string());
@@ -27,7 +25,8 @@ fn handle_enter_updates_medication() {
         .expect("create failed");
     let med_id = resp.id;
 
-    let mut app = App::new(container.clone());
+    let services = AppServices::from_container(&container);
+    let mut app = App::new(services);
     app.current_screen = Screen::EditMedication {
         id: med_id.clone(),
         name: "UpdatedName".into(),

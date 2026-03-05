@@ -1,4 +1,4 @@
-use crate::application::ports::inbound::edit_medication_port::EditMedicationRequest;
+use crate::application::dtos::requests::EditMedicationRequest;
 use crate::presentation::tui::app::App;
 use crate::presentation::tui::handlers::medication_form_navigation::{
     NavigationState, navigate_down, navigate_left, navigate_right, navigate_up, remove_custom_slot,
@@ -211,10 +211,9 @@ impl Handler for EditMedicationHandler {
                             return HandlerResult::Continue;
                         }
 
-                        use crate::application::ports::inbound::edit_medication_port::EditMedicationPort;
                         match app
-                            .container
-                            .edit_medication_service
+                            .services
+                            .edit_medication
                             .execute(EditMedicationRequest {
                                 id: id.clone(),
                                 name: name.clone(),
@@ -327,11 +326,10 @@ impl EditMedicationHandler {
         selected_frequency: usize,
         scheduled_time: &[String],
     ) {
-        use crate::application::ports::inbound::get_medication_port::{
-            GetMedicationPort, GetMedicationRequest,
-        };
+        use crate::application::dtos::requests::GetMedicationRequest;
+        use crate::application::ports::inbound::get_medication_port::GetMedicationPort;
         let changed = match GetMedicationPort::execute(
-            &app.container.get_medication_service,
+            &*app.services.get_medication,
             GetMedicationRequest { id: id.to_string() },
         ) {
             Ok(resp) => {
@@ -401,9 +399,7 @@ mod tests {
     }
 
     fn new_app() -> App {
-        App::new(std::sync::Arc::new(
-            crate::infrastructure::container::Container::new(),
-        ))
+        App::new(crate::presentation::tui::app_services::AppServices::fake())
     }
 
     // --- Esc ---
@@ -623,23 +619,32 @@ mod tests {
     // --- Esc normal mode: change detection ---
 
     fn new_app_with_tempdir() -> (App, tempfile::TempDir) {
+        use crate::presentation::tui::app_services::AppServices;
         let dir = tempfile::tempdir().unwrap();
-        let container =
-            std::sync::Arc::new(crate::infrastructure::container::Container::new_with_paths(
-                dir.path().join("meds.json"),
-                dir.path().join("records.json"),
-                dir.path().join("settings.json"),
-            ));
-        (App::new(container), dir)
+        let container = crate::infrastructure::container::Container::new_with_paths(
+            dir.path().join("meds.json"),
+            dir.path().join("records.json"),
+            dir.path().join("settings.json"),
+        );
+        let services = AppServices {
+            list_all_medications: container.list_all_medications_service.clone(),
+            create_medication: container.create_medication_service.clone(),
+            edit_medication: container.edit_medication_service.clone(),
+            delete_medication: container.delete_medication_service.clone(),
+            get_medication: container.get_medication_service.clone(),
+            list_dose_records: container.list_dose_records_service.clone(),
+            mark_dose_taken: container.mark_dose_taken_service.clone(),
+            mark_medication_taken: container.mark_medication_taken_service.clone(),
+            settings: container.settings_service.clone(),
+        };
+        (App::new(services), dir)
     }
 
     fn save_medication(app: &App) -> String {
-        use crate::application::ports::inbound::create_medication_port::{
-            CreateMedicationPort, CreateMedicationRequest,
-        };
+        use crate::application::dtos::requests::CreateMedicationRequest;
         let req = CreateMedicationRequest::new("Aspirin", 100, vec![(8, 0)], "OnceDaily");
-        app.container
-            .create_medication_service
+        app.services
+            .create_medication
             .execute(req)
             .unwrap()
             .id
@@ -683,5 +688,101 @@ mod tests {
         press(&mut app, KeyCode::Esc);
 
         assert!(matches!(app.current_screen, Screen::ConfirmCancel { .. }));
+    }
+
+    #[test]
+    fn handle_on_wrong_screen_returns_continue() {
+        let mut app = new_app();
+        app.current_screen = Screen::HomeScreen;
+
+        let result = EditMedicationHandler.handle(
+            &mut app,
+            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+        );
+
+        assert!(matches!(result, HandlerResult::Continue));
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn handle_h_in_normal_mode_navigates_left() {
+        let mut app = new_app();
+        // focused_field=2 with frequency=1 → navigate_left decrements frequency
+        app.current_screen = Screen::EditMedication {
+            id: "test-id".into(),
+            name: "Aspirin".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 1,
+            scheduled_time: vec!["08:00".into()],
+            scheduled_idx: 0,
+            focused_field: 2,
+            insert_mode: false,
+        };
+
+        press(&mut app, KeyCode::Char('h'));
+
+        assert!(matches!(
+            app.current_screen,
+            Screen::EditMedication { selected_frequency: 0, focused_field: 2, .. }
+        ));
+    }
+
+    #[test]
+    fn handle_enter_with_invalid_amount_shows_validation_error() {
+        let mut app = new_app();
+        app.current_screen = Screen::EditMedication {
+            id: "test-id".into(),
+            name: "Aspirin".into(),
+            amount_mg: "not-a-number".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["08:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        };
+
+        press(&mut app, KeyCode::Enter);
+
+        assert!(matches!(app.current_screen, Screen::ValidationError { .. }));
+    }
+
+    #[test]
+    fn handle_enter_with_invalid_time_slot_preserves_edit_screen() {
+        // parse_slots fails → ValidationError is set then overwritten by set_screen
+        let mut app = new_app();
+        app.current_screen = Screen::EditMedication {
+            id: "test-id".into(),
+            name: "Aspirin".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["not-a-time".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        };
+
+        press(&mut app, KeyCode::Enter);
+
+        assert!(matches!(app.current_screen, Screen::EditMedication { .. }));
+    }
+
+    #[test]
+    fn handle_enter_with_wrong_slot_count_preserves_edit_screen() {
+        // TwiceDaily (selected_frequency=1) with only 1 slot → slot count mismatch
+        let mut app = new_app();
+        app.current_screen = Screen::EditMedication {
+            id: "test-id".into(),
+            name: "Aspirin".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 1,
+            scheduled_time: vec!["08:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        };
+
+        press(&mut app, KeyCode::Enter);
+
+        assert!(matches!(app.current_screen, Screen::EditMedication { .. }));
     }
 }

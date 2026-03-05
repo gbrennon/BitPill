@@ -1,0 +1,88 @@
+use std::sync::Arc;
+
+use crate::application::ports::inbound::create_medication_port::CreateMedicationPort;
+use crate::application::ports::inbound::delete_medication_port::DeleteMedicationPort;
+use crate::application::ports::inbound::edit_medication_port::EditMedicationPort;
+use crate::application::ports::inbound::get_medication_port::GetMedicationPort;
+use crate::application::ports::inbound::list_all_medications_port::ListAllMedicationsPort;
+use crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort;
+use crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort;
+use crate::application::ports::inbound::mark_medication_taken_port::MarkMedicationTakenPort;
+use crate::application::ports::inbound::settings_port::SettingsPort;
+use crate::infrastructure::container::Container;
+
+/// Holds `Arc<dyn Port>` for every inbound application port the TUI needs.
+/// The TUI depends only on these abstractions — never on concrete infrastructure.
+pub struct AppServices {
+    pub list_all_medications: Arc<dyn ListAllMedicationsPort>,
+    pub create_medication: Arc<dyn CreateMedicationPort>,
+    pub edit_medication: Arc<dyn EditMedicationPort>,
+    pub delete_medication: Arc<dyn DeleteMedicationPort>,
+    pub get_medication: Arc<dyn GetMedicationPort>,
+    pub list_dose_records: Arc<dyn ListDoseRecordsPort>,
+    pub mark_dose_taken: Arc<dyn MarkDoseTakenPort>,
+    pub mark_medication_taken: Arc<dyn MarkMedicationTakenPort>,
+    pub settings: Arc<dyn SettingsPort>,
+}
+
+impl AppServices {
+    /// Constructs `AppServices` by cloning the port `Arc`s from a `Container`.
+    /// Used at the composition root (`App::run`, `PresentationRoot`) and in integration tests.
+    pub fn from_container(container: &Container) -> Self {
+        Self {
+            list_all_medications: container.list_all_medications_service.clone(),
+            create_medication: container.create_medication_service.clone(),
+            edit_medication: container.edit_medication_service.clone(),
+            delete_medication: container.delete_medication_service.clone(),
+            get_medication: container.get_medication_service.clone(),
+            list_dose_records: container.list_dose_records_service.clone(),
+            mark_dose_taken: container.mark_dose_taken_service.clone(),
+            mark_medication_taken: container.mark_medication_taken_service.clone(),
+            settings: container.settings_service.clone(),
+        }
+    }
+}
+
+#[cfg(any(test, feature = "test-helpers"))]
+impl AppServices {
+    /// Constructs an `AppServices` backed entirely by in-memory fakes.
+    /// No file I/O or concrete infrastructure is used.
+    pub fn fake() -> Self {
+        use crate::application::ports::fakes::{
+            FakeCreateMedicationPort, FakeDeleteMedicationPort, FakeEditMedicationPort,
+            FakeGetMedicationPort, FakeListAllMedicationsPort, FakeListDoseRecordsPort,
+            FakeMarkDoseTakenPort, FakeMarkMedicationTakenPort, FakeSettingsPort,
+        };
+        Self {
+            list_all_medications: Arc::new(FakeListAllMedicationsPort),
+            create_medication: Arc::new(FakeCreateMedicationPort),
+            edit_medication: Arc::new(FakeEditMedicationPort),
+            delete_medication: Arc::new(FakeDeleteMedicationPort),
+            get_medication: Arc::new(FakeGetMedicationPort),
+            list_dose_records: Arc::new(FakeListDoseRecordsPort),
+            mark_dose_taken: Arc::new(FakeMarkDoseTakenPort),
+            mark_medication_taken: Arc::new(FakeMarkMedicationTakenPort),
+            settings: Arc::new(FakeSettingsPort),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fake_constructs_all_services() {
+        let services = AppServices::fake();
+        // Verify that each port is accessible (not panics)
+        let _ = &services.list_all_medications;
+        let _ = &services.create_medication;
+        let _ = &services.edit_medication;
+        let _ = &services.delete_medication;
+        let _ = &services.get_medication;
+        let _ = &services.list_dose_records;
+        let _ = &services.mark_dose_taken;
+        let _ = &services.mark_medication_taken;
+        let _ = &services.settings;
+    }
+}

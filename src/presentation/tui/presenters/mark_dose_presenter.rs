@@ -1,4 +1,4 @@
-use crate::application::ports::inbound::list_dose_records_port::DoseRecordDto;
+use crate::application::dtos::responses::DoseRecordDto;
 use crate::presentation::tui::styles::{content_style, highlight_style};
 use crate::presentation::tui::templates::screen_template::ScreenTemplate;
 use chrono::Timelike;
@@ -76,7 +76,7 @@ pub fn build_mark_dose_lines(records: &[DoseRecordDto], selected_index: usize) -
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::application::ports::inbound::list_dose_records_port::DoseRecordDto;
+    use crate::application::dtos::responses::DoseRecordDto;
     use crate::presentation::tui::styles::highlight_style;
     use chrono::{NaiveDate, NaiveDateTime};
     use ratatui::text::{Line, Span};
