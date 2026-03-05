@@ -187,4 +187,17 @@ mod tests {
 
         assert!(med.scheduled_time().is_empty());
     }
+
+    #[test]
+    fn with_id_constructs_medication_with_given_id() {
+        let id = MedicationId::generate();
+        let name = MedicationName::new("TestMed").unwrap();
+        let dosage = Dosage::new(250).unwrap();
+        let times = vec![ScheduledTime::new(8, 0).unwrap()];
+        let med = Medication::with_id(id.clone(), name.clone(), dosage.clone(), times.clone(), DoseFrequency::Custom(times));
+
+        assert_eq!(med.id(), &id);
+        assert_eq!(med.name().value(), name.value());
+        assert_eq!(med.dosage().amount_mg(), dosage.amount_mg());
+    }
 }
