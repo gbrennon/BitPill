@@ -3,6 +3,12 @@
 BitPill is a medication management application. It lets users register medications
 they have in stock and receive reminders at each scheduled administration time.
 
+Note: authoritative agent/runtime instructions for Copilot and automated agents live in
+`.github/instructions/copilot-cli.instructions.md`. These instruction files are read at runtime by
+Copilot CLI and influence agent behavior for this repository. Agents are explicitly forbidden from
+performing any Git operations or inspecting the .git directory; any Git steps must be provided as
+commands for a human to run.
+
 ---
 
 ## Product Flow
