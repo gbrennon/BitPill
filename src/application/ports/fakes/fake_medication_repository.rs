@@ -59,7 +59,9 @@ impl MedicationRepository for FakeMedicationRepository {
         Ok(self.medications.lock().unwrap().clone())
     }
 
-    fn delete(&self, _id: &MedicationId) -> Result<(), StorageError> {
+    fn delete(&self, id: &MedicationId) -> Result<(), StorageError> {
+        let mut meds = self.medications.lock().unwrap();
+        meds.retain(|m| m.id() != id);
         Ok(())
     }
 }
