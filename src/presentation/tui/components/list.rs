@@ -1,4 +1,4 @@
-use crate::application::ports::inbound::list_all_medications_port::MedicationDto;
+use crate::application::dtos::responses::MedicationDto;
 use crate::presentation::tui::components::item::medication_item;
 use crate::presentation::tui::styles::{BORDER_COLOR, content_style};
 use ratatui::widgets::{Block, Borders, List, ListItem};
@@ -21,7 +21,7 @@ pub fn medication_list<'a>(medications: &'a [MedicationDto]) -> List<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::application::ports::inbound::list_all_medications_port::MedicationDto;
+    use crate::application::dtos::responses::MedicationDto;
 
     #[test]
     fn medication_list_constructs_with_items() {

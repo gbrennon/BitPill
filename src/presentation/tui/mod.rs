@@ -1,4 +1,5 @@
 pub mod app;
+pub mod app_services;
 pub mod components;
 pub mod draw;
 pub mod handlers;

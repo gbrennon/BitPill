@@ -2,7 +2,7 @@ pub mod create_medication_state;
 pub mod edit_medication_state;
 pub mod mark_dose_state;
 
-use crate::application::ports::inbound::list_dose_records_port::DoseRecordDto;
+use crate::application::dtos::responses::DoseRecordDto;
 
 pub use create_medication_state::CreateMedicationState;
 pub use edit_medication_state::EditMedicationState;

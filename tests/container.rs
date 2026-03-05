@@ -1,4 +1,5 @@
 use bitpill::infrastructure::container::Container;
+#[cfg(feature = "test-helpers")]
 use tempfile::tempdir;
 
 #[test]
@@ -11,6 +12,7 @@ fn container_default_builds_successfully() {
     let _container = Container::default();
 }
 
+#[cfg(feature = "test-helpers")]
 #[test]
 fn container_new_with_paths_builds_successfully() {
     let dir = tempdir().unwrap();
