@@ -18,16 +18,6 @@ impl GetMedicationService {
     }
 }
 
-// Bring test-only imports to the top for clarity
-#[cfg(test)]
-use crate::application::ports::fakes::FakeMedicationRepository;
-#[cfg(test)]
-use crate::domain::value_objects::{
-    medication_name::MedicationName,
-    dosage::Dosage,
-    scheduled_time::ScheduledTime,
-    medication_frequency::DoseFrequency,
-};
 
 impl GetMedicationPort for GetMedicationService {
     fn execute(
@@ -66,12 +56,20 @@ impl GetMedicationPort for GetMedicationService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::application::ports::fakes::FakeMedicationRepository;
+    use crate::domain::entities::medication::Medication as DomainMedication;
+    use crate::domain::value_objects::{
+        medication_name::MedicationName,
+        dosage::Dosage,
+        scheduled_time::ScheduledTime,
+        medication_frequency::DoseFrequency,
+    };
 
     #[test]
     fn get_medication_handles_custom_and_everyxhours_frequency() {
         let id1 = MedicationId::generate();
         let custom_times = vec![ScheduledTime::new(9, 0).unwrap(), ScheduledTime::new(21, 0).unwrap()];
-        let med_custom = crate::domain::entities::medication::Medication::new(
+        let med_custom = DomainMedication::new(
             id1.clone(),
             MedicationName::new("CustomMed").unwrap(),
             Dosage::new(50).unwrap(),
@@ -80,7 +78,7 @@ mod tests {
         );
 
         let id2 = MedicationId::generate();
-        let med_every = crate::domain::entities::medication::Medication::new(
+        let med_every = DomainMedication::new(
             id2.clone(),
             MedicationName::new("EveryMed").unwrap(),
             Dosage::new(25).unwrap(),
@@ -103,7 +101,7 @@ mod tests {
     #[test]
     fn get_medication_fixed_frequencies_map_to_strings() {
         let id_once = MedicationId::generate();
-        let m_once = crate::domain::entities::medication::Medication::new(
+        let m_once = DomainMedication::new(
             id_once.clone(),
             MedicationName::new("OnceMed").unwrap(),
             Dosage::new(10).unwrap(),
@@ -112,7 +110,7 @@ mod tests {
         );
 
         let id_twice = MedicationId::generate();
-        let m_twice = crate::domain::entities::medication::Medication::new(
+        let m_twice = DomainMedication::new(
             id_twice.clone(),
             MedicationName::new("TwiceMed").unwrap(),
             Dosage::new(20).unwrap(),
@@ -121,7 +119,7 @@ mod tests {
         );
 
         let id_thrice = MedicationId::generate();
-        let m_thrice = crate::domain::entities::medication::Medication::new(
+        let m_thrice = DomainMedication::new(
             id_thrice.clone(),
             MedicationName::new("ThriceMed").unwrap(),
             Dosage::new(30).unwrap(),
@@ -138,5 +136,44 @@ mod tests {
         assert_eq!(r2.medication.dose_frequency, "TwiceDaily");
         let r3 = svc.execute(GetMedicationRequest { id: id_thrice.to_string() }).unwrap();
         assert_eq!(r3.medication.dose_frequency, "ThriceDaily");
+    }
+
+    // Tests moved from additional_tests.rs
+    #[test]
+    fn get_medication_returns_medication_dto_when_found() {
+        let med = DomainMedication::new(
+            MedicationId::generate(),
+            MedicationName::new("TestMed").unwrap(),
+            Dosage::new(150).unwrap(),
+            vec![ScheduledTime::new(9, 0).unwrap()],
+            DoseFrequency::OnceDaily,
+        );
+        let repo = std::sync::Arc::new(FakeMedicationRepository::with(vec![med.clone()]));
+        let service = GetMedicationService::new(repo);
+
+        let req = GetMedicationRequest { id: med.id().to_string() };
+        let res = service.execute(req).expect("should return medication");
+        let dto = res.medication;
+        assert_eq!(dto.name, med.name().value());
+        assert_eq!(dto.amount_mg, med.dosage().amount_mg());
+        assert_eq!(dto.scheduled_time, vec![(9, 0)]);
+    }
+
+    #[test]
+    fn get_medication_returns_not_found_for_missing() {
+        let repo = std::sync::Arc::new(FakeMedicationRepository::new());
+        let service = GetMedicationService::new(repo);
+        let req = GetMedicationRequest { id: MedicationId::generate().to_string() };
+        let res = service.execute(req);
+        assert!(matches!(res, Err(crate::application::errors::ApplicationError::NotFound(_))));
+    }
+
+    #[test]
+    fn get_medication_invalid_id_returns_invalid_input() {
+        let repo = std::sync::Arc::new(FakeMedicationRepository::new());
+        let service = GetMedicationService::new(repo);
+        let req = GetMedicationRequest { id: "not-a-uuid".into() };
+        let res = service.execute(req);
+        assert!(matches!(res, Err(crate::application::errors::ApplicationError::InvalidInput(_))));
     }
 }
