@@ -1,32 +1,23 @@
+use crate::application::dtos::requests::{
+    CreateMedicationRequest, DeleteMedicationRequest, EditMedicationRequest, GetMedicationRequest,
+    ListAllMedicationsRequest, ListDoseRecordsRequest, MarkDoseTakenRequest,
+    MarkMedicationTakenRequest, SettingsRequest,
+};
+use crate::application::dtos::responses::{
+    CreateMedicationResponse, DeleteMedicationResponse, EditMedicationResponse,
+    GetMedicationResponse, ListAllMedicationsResponse, ListDoseRecordsResponse,
+    MarkDoseTakenResponse, MarkMedicationTakenResponse, MedicationDto, SettingsResponse,
+};
 use crate::application::errors::ApplicationError;
-use crate::application::ports::inbound::create_medication_port::{
-    CreateMedicationPort, CreateMedicationRequest, CreateMedicationResponse,
-};
-use crate::application::ports::inbound::delete_medication_port::{
-    DeleteMedicationPort, DeleteMedicationRequest, DeleteMedicationResponse,
-};
-use crate::application::ports::inbound::edit_medication_port::{
-    EditMedicationPort, EditMedicationRequest, EditMedicationResponse,
-};
-use crate::application::ports::inbound::get_medication_port::{
-    GetMedicationPort, GetMedicationRequest, GetMedicationResponse,
-    MedicationDto as GetMedicationDto,
-};
-use crate::application::ports::inbound::list_all_medications_port::{
-    ListAllMedicationsPort, ListAllMedicationsRequest, ListAllMedicationsResponse,
-};
-use crate::application::ports::inbound::list_dose_records_port::{
-    ListDoseRecordsPort, ListDoseRecordsRequest, ListDoseRecordsResponse,
-};
-use crate::application::ports::inbound::mark_dose_taken_port::{
-    MarkDoseTakenPort, MarkDoseTakenRequest, MarkDoseTakenResponse,
-};
-use crate::application::ports::inbound::mark_medication_taken_port::{
-    MarkMedicationTakenPort, MarkMedicationTakenRequest, MarkMedicationTakenResponse,
-};
-use crate::application::ports::inbound::settings_port::{
-    SettingsPort, SettingsRequest, SettingsResponse,
-};
+use crate::application::ports::inbound::create_medication_port::CreateMedicationPort;
+use crate::application::ports::inbound::delete_medication_port::DeleteMedicationPort;
+use crate::application::ports::inbound::edit_medication_port::EditMedicationPort;
+use crate::application::ports::inbound::get_medication_port::GetMedicationPort;
+use crate::application::ports::inbound::list_all_medications_port::ListAllMedicationsPort;
+use crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort;
+use crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort;
+use crate::application::ports::inbound::mark_medication_taken_port::MarkMedicationTakenPort;
+use crate::application::ports::inbound::settings_port::SettingsPort;
 
 pub struct FakeListAllMedicationsPort;
 impl ListAllMedicationsPort for FakeListAllMedicationsPort {
@@ -83,7 +74,7 @@ impl GetMedicationPort for FakeGetMedicationPort {
 
 /// Variant that always returns a successful response with a single medication.
 pub struct FakeGetMedicationPortOk {
-    pub medication: GetMedicationDto,
+    pub medication: MedicationDto,
 }
 impl GetMedicationPort for FakeGetMedicationPortOk {
     fn execute(
@@ -91,7 +82,7 @@ impl GetMedicationPort for FakeGetMedicationPortOk {
         _request: GetMedicationRequest,
     ) -> Result<GetMedicationResponse, ApplicationError> {
         Ok(GetMedicationResponse {
-            medication: GetMedicationDto {
+            medication: MedicationDto {
                 id: self.medication.id.clone(),
                 name: self.medication.name.clone(),
                 amount_mg: self.medication.amount_mg,

@@ -1,32 +1,8 @@
-use chrono::NaiveDateTime;
-
+use crate::application::dtos::requests::MarkMedicationTakenRequest;
+use crate::application::dtos::responses::MarkMedicationTakenResponse;
 use crate::application::errors::ApplicationError;
 
-/// Request to mark a medication dose as taken by creating a DoseRecord immediately.
-pub struct MarkMedicationTakenRequest {
-    pub medication_id: String,
-    pub taken_at: NaiveDateTime,
-}
-
-impl MarkMedicationTakenRequest {
-    pub fn new(medication_id: impl Into<String>, taken_at: NaiveDateTime) -> Self {
-        Self {
-            medication_id: medication_id.into(),
-            taken_at,
-        }
-    }
-}
-
-pub struct MarkMedicationTakenResponse {
-    pub id: String,
-}
-
-impl MarkMedicationTakenResponse {
-    pub fn new(id: impl Into<String>) -> Self {
-        Self { id: id.into() }
-    }
-}
-
+/// Inbound port: mark a medication dose as taken by creating a DoseRecord immediately.
 pub trait MarkMedicationTakenPort: Send + Sync {
     fn execute(
         &self,
@@ -41,7 +17,10 @@ mod tests {
 
     #[test]
     fn request_and_response_new_and_fields() {
-        let dt = NaiveDate::from_ymd_opt(2026, 3, 5).unwrap().and_hms_opt(12, 0, 0).unwrap();
+        let dt = NaiveDate::from_ymd_opt(2026, 3, 5)
+            .unwrap()
+            .and_hms_opt(12, 0, 0)
+            .unwrap();
         let req = MarkMedicationTakenRequest::new("med-id", dt);
         assert_eq!(req.medication_id, "med-id");
         assert_eq!(req.taken_at, dt);
