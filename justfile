@@ -20,17 +20,9 @@ run-tui:
 run:
     cargo run --bin bitpill
 
-# Legacy alias: run-both runs same as run
-run-both:
-    just run
-
 # Run all tests with coverage
 test:
     cargo llvm-cov --features test-helpers --ignore-filename-regex "ports/fakes"
-
-# Run a single test by name substring
-test-one NAME:
-	scripts/test-one.sh {{NAME}}
 
 # Lint (zero warnings enforced)
 lint:
