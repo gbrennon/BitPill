@@ -1,21 +1,6 @@
+use crate::application::dtos::requests::SettingsRequest;
+use crate::application::dtos::responses::SettingsResponse;
 use crate::application::errors::ApplicationError;
-use serde_json::Value;
-
-/// Request DTO for settings operations.
-pub struct SettingsRequest {
-    pub op: SettingsOperation,
-}
-
-/// Supported operations for the Settings inbound port.
-pub enum SettingsOperation {
-    Get,
-    Update { settings: Value },
-}
-
-/// Response DTO for settings operations.
-pub struct SettingsResponse {
-    pub settings: Value,
-}
 
 /// Inbound application port for settings-related use-cases.
 /// Single execute method taking a Request DTO and returning a Response DTO.
