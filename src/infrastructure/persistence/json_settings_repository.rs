@@ -46,3 +46,89 @@ impl SettingsRepositoryPort for JsonSettingsRepository {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+    use tempfile::tempdir;
+
+    #[test]
+    fn save_and_load_roundtrip() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        let repo = JsonSettingsRepository::new(path.clone());
+        let val = json!({"key":"value"});
+        repo.save(&val).expect("save should work");
+        let loaded = repo.load().expect("load should work");
+        assert_eq!(loaded["key"], "value");
+    }
+
+    #[test]
+    fn load_returns_error_when_file_does_not_exist() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("nonexistent.json");
+        let repo = JsonSettingsRepository::new(path);
+
+        let result = repo.load();
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn save_returns_error_when_path_is_a_directory() {
+        let dir = tempdir().unwrap();
+        let repo = JsonSettingsRepository::new(dir.path().to_path_buf());
+
+        let result = repo.save(&json!({"key": "value"}));
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn load_returns_error_for_invalid_json() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        std::fs::write(&path, b"not valid json {{{{").unwrap();
+        let repo = JsonSettingsRepository::new(path);
+
+        let result = repo.load();
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn load_returns_error_when_mutex_is_poisoned() {
+        use std::sync::Arc;
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("settings_poison_load.json");
+        std::fs::write(&path, r#"{"k":"v"}"#).unwrap();
+        let repo = Arc::new(JsonSettingsRepository::new(path));
+        let clone = Arc::clone(&repo);
+
+        let _ = std::thread::spawn(move || {
+            let _guard = clone.inner_lock.lock().unwrap();
+            panic!("poison");
+        })
+        .join();
+
+        assert!(repo.load().is_err());
+    }
+
+    #[test]
+    fn save_returns_error_when_mutex_is_poisoned() {
+        use std::sync::Arc;
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("settings_poison_save.json");
+        let repo = Arc::new(JsonSettingsRepository::new(path));
+        let clone = Arc::clone(&repo);
+
+        let _ = std::thread::spawn(move || {
+            let _guard = clone.inner_lock.lock().unwrap();
+            panic!("poison");
+        })
+        .join();
+
+        assert!(repo.save(&json!({"k": "v"})).is_err());
+    }
+}

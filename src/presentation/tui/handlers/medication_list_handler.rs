@@ -1,4 +1,3 @@
-use crate::application::ports::inbound::settings_port::SettingsPort;
 use crate::presentation::tui::app::App;
 use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
 use crate::presentation::tui::screen::Screen;
@@ -16,9 +15,9 @@ impl Default for MedicationListHandler {
 impl Handler for MedicationListHandler {
     fn handle(&mut self, app: &mut App, key: KeyEvent) -> HandlerResult {
         // Query application Settings service (inbound port) instead of reading repository directly
-        let _vim_enabled = match app.container.get_settings_service().execute(
-            crate::application::ports::inbound::settings_port::SettingsRequest {
-                op: crate::application::ports::inbound::settings_port::SettingsOperation::Get,
+        let _vim_enabled = match app.services.settings.execute(
+            crate::application::dtos::requests::SettingsRequest {
+                op: crate::application::dtos::requests::SettingsOperation::Get,
             },
         ) {
             Ok(resp) => resp
@@ -70,8 +69,8 @@ impl Handler for MedicationListHandler {
             }
             crossterm::event::KeyCode::Char('g') => {
                 // open settings
-                let vim_enabled = match app.container.get_settings_service().execute(
-                    crate::application::ports::inbound::settings_port::SettingsRequest { op: crate::application::ports::inbound::settings_port::SettingsOperation::Get },
+                let vim_enabled = match app.services.settings.execute(
+                    crate::application::dtos::requests::SettingsRequest { op: crate::application::dtos::requests::SettingsOperation::Get },
                 ) {
                     Ok(resp) => resp.settings.get("vim_navigation").and_then(|v| v.as_bool()).unwrap_or(false),
                     Err(_) => false,
@@ -82,8 +81,8 @@ impl Handler for MedicationListHandler {
                 if !app.medications.is_empty() {
                     let med = &app.medications[app.selected_index];
                     match crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort::execute(
-                        &app.container.list_dose_records_service,
-                        crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsRequest {
+                        &*app.services.list_dose_records,
+                        crate::application::dtos::requests::ListDoseRecordsRequest {
                             medication_id: med.id.clone(),
                         },
                     ) {
@@ -160,60 +159,196 @@ impl Handler for MedicationListHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::application::dtos::responses::MedicationDto;
+    use crate::presentation::tui::app::App;
+    use crate::presentation::tui::app_services::AppServices;
     use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-    use std::sync::Arc;
+
+    fn new_app() -> App {
+        App::new(AppServices::fake())
+    }
+
+    fn key(code: KeyCode) -> KeyEvent {
+        KeyEvent::new(code, KeyModifiers::NONE)
+    }
+
+    fn med(id: &str) -> MedicationDto {
+        MedicationDto {
+            id: id.to_string(),
+            name: "Med".to_string(),
+            amount_mg: 100,
+            dose_frequency: "OnceDaily".to_string(),
+            scheduled_time: vec![(8, 0)],
+        }
+    }
 
     #[test]
     fn handle_quit_opens_confirm_quit_modal() {
-        let container = Arc::new(crate::infrastructure::container::Container::new());
-        let mut app = App::new(container);
+        let mut app = new_app();
         let mut handler = MedicationListHandler;
-        let key = KeyEvent::new(KeyCode::Char('q'), KeyModifiers::NONE);
-        handler.handle(&mut app, key);
+        handler.handle(&mut app, key(KeyCode::Char('q')));
         assert!(matches!(app.current_screen, Screen::ConfirmQuit { .. }));
     }
 
-    /// Verifies `MedicationListHandler` is callable via a `Handler` trait object.
-    /// If the trait ever becomes non-object-safe this test will fail to compile.
     #[test]
     fn handle_dispatches_correctly_through_trait_object() {
-        use crate::presentation::tui::handlers::port::Handler;
-
-        let container = Arc::new(crate::infrastructure::container::Container::new());
-        let mut app = App::new(container);
+        let mut app = new_app();
         let mut handler: Box<dyn Handler> = Box::new(MedicationListHandler);
-        // 'c' opens the create-medication form — a simple, stable transition
-        let key = KeyEvent::new(KeyCode::Char('c'), KeyModifiers::NONE);
-        handler.handle(&mut app, key);
-
-        assert!(matches!(
-            app.current_screen,
-            Screen::CreateMedication { .. }
-        ));
+        handler.handle(&mut app, key(KeyCode::Char('c')));
+        assert!(matches!(app.current_screen, Screen::CreateMedication { .. }));
     }
 
     #[test]
     fn pressing_s_shows_instruction_to_open_details() {
-        let container = Arc::new(crate::infrastructure::container::Container::new());
-        let mut app = App::new(container);
-        let mut handler = MedicationListHandler::default();
-        app.medications = vec![
-            crate::application::ports::inbound::list_all_medications_port::MedicationDto {
-                id: "med1".to_string(),
-                name: "A".to_string(),
-                amount_mg: 10,
-                dose_frequency: "OnceDaily".to_string(),
-                scheduled_time: vec![(8, 0)],
-            },
-        ];
-        let key = KeyEvent::new(KeyCode::Char('s'), KeyModifiers::NONE);
-        handler.handle(&mut app, key);
-        assert!(app.status_message.is_some());
-        assert!(
-            app.status_message
-                .as_ref()
-                .unwrap()
-                .contains("Open medication details")
-        );
+        let mut app = new_app();
+        app.medications = vec![med("m1")];
+        let mut h = MedicationListHandler::default();
+        h.handle(&mut app, key(KeyCode::Char('s')));
+        assert!(app.status_message.as_deref().unwrap_or("").contains("Open medication details"));
+    }
+
+    #[test]
+    fn j_increments_selected_index() {
+        let mut app = new_app();
+        app.medications = vec![med("m1"), med("m2")];
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('j')));
+        assert_eq!(app.selected_index, 1);
+    }
+
+    #[test]
+    fn down_arrow_increments_selected_index() {
+        let mut app = new_app();
+        app.medications = vec![med("m1"), med("m2")];
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Down));
+        assert_eq!(app.selected_index, 1);
+    }
+
+    #[test]
+    fn j_does_not_exceed_last_index() {
+        let mut app = new_app();
+        app.medications = vec![med("m1")];
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('j')));
+        assert_eq!(app.selected_index, 0);
+    }
+
+    #[test]
+    fn k_decrements_selected_index() {
+        let mut app = new_app();
+        app.medications = vec![med("m1"), med("m2")];
+        app.selected_index = 1;
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('k')));
+        assert_eq!(app.selected_index, 0);
+    }
+
+    #[test]
+    fn k_clamps_at_zero() {
+        let mut app = new_app();
+        app.medications = vec![med("m1")];
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('k')));
+        assert_eq!(app.selected_index, 0);
+    }
+
+    #[test]
+    fn up_arrow_decrements_selected_index() {
+        let mut app = new_app();
+        app.medications = vec![med("m1"), med("m2")];
+        app.selected_index = 1;
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Up));
+        assert_eq!(app.selected_index, 0);
+    }
+
+    #[test]
+    fn l_key_increments_index() {
+        let mut app = new_app();
+        app.medications = vec![med("m1"), med("m2")];
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('l')));
+        assert_eq!(app.selected_index, 1);
+    }
+
+    #[test]
+    fn h_key_decrements_index() {
+        let mut app = new_app();
+        app.medications = vec![med("m1"), med("m2")];
+        app.selected_index = 1;
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('h')));
+        assert_eq!(app.selected_index, 0);
+    }
+
+    #[test]
+    fn v_opens_medication_details() {
+        let mut app = new_app();
+        app.medications = vec![med("med-v")];
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('v')));
+        assert!(matches!(app.current_screen, Screen::MedicationDetails { id } if id == "med-v"));
+    }
+
+    #[test]
+    fn enter_opens_medication_details() {
+        let mut app = new_app();
+        app.medications = vec![med("med-enter")];
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Enter));
+        assert!(matches!(app.current_screen, Screen::MedicationDetails { id } if id == "med-enter"));
+    }
+
+    #[test]
+    fn g_opens_settings() {
+        let mut app = new_app();
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('g')));
+        assert!(matches!(app.current_screen, Screen::Settings { .. }));
+    }
+
+    #[test]
+    fn d_opens_confirm_delete() {
+        let mut app = new_app();
+        app.medications = vec![med("del-id")];
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('d')));
+        assert!(matches!(app.current_screen, Screen::ConfirmDelete { id, .. } if id == "del-id"));
+    }
+
+    #[test]
+    fn e_opens_edit_medication() {
+        let mut app = new_app();
+        app.medications = vec![med("edit-id")];
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('e')));
+        assert!(matches!(app.current_screen, Screen::EditMedication { id, .. } if id == "edit-id"));
+    }
+
+    #[test]
+    fn t_opens_mark_dose_screen() {
+        let mut app = new_app();
+        app.medications = vec![med("t-id")];
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('t')));
+        assert!(matches!(app.current_screen, Screen::MarkDose { medication_id, .. } if medication_id == "t-id"));
+    }
+
+    #[test]
+    fn esc_reloads_and_stays_on_home() {
+        let mut app = new_app();
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Esc));
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn no_op_when_no_medications_on_v() {
+        let mut app = new_app();
+        app.medications.clear();
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('v')));
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
     }
 }

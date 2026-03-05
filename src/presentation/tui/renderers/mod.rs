@@ -103,3 +103,122 @@ pub fn render(f: &mut Frame, app: &App) {
         Screen::Settings { .. } => SettingsRenderer.render(f, app),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ratatui::Terminal;
+    use ratatui::backend::TestBackend;
+    use crate::presentation::tui::app_services::AppServices;
+
+    #[test]
+    fn render_all_screens_no_panic() {
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        let mut app = App {
+            services: AppServices::fake(),
+            current_screen: Screen::HomeScreen,
+            medications: Vec::new(),
+            selected_index: 0,
+            status_message: None,
+            status_expires_at: None,
+            should_quit: false,
+            show_welcome_modal: false,
+        };
+
+        let screens = vec![
+            Screen::HomeScreen,
+            Screen::CreateMedication {
+                name: String::new(),
+                amount_mg: String::new(),
+                selected_frequency: 0,
+                scheduled_time: Vec::new(),
+                scheduled_idx: 0,
+                focused_field: 0,
+                insert_mode: false,
+            },
+            Screen::EditMedication {
+                id: String::new(),
+                name: String::new(),
+                amount_mg: String::new(),
+                selected_frequency: 0,
+                scheduled_time: Vec::new(),
+                scheduled_idx: 0,
+                focused_field: 0,
+                insert_mode: false,
+            },
+            Screen::MedicationDetails { id: String::new() },
+            Screen::MarkDose {
+                medication_id: String::new(),
+                records: Vec::new(),
+                selected_index: 0,
+            },
+            Screen::ConfirmDelete {
+                id: String::new(),
+                name: String::new(),
+            },
+            Screen::ConfirmCancel {
+                previous: Box::new(Screen::HomeScreen),
+            },
+            Screen::Settings { vim_enabled: false },
+            Screen::ConfirmQuit {
+                previous: Box::new(Screen::HomeScreen),
+            },
+            Screen::ValidationError {
+                message: String::from("err"),
+                previous: Box::new(Screen::HomeScreen),
+            },
+        ];
+
+        for s in screens {
+            app.current_screen = s;
+            terminal.draw(|f| { render(f, &app); }).unwrap();
+        }
+    }
+
+    #[test]
+    fn render_view_with_non_home_previous_screens_no_panic() {
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        let mut app = App {
+            services: AppServices::fake(),
+            current_screen: Screen::HomeScreen,
+            medications: Vec::new(),
+            selected_index: 0,
+            status_message: None,
+            status_expires_at: None,
+            should_quit: false,
+            show_welcome_modal: false,
+        };
+
+        // Exercise render_view with each Screen variant as the `previous` target
+        let previous_screens: Vec<Box<Screen>> = vec![
+            Box::new(Screen::CreateMedication {
+                name: String::new(), amount_mg: String::new(),
+                selected_frequency: 0, scheduled_time: Vec::new(),
+                scheduled_idx: 0, focused_field: 0, insert_mode: false,
+            }),
+            Box::new(Screen::EditMedication {
+                id: String::new(), name: String::new(), amount_mg: String::new(),
+                selected_frequency: 0, scheduled_time: Vec::new(),
+                scheduled_idx: 0, focused_field: 0, insert_mode: false,
+            }),
+            Box::new(Screen::MedicationDetails { id: String::new() }),
+            Box::new(Screen::MarkDose {
+                medication_id: String::new(), records: Vec::new(), selected_index: 0,
+            }),
+            Box::new(Screen::Settings { vim_enabled: false }),
+            Box::new(Screen::ConfirmDelete { id: String::new(), name: String::new() }),
+            Box::new(Screen::ConfirmCancel { previous: Box::new(Screen::HomeScreen) }),
+            Box::new(Screen::ConfirmQuit { previous: Box::new(Screen::HomeScreen) }),
+        ];
+
+        for prev in previous_screens {
+            app.current_screen = Screen::ValidationError {
+                message: "e".into(),
+                previous: prev,
+            };
+            terminal.draw(|f| { render(f, &app); }).unwrap();
+        }
+    }
+}

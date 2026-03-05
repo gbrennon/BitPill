@@ -1,5 +1,5 @@
 // Internal imports first
-use crate::application::ports::inbound::list_all_medications_port::MedicationDto;
+use crate::application::dtos::responses::MedicationDto;
 use crate::presentation::tui::components::table::medication_table;
 use crate::presentation::tui::templates::screen_template::ScreenTemplate;
 

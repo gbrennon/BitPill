@@ -20,3 +20,35 @@ impl NotificationPort for ConsoleNotificationAdapter {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::entities::{medication::Medication, dose_record::DoseRecord};
+    use crate::domain::value_objects::{
+        medication_id::MedicationId,
+        medication_name::MedicationName,
+        dosage::Dosage,
+        medication_frequency::DoseFrequency,
+        scheduled_time::ScheduledTime,
+    };
+
+    #[test]
+    fn notify_dose_due_returns_ok() {
+        let med = Medication::new(
+            MedicationId::generate(),
+            MedicationName::new("TestMed").unwrap(),
+            Dosage::new(10).unwrap(),
+            vec![ScheduledTime::new(8, 0).unwrap()],
+            DoseFrequency::OnceDaily,
+        );
+        let scheduled_at = chrono::NaiveDate::from_ymd_opt(2025, 1, 1)
+            .unwrap()
+            .and_hms_opt(8, 0, 0)
+            .unwrap();
+        let record = DoseRecord::new(med.id().clone(), scheduled_at);
+        let adapter = ConsoleNotificationAdapter;
+        let res = adapter.notify_dose_due(&med, &record);
+        assert!(res.is_ok());
+    }
+}

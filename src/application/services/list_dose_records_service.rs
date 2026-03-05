@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
+use crate::application::dtos::requests::ListDoseRecordsRequest;
+use crate::application::dtos::responses::{DoseRecordDto, ListDoseRecordsResponse};
 use crate::application::errors::ApplicationError;
 use crate::application::ports::dose_record_repository_port::DoseRecordRepository;
-use crate::application::ports::inbound::list_dose_records_port::{
-    DoseRecordDto, ListDoseRecordsPort, ListDoseRecordsRequest, ListDoseRecordsResponse,
-};
+use crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort;
 
 pub struct ListDoseRecordsService {
     repository: Arc<dyn DoseRecordRepository>,
