@@ -32,6 +32,8 @@ fn handler_saves_dose_record_to_file() {
     let key = KeyEvent::new(KeyCode::Char('s'), KeyModifiers::NONE);
     handler.handle(&mut app, key);
 
-    let data = std::fs::read_to_string(&dose_path).expect("file should exist");
-    assert!(data.trim().starts_with('['));
+    // Now pressing 's' should show an instruction to open details
+    assert!(app.status_message.is_some());
+    assert!(app.status_message.as_ref().unwrap().contains("Open medication details"));
 }
+

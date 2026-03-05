@@ -29,6 +29,7 @@ use crate::domain::value_objects::{
 ///         medication_id::MedicationId,
 ///         medication_name::MedicationName,
 ///         scheduled_time::ScheduledTime,
+///         medication_frequency::DoseFrequency,
 ///     },
 /// };
 ///
@@ -37,6 +38,7 @@ use crate::domain::value_objects::{
 ///     MedicationName::new("Ibuprofen").unwrap(),
 ///     Dosage::new(400).unwrap(),
 ///     vec![ScheduledTime::new(8, 0).unwrap(), ScheduledTime::new(20, 0).unwrap()],
+///     DoseFrequency::OnceDaily,
 /// );
 ///
 /// assert_eq!(medication.name().value(), "Ibuprofen");

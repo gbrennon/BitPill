@@ -91,20 +91,20 @@ impl Handler for EditMedicationHandler {
                 let parsed_amount: u32 = match amount_mg.trim().parse() {
                     Ok(v) => v,
                     Err(_) => {
-                        app.status_message = Some("Invalid amount_mg value".into());
+                        app.current_screen = Screen::ValidationError { message: "Invalid amount_mg value".into(), previous: Box::new(app.current_screen.clone()) };
                         return HandlerResult::Continue;
                     }
                 };
 
                 match parse_slots(&nav.scheduled_time) {
                     Err(e) => {
-                        app.status_message = Some(e.to_string());
+                        app.current_screen = Screen::ValidationError { message: e.to_string(), previous: Box::new(app.current_screen.clone()) };
                         set_screen(app, id, name, amount_mg, selected_frequency, nav, insert_mode);
                         return HandlerResult::Continue;
                     }
                     Ok(parsed) => {
                         if let Err(msg) = validate_slot_count(selected_frequency, parsed.times.len()) {
-                            app.status_message = Some(msg);
+                            app.current_screen = Screen::ValidationError { message: msg.clone(), previous: Box::new(app.current_screen.clone()) };
                             let new_nav = NavigationState {
                                 focused_field,
                                 scheduled_time: parsed.normalized,
@@ -212,15 +212,10 @@ impl EditMedicationHandler {
                         _ => { parse_error = true; break; }
                     }
                 }
-                let orig_freq_idx = match orig.scheduled_time.len() {
-                    0 | 1 => 0,
-                    2 => 1,
-                    _ => 2,
-                };
                 parse_error
                     || orig.name != name
                     || parsed_amount.map_or(true, |a| a != orig.amount_mg)
-                    || orig_freq_idx != selected_frequency
+                    || orig.dose_frequency != frequency_str(selected_frequency)
                     || parsed_slots.len() != orig.scheduled_time.len()
                     || parsed_slots.iter().zip(orig.scheduled_time.iter()).any(|(a, b)| a.0 != b.0 || a.1 != b.1)
             }
@@ -434,5 +429,67 @@ mod tests {
             app.current_screen,
             Screen::EditMedication { insert_mode: false, .. }
         ));
+    }
+
+    // --- Esc normal mode: change detection ---
+
+    fn new_app_with_tempdir() -> (App, tempfile::TempDir) {
+        let dir = tempfile::tempdir().unwrap();
+        let container = std::sync::Arc::new(
+            crate::infrastructure::container::Container::new_with_paths(
+                dir.path().join("meds.json"),
+                dir.path().join("records.json"),
+                dir.path().join("settings.json"),
+            ),
+        );
+        (App::new(container), dir)
+    }
+
+    fn save_medication(app: &App) -> String {
+        use crate::application::ports::inbound::create_medication_port::{
+            CreateMedicationPort, CreateMedicationRequest,
+        };
+        let req = CreateMedicationRequest::new("Aspirin", 100, vec![(8, 0)], "OnceDaily");
+        app.container.create_medication_service.execute(req).unwrap().id
+    }
+
+    #[test]
+    fn handle_esc_in_normal_mode_without_changes_goes_to_home_screen() {
+        let (mut app, _dir) = new_app_with_tempdir();
+        let id = save_medication(&app);
+        app.current_screen = Screen::EditMedication {
+            id: id.clone(),
+            name: "Aspirin".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["08:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        };
+
+        press(&mut app, KeyCode::Esc);
+
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn handle_esc_in_normal_mode_with_changes_shows_confirm_cancel() {
+        let (mut app, _dir) = new_app_with_tempdir();
+        let id = save_medication(&app);
+        app.current_screen = Screen::EditMedication {
+            id: id.clone(),
+            name: "Changed".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["08:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        };
+
+        press(&mut app, KeyCode::Esc);
+
+        assert!(matches!(app.current_screen, Screen::ConfirmCancel { .. }));
     }
 }

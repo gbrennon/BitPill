@@ -8,3 +8,4 @@ pub mod medication_form;
 pub mod modal;
 pub mod table;
 pub mod schedule_time;
+pub mod mark_taken_line;

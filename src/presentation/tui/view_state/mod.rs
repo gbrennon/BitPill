@@ -46,4 +46,6 @@ pub enum ViewState {
     Settings { vim_enabled: bool },
     /// Confirmation modal for quitting the application. Holds the previous view to return to on cancel.
     ConfirmQuit { previous: Box<ViewState> },
+    /// Validation/modal to show input errors; holds the previous view to return to when dismissed.
+    ValidationError { message: String, previous: Box<ViewState> },
 }
