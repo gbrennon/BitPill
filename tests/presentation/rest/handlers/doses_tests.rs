@@ -124,7 +124,6 @@ async fn mark_taken_for_existing_record_returns_200() {
 #[actix_web::test]
 async fn mark_taken_returns_200_for_real_dose_record() {
     use bitpill::application::dtos::requests::CreateDoseRecordRequest;
-    use bitpill::application::ports::inbound::create_dose_record_port::CreateDoseRecordPort;
     use chrono::NaiveDateTime;
 
     let (c, _dir) = container();
