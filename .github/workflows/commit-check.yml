@@ -8,9 +8,9 @@ on:
 jobs:
   commit-check:
     runs-on: ubuntu-latest
-    permissions:  # use permissions because use of pr-comments
-    contents: read
-    pull-requests: write
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v5
         with:
