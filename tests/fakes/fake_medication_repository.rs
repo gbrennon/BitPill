@@ -2,7 +2,9 @@ use std::sync::Mutex;
 
 use bitpill::application::errors::StorageError;
 use bitpill::application::ports::outbound::medication_repository_port::MedicationRepository;
-use bitpill::domain::{entities::medication::Medication, value_objects::medication_id::MedicationId};
+use bitpill::domain::{
+    entities::medication::Medication, value_objects::medication_id::MedicationId,
+};
 
 pub struct FakeMedicationRepository {
     medications: Mutex<Vec<Medication>>,

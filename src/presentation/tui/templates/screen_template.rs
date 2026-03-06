@@ -85,8 +85,12 @@ mod tests {
         let mut terminal = Terminal::new(backend).unwrap();
         terminal
             .draw(|f| {
-                ScreenTemplate { subtitle: "Test", help: "[q] Quit", mode: "NORMAL" }
-                    .render(f, |_, _| {});
+                ScreenTemplate {
+                    subtitle: "Test",
+                    help: "[q] Quit",
+                    mode: "NORMAL",
+                }
+                .render(f, |_, _| {});
             })
             .unwrap();
     }
@@ -99,8 +103,12 @@ mod tests {
         let mut terminal = Terminal::new(backend).unwrap();
         terminal
             .draw(|f| {
-                ScreenTemplate { subtitle: "Test", help: "[q] Quit", mode: "NORMAL" }
-                    .render(f, |_, _| {});
+                ScreenTemplate {
+                    subtitle: "Test",
+                    help: "[q] Quit",
+                    mode: "NORMAL",
+                }
+                .render(f, |_, _| {});
             })
             .unwrap();
     }

@@ -3,11 +3,11 @@ use std::sync::Arc;
 use actix_web::{HttpResponse, web};
 use serde::{Deserialize, Serialize};
 
-use crate::application::errors::ApplicationError;
 use crate::application::dtos::requests::{
     CreateMedicationRequest, GetMedicationRequest, ListAllMedicationsRequest,
     UpdateMedicationRequest,
 };
+use crate::application::errors::ApplicationError;
 use crate::domain::errors::DomainError;
 use crate::infrastructure::container::Container;
 

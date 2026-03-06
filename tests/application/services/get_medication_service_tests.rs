@@ -1,18 +1,15 @@
-use bitpill::application::errors::ApplicationError;
+use crate::fakes::FakeMedicationRepository;
 use bitpill::application::dtos::requests::GetMedicationRequest;
+use bitpill::application::errors::ApplicationError;
 use bitpill::application::ports::inbound::get_medication_port::GetMedicationPort;
 use bitpill::application::services::get_medication_service::GetMedicationService;
 use bitpill::domain::{
     entities::medication::Medication,
     value_objects::{
-        dosage::Dosage,
-        medication_frequency::DoseFrequency,
-        medication_id::MedicationId,
-        medication_name::MedicationName,
-        scheduled_time::ScheduledTime,
+        dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+        medication_name::MedicationName, scheduled_time::ScheduledTime,
     },
 };
-use crate::fakes::FakeMedicationRepository;
 use std::sync::Arc;
 
 #[test]
@@ -27,7 +24,11 @@ fn get_medication_returns_medication_dto_when_found() {
     let repo = Arc::new(FakeMedicationRepository::with(vec![med.clone()]));
     let service = GetMedicationService::new(repo);
 
-    let res = service.execute(GetMedicationRequest { id: med.id().to_string() }).expect("should return medication");
+    let res = service
+        .execute(GetMedicationRequest {
+            id: med.id().to_string(),
+        })
+        .expect("should return medication");
 
     let dto = res.medication;
     assert_eq!(dto.name, med.name().value());
@@ -40,7 +41,9 @@ fn get_medication_returns_not_found_for_missing() {
     let repo = Arc::new(FakeMedicationRepository::new());
     let service = GetMedicationService::new(repo);
 
-    let res = service.execute(GetMedicationRequest { id: MedicationId::generate().to_string() });
+    let res = service.execute(GetMedicationRequest {
+        id: MedicationId::generate().to_string(),
+    });
 
     assert!(matches!(res, Err(ApplicationError::NotFound(_))));
 }
@@ -50,7 +53,9 @@ fn get_medication_invalid_id_returns_invalid_input() {
     let repo = Arc::new(FakeMedicationRepository::new());
     let service = GetMedicationService::new(repo);
 
-    let res = service.execute(GetMedicationRequest { id: "not-a-uuid".into() });
+    let res = service.execute(GetMedicationRequest {
+        id: "not-a-uuid".into(),
+    });
 
     assert!(matches!(res, Err(ApplicationError::InvalidInput(_))));
 }
@@ -58,7 +63,10 @@ fn get_medication_invalid_id_returns_invalid_input() {
 #[test]
 fn get_medication_handles_custom_and_everyxhours_frequency() {
     let id1 = MedicationId::generate();
-    let custom_times = vec![ScheduledTime::new(9, 0).unwrap(), ScheduledTime::new(21, 0).unwrap()];
+    let custom_times = vec![
+        ScheduledTime::new(9, 0).unwrap(),
+        ScheduledTime::new(21, 0).unwrap(),
+    ];
     let med_custom = Medication::new(
         id1.clone(),
         MedicationName::new("CustomMed").unwrap(),
@@ -79,10 +87,18 @@ fn get_medication_handles_custom_and_everyxhours_frequency() {
     let repo = Arc::new(FakeMedicationRepository::with(vec![med_custom, med_every]));
     let svc = GetMedicationService::new(repo);
 
-    let res_custom = svc.execute(GetMedicationRequest { id: id1.to_string() }).unwrap();
+    let res_custom = svc
+        .execute(GetMedicationRequest {
+            id: id1.to_string(),
+        })
+        .unwrap();
     assert_eq!(res_custom.medication.dose_frequency, "Custom");
 
-    let res_every = svc.execute(GetMedicationRequest { id: id2.to_string() }).unwrap();
+    let res_every = svc
+        .execute(GetMedicationRequest {
+            id: id2.to_string(),
+        })
+        .unwrap();
     assert_eq!(res_every.medication.dose_frequency, "EveryXHours");
 }
 
@@ -101,7 +117,10 @@ fn get_medication_fixed_frequencies_map_to_strings() {
         id_twice.clone(),
         MedicationName::new("TwiceMed").unwrap(),
         Dosage::new(20).unwrap(),
-        vec![ScheduledTime::new(8, 0).unwrap(), ScheduledTime::new(20, 0).unwrap()],
+        vec![
+            ScheduledTime::new(8, 0).unwrap(),
+            ScheduledTime::new(20, 0).unwrap(),
+        ],
         DoseFrequency::TwiceDaily,
     );
     let id_thrice = MedicationId::generate();
@@ -117,14 +136,28 @@ fn get_medication_fixed_frequencies_map_to_strings() {
         DoseFrequency::ThriceDaily,
     );
 
-    let repo = Arc::new(FakeMedicationRepository::with(vec![m_once, m_twice, m_thrice]));
+    let repo = Arc::new(FakeMedicationRepository::with(vec![
+        m_once, m_twice, m_thrice,
+    ]));
     let svc = GetMedicationService::new(repo);
 
-    let r1 = svc.execute(GetMedicationRequest { id: id_once.to_string() }).unwrap();
+    let r1 = svc
+        .execute(GetMedicationRequest {
+            id: id_once.to_string(),
+        })
+        .unwrap();
     assert_eq!(r1.medication.dose_frequency, "OnceDaily");
-    let r2 = svc.execute(GetMedicationRequest { id: id_twice.to_string() }).unwrap();
+    let r2 = svc
+        .execute(GetMedicationRequest {
+            id: id_twice.to_string(),
+        })
+        .unwrap();
     assert_eq!(r2.medication.dose_frequency, "TwiceDaily");
-    let r3 = svc.execute(GetMedicationRequest { id: id_thrice.to_string() }).unwrap();
+    let r3 = svc
+        .execute(GetMedicationRequest {
+            id: id_thrice.to_string(),
+        })
+        .unwrap();
     assert_eq!(r3.medication.dose_frequency, "ThriceDaily");
 }
 

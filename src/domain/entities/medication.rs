@@ -194,7 +194,13 @@ mod tests {
         let name = MedicationName::new("TestMed").unwrap();
         let dosage = Dosage::new(250).unwrap();
         let times = vec![ScheduledTime::new(8, 0).unwrap()];
-        let med = Medication::with_id(id.clone(), name.clone(), dosage.clone(), times.clone(), DoseFrequency::Custom(times));
+        let med = Medication::with_id(
+            id.clone(),
+            name.clone(),
+            dosage.clone(),
+            times.clone(),
+            DoseFrequency::Custom(times),
+        );
 
         assert_eq!(med.id(), &id);
         assert_eq!(med.name().value(), name.value());
