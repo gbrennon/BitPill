@@ -29,23 +29,7 @@ impl CreateMedicationPort for CreateMedicationService {
         request: CreateMedicationRequest,
     ) -> Result<CreateMedicationResponse, ApplicationError> {
         let id = MedicationId::generate();
-        let name = MedicationName::new(request.name)?;
-        let dosage = Dosage::new(request.amount_mg)?;
-        let times = request
-            .scheduled_time
-            .into_iter()
-            .map(|(h, m)| ScheduledTime::new(h, m))
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let dose_frequency = match request.dose_frequency.as_str() {
-            "OnceDaily" => DoseFrequency::OnceDaily,
-            "TwiceDaily" => DoseFrequency::TwiceDaily,
-            "ThriceDaily" => DoseFrequency::ThriceDaily,
-            "Custom" => DoseFrequency::Custom(times.clone()),
-            _ => DoseFrequency::OnceDaily,
-        };
-
-        let medication = Medication::new(id, name, dosage, times, dose_frequency);
+        let medication = Medication::from(request)?;
 
         self.repository.save(&medication)?;
 
