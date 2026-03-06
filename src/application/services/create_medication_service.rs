@@ -28,8 +28,7 @@ impl CreateMedicationPort for CreateMedicationService {
         &self,
         request: CreateMedicationRequest,
     ) -> Result<CreateMedicationResponse, ApplicationError> {
-        let id = MedicationId::generate();
-        let medication = Medication::from(request)?;
+        let medication = MedicationMapper::from_request(request, None)?;
 
         self.repository.save(&medication)?;
 
