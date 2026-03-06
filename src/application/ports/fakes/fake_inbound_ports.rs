@@ -1,12 +1,12 @@
 use crate::application::dtos::requests::{
     CreateMedicationRequest, DeleteMedicationRequest, EditMedicationRequest, GetMedicationRequest,
     ListAllMedicationsRequest, ListDoseRecordsRequest, MarkDoseTakenRequest,
-    MarkMedicationTakenRequest, SettingsRequest,
+     SettingsRequest,
 };
 use crate::application::dtos::responses::{
     CreateMedicationResponse, DeleteMedicationResponse, EditMedicationResponse,
     GetMedicationResponse, ListAllMedicationsResponse, ListDoseRecordsResponse,
-    MarkDoseTakenResponse, MarkMedicationTakenResponse, MedicationDto, SettingsResponse,
+    MarkDoseTakenResponse, MedicationDto, SettingsResponse,
 };
 use crate::application::errors::ApplicationError;
 use crate::application::ports::inbound::create_medication_port::CreateMedicationPort;
@@ -16,7 +16,6 @@ use crate::application::ports::inbound::get_medication_port::GetMedicationPort;
 use crate::application::ports::inbound::list_all_medications_port::ListAllMedicationsPort;
 use crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort;
 use crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort;
-use crate::application::ports::inbound::mark_medication_taken_port::MarkMedicationTakenPort;
 use crate::application::ports::inbound::settings_port::SettingsPort;
 
 pub struct FakeListAllMedicationsPort;
@@ -110,16 +109,6 @@ impl MarkDoseTakenPort for FakeMarkDoseTakenPort {
         _request: MarkDoseTakenRequest,
     ) -> Result<MarkDoseTakenResponse, ApplicationError> {
         Ok(MarkDoseTakenResponse::new("fake-id"))
-    }
-}
-
-pub struct FakeMarkMedicationTakenPort;
-impl MarkMedicationTakenPort for FakeMarkMedicationTakenPort {
-    fn execute(
-        &self,
-        _request: MarkMedicationTakenRequest,
-    ) -> Result<MarkMedicationTakenResponse, ApplicationError> {
-        Ok(MarkMedicationTakenResponse::new("fake-id"))
     }
 }
 

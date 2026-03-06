@@ -4,7 +4,7 @@ use actix_web::{HttpResponse, web};
 use serde::{Deserialize, Serialize};
 
 use crate::application::errors::{ApplicationError, NotFoundError};
-use crate::application::dtos::requests::MarkDoseTakenRequest;
+use crate::application::dtos::requests::{MarkDoseTakenRequest, ScheduleDoseRequest};
 use crate::infrastructure::container::Container;
 use chrono::NaiveDateTime;
 
@@ -29,9 +29,9 @@ pub struct ErrorBody {
 }
 
 pub async fn schedule(data: web::Data<Arc<Container>>) -> HttpResponse {
-    match data.schedule_dose_service.execute() {
-        Ok(records) => HttpResponse::Ok().json(ScheduleResponseBody {
-            created_count: records.len(),
+    match data.schedule_dose_service.execute(ScheduleDoseRequest) {
+        Ok(resp) => HttpResponse::Ok().json(ScheduleResponseBody {
+            created_count: resp.created.len(),
         }),
         Err(e) => HttpResponse::InternalServerError().json(ErrorBody {
             error: e.to_string(),

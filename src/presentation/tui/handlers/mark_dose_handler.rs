@@ -54,9 +54,9 @@ impl Handler for MarkDoseHandler {
                 } else {
                     let rec = &recs[sel_idx];
                     if rec.id.starts_with("slot:") {
-                        match crate::application::ports::inbound::mark_medication_taken_port::MarkMedicationTakenPort::execute(
-                            &*app.services.mark_medication_taken,
-                            crate::application::dtos::requests::MarkMedicationTakenRequest::new(rec.medication_id.clone(), rec.scheduled_at),
+                        match crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort::execute(
+                            &*app.services.mark_dose_taken,
+                            crate::application::dtos::requests::MarkDoseTakenRequest::new(rec.medication_id.clone(), rec.scheduled_at),
                         ) {
                             Ok(_) => app.set_status("Marked scheduled slot as taken", 3000),
                             Err(e) => app.status_message = Some(format!("Error: {e}")),
@@ -244,7 +244,7 @@ mod tests {
 
         h.handle(&mut app, key(KeyCode::Enter));
 
-        // FakeMarkMedicationTakenPort returns Ok → navigates to MedicationDetails
+        // FakeMarkDoseTakenPort returns Ok → navigates to MedicationDetails
         assert!(matches!(app.current_screen, Screen::MedicationDetails { .. }));
     }
 
