@@ -69,3 +69,80 @@ impl MarkDoseTakenPort for MarkDoseTakenService {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::application::ports::fakes::{FakeDoseRecordRepository, FakeMedicationRepository};
+    use chrono::NaiveDate;
+
+    fn make_datetime(h: u32, m: u32) -> chrono::NaiveDateTime {
+        NaiveDate::from_ymd_opt(2025, 1, 1)
+            .unwrap()
+            .and_hms_opt(h, m, 0)
+            .unwrap()
+    }
+
+    fn make_service(
+        repo: std::sync::Arc<FakeDoseRecordRepository>,
+        med_repo: std::sync::Arc<FakeMedicationRepository>,
+    ) -> MarkDoseTakenService {
+        MarkDoseTakenService::new(repo, med_repo)
+    }
+
+    #[test]
+    fn execute_with_invalid_uuid_returns_invalid_input() {
+        let repo = std::sync::Arc::new(FakeDoseRecordRepository::new());
+        let med_repo = std::sync::Arc::new(FakeMedicationRepository::new());
+        let service = make_service(repo, med_repo);
+
+        let req = MarkDoseTakenRequest { record_id: "not-a-uuid".into(), taken_at: make_datetime(8,0) };
+        let res = service.execute(req);
+        assert!(matches!(res, Err(ApplicationError::InvalidInput(_))));
+    }
+
+    #[test]
+    fn execute_when_record_exists_marks_and_saves() {
+        let med_id = crate::domain::value_objects::medication_id::MedicationId::generate();
+        let record = crate::domain::entities::dose_record::DoseRecord::new(med_id.clone(), make_datetime(8,0));
+        let repo = std::sync::Arc::new(FakeDoseRecordRepository::with(record.clone()));
+        let med_repo = std::sync::Arc::new(FakeMedicationRepository::new());
+        let service = make_service(repo.clone(), med_repo);
+
+        let req = MarkDoseTakenRequest { record_id: record.id().to_string(), taken_at: make_datetime(8,5) };
+        let res = service.execute(req).unwrap();
+        assert_eq!(res.record_id, record.id().to_string());
+        assert_eq!(repo.saved_count(), 1);
+    }
+
+    #[test]
+    fn execute_when_no_record_but_med_exists_creates_and_saves() {
+        let med = crate::domain::entities::medication::Medication::new(
+            crate::domain::value_objects::medication_id::MedicationId::generate(),
+            crate::domain::value_objects::medication_name::MedicationName::new("Test").unwrap(),
+            crate::domain::value_objects::dosage::Dosage::new(100).unwrap(),
+            vec![],
+            crate::domain::value_objects::medication_frequency::DoseFrequency::OnceDaily,
+        );
+        let med_id = med.id().clone();
+        let repo = std::sync::Arc::new(FakeDoseRecordRepository::new());
+        let med_repo = std::sync::Arc::new(FakeMedicationRepository::with(vec![med]));
+        let service = make_service(repo.clone(), med_repo);
+
+        let req = MarkDoseTakenRequest { record_id: med_id.to_string(), taken_at: make_datetime(9,0) };
+        let res = service.execute(req).unwrap();
+        assert!(!res.record_id.is_empty());
+        assert_eq!(repo.saved_count(), 1);
+    }
+
+    #[test]
+    fn execute_when_no_record_and_med_missing_returns_not_found() {
+        let repo = std::sync::Arc::new(FakeDoseRecordRepository::new());
+        let med_repo = std::sync::Arc::new(FakeMedicationRepository::new());
+        let service = make_service(repo, med_repo);
+
+        let req = MarkDoseTakenRequest { record_id: uuid::Uuid::now_v7().to_string(), taken_at: make_datetime(9,0) };
+        let res = service.execute(req);
+        assert!(matches!(res, Err(ApplicationError::NotFound(_))));
+    }
+}
