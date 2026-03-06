@@ -1,6 +1,8 @@
-use bitpill::application::dtos::requests::CreateDoseRecordRequest;
-use bitpill::application::ports::inbound::create_dose_record_port::CreateDoseRecordPort;
-use bitpill::application::services::create_dose_record_service::CreateDoseRecordsService;
+use bitpill::application::{
+    dtos::requests::CreateDoseRecordRequest,
+    ports::create_dose_record_port::CreateDoseRecordPort,
+    services::create_dose_record_service::CreateDoseRecordService,
+};
 use crate::fakes::FakeDoseRecordRepository;
 use chrono::NaiveDate;
 use std::sync::Arc;
@@ -8,7 +10,7 @@ use std::sync::Arc;
 #[test]
 fn execute_with_invalid_medication_id_returns_invalid_input() {
     let repo = Arc::new(FakeDoseRecordRepository::new());
-    let service = CreateDoseRecordsService::new(repo);
+    let service = CreateDoseRecordService::new(repo);
     let scheduled_at = NaiveDate::from_ymd_opt(2020, 1, 1)
         .unwrap()
         .and_hms_opt(9, 0, 0)
@@ -21,9 +23,9 @@ fn execute_with_invalid_medication_id_returns_invalid_input() {
 }
 
 #[test]
-fn create_dose_record_saves_to_repository() {
+fn create_dose_records_saves_to_repository() {
     let repo = Arc::new(FakeDoseRecordRepository::new());
-    let service = CreateDoseRecordsService::new(repo.clone());
+    let service = CreateDoseRecordService::new(repo.clone());
     let med_id = uuid::Uuid::nil().to_string();
     let scheduled_at = NaiveDate::from_ymd_opt(2020, 1, 1)
         .unwrap()
@@ -41,7 +43,7 @@ fn create_dose_record_saves_to_repository() {
 fn execute_when_repository_fails_returns_storage_error() {
     use bitpill::application::errors::ApplicationError;
     let repo = Arc::new(FakeDoseRecordRepository::failing());
-    let service = CreateDoseRecordsService::new(repo);
+    let service = CreateDoseRecordService::new(repo);
     let scheduled_at = NaiveDate::from_ymd_opt(2020, 1, 1)
         .unwrap()
         .and_hms_opt(9, 0, 0)
