@@ -1,12 +1,12 @@
 use super::*;
 use crate::domain::ports::mapper::MedicationMapper;
 
-pub struct CreateMedicationMapper;
+pub struct UpdateMedicationMapper;
 
-impl MedicationMapper for CreateMedicationMapper {
-    type Request = CreateMedicationRequest;
+impl MedicationMapper for UpdateMedicationMapper {
+    type Request = UpdateMedicationRequest;
     
-    fn from_request(&self, request: Self::Request, _id: Option<MedicationId>) -> Result<Medication, ApplicationError> {
+    fn from_request(&self, request: Self::Request, id: Option<MedicationId>) -> Result<Medication, ApplicationError> {
         let name = MedicationName::new(request.name)?;
         let dosage = Dosage::new(request.amount_mg)?;
         let times = request
@@ -24,7 +24,7 @@ impl MedicationMapper for CreateMedicationMapper {
         };
 
         Ok(Medication::new(
-            MedicationId::generate(),
+            id.unwrap(), // We must have an ID for update
             name,
             dosage,
             times,
