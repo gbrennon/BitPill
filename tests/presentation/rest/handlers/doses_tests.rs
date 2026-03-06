@@ -1,7 +1,12 @@
 use actix_web::test::{self, init_service};
 use actix_web::{App, web};
-use bitpill::infrastructure::container::Container;
-use bitpill::presentation::rest::handlers::{doses, medications};
+use bitpill::{
+    infrastructure::container::Container,
+    presentation::rest::handlers::{
+        doses,
+        medications
+    }
+};
 use std::sync::Arc;
 use tempfile::TempDir;
 
@@ -185,7 +190,6 @@ async fn mark_taken_with_invalid_uuid_id_returns_500() {
 #[actix_web::test]
 async fn mark_taken_twice_returns_400() {
     use bitpill::application::dtos::requests::CreateDoseRecordRequest;
-    use bitpill::application::ports::inbound::create_dose_record_port::CreateDoseRecordPort;
     use chrono::NaiveDateTime;
 
     let (c, _dir) = container();
