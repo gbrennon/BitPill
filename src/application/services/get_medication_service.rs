@@ -50,3 +50,43 @@ impl GetMedicationPort for GetMedicationService {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::application::ports::fakes::FakeMedicationRepository;
+    use crate::domain::entities::medication::Medication;
+    use crate::domain::value_objects::{medication_id::MedicationId, medication_name::MedicationName, dosage::Dosage, scheduled_time::ScheduledTime, medication_frequency::DoseFrequency};
+
+    fn make_service(repo: std::sync::Arc<FakeMedicationRepository>) -> GetMedicationService {
+        GetMedicationService::new(repo)
+    }
+
+    #[test]
+    fn execute_when_not_found_returns_not_found_error() {
+        let repo = std::sync::Arc::new(FakeMedicationRepository::new());
+        let service = make_service(repo);
+        let req = super::GetMedicationRequest { id: uuid::Uuid::now_v7().to_string() };
+
+        let res = service.execute(req);
+        assert!(matches!(res, Err(ApplicationError::NotFound(_))));
+    }
+
+    #[test]
+    fn execute_when_found_returns_medication_dto() {
+        let med = Medication::new(
+            MedicationId::generate(),
+            MedicationName::new("Test").unwrap(),
+            Dosage::new(123).unwrap(),
+            vec![ScheduledTime::new(8,0).unwrap()],
+            DoseFrequency::OnceDaily,
+        );
+        let repo = std::sync::Arc::new(FakeMedicationRepository::with(vec![med.clone()]));
+        let service = make_service(repo);
+        let req = super::GetMedicationRequest { id: med.id().to_string() };
+
+        let res = service.execute(req).unwrap();
+        assert_eq!(res.medication.id, med.id().to_string());
+        assert_eq!(res.medication.name, med.name().value());
+    }
+}

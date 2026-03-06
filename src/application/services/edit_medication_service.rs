@@ -52,3 +52,46 @@ impl EditMedicationPort for EditMedicationService {
         Ok(EditMedicationResponse { id: request.id })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::application::ports::fakes::FakeMedicationRepository;
+
+    fn make_service(repo: std::sync::Arc<FakeMedicationRepository>) -> EditMedicationService {
+        EditMedicationService::new(repo)
+    }
+
+    #[test]
+    fn execute_with_invalid_uuid_returns_invalid_input() {
+        let repo = std::sync::Arc::new(FakeMedicationRepository::new());
+        let service = make_service(repo);
+        let req = EditMedicationRequest::new("not-a-uuid", "Name", 100, vec![(8, 0)], "OnceDaily");
+
+        let res = service.execute(req);
+        assert!(matches!(res, Err(ApplicationError::InvalidInput(_))));
+    }
+
+    #[test]
+    fn execute_with_empty_name_returns_domain_error() {
+        let repo = std::sync::Arc::new(FakeMedicationRepository::new());
+        let service = make_service(repo);
+        let id = uuid::Uuid::now_v7().to_string();
+        let req = EditMedicationRequest::new(id, "", 100, vec![(8, 0)], "OnceDaily");
+
+        let res = service.execute(req);
+        assert!(matches!(res, Err(ApplicationError::Domain(_))));
+    }
+
+    #[test]
+    fn execute_with_valid_request_saves() {
+        let repo = std::sync::Arc::new(FakeMedicationRepository::new());
+        let service = make_service(repo.clone());
+        let id = uuid::Uuid::now_v7().to_string();
+        let req = EditMedicationRequest::new(id.clone(), "Test", 100, vec![(8, 0)], "OnceDaily");
+
+        let res = service.execute(req).unwrap();
+        assert_eq!(res.id, id);
+        assert_eq!(repo.saved_count(), 1);
+    }
+}
