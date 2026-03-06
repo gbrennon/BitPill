@@ -31,23 +31,7 @@ impl UpdateMedicationPort for UpdateMedicationService {
             .map_err(|_| ApplicationError::InvalidInput("invalid id".into()))?;
         let id = MedicationId::from(uuid);
 
-        let name = MedicationName::new(request.name)?;
-        let dosage = Dosage::new(request.amount_mg)?;
-        let mut scheduled_time = Vec::new();
-        for (h, m) in request.scheduled_time {
-            l
-            scheduled_time.push(ScheduledTime::new(h, m)?);
-        }
-
-        let dose_frequency = match request.dose_frequency.as_str() {-
-            "OnceDaily" => DoseFrequency::OnceDaily,
-            "TwiceDaily" => DoseFrequency::TwiceDaily,
-            "ThriceDaily" => DoseFrequency::ThriceDaily,
-            "Custom" => DoseFrequency::Custom(scheduled_time.clone()),
-            _ => DoseFrequency::OnceDaily,
-        };
-
-        let medication = Medication::with_id(id, name, dosage, scheduled_time, dose_frequency);
+        let medication = Medication::from(request)?;
 
         self.repository.save(&medication)?;
 
