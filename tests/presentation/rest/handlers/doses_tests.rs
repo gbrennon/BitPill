@@ -2,10 +2,7 @@ use actix_web::test::{self, init_service};
 use actix_web::{App, web};
 use bitpill::{
     infrastructure::container::Container,
-    presentation::rest::handlers::{
-        doses,
-        medications
-    }
+    presentation::rest::handlers::{doses, medications},
 };
 use std::sync::Arc;
 use tempfile::TempDir;
@@ -22,7 +19,8 @@ fn container() -> (Arc<Container>, TempDir) {
 
 #[actix_web::test]
 async fn schedule_returns_200() {
-    let (c, _dir) = container(); let data = web::Data::new(c);
+    let (c, _dir) = container();
+    let data = web::Data::new(c);
     let app = init_service(
         App::new()
             .app_data(data)
@@ -42,7 +40,8 @@ async fn schedule_returns_200() {
 
 #[actix_web::test]
 async fn mark_taken_with_invalid_date_format_returns_400() {
-    let (c, _dir) = container(); let data = web::Data::new(c);
+    let (c, _dir) = container();
+    let data = web::Data::new(c);
     let app = init_service(
         App::new()
             .app_data(data)
@@ -61,7 +60,8 @@ async fn mark_taken_with_invalid_date_format_returns_400() {
 
 #[actix_web::test]
 async fn mark_taken_for_nonexistent_record_returns_404() {
-    let (c, _dir) = container(); let data = web::Data::new(c);
+    let (c, _dir) = container();
+    let data = web::Data::new(c);
     let app = init_service(
         App::new()
             .app_data(data)

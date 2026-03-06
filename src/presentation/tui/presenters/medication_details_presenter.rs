@@ -62,12 +62,9 @@ impl MedicationDetailsPresenter {
                 let today = Local::now().date_naive();
                 for (h, mm) in m.scheduled_time.iter() {
                     // scheduled NaiveDateTime for today
-                    let scheduled_dt_opt = chrono::NaiveDate::from_ymd_opt(
-                        today.year(),
-                        today.month(),
-                        today.day(),
-                    )
-                    .and_then(|d| d.and_hms_opt(*h, *mm, 0));
+                    let scheduled_dt_opt =
+                        chrono::NaiveDate::from_ymd_opt(today.year(), today.month(), today.day())
+                            .and_then(|d| d.and_hms_opt(*h, *mm, 0));
                     let mut taken_opt: Option<chrono::NaiveDateTime> = None;
                     if let Some(scheduled_dt) = scheduled_dt_opt {
                         for r in input.records.iter() {

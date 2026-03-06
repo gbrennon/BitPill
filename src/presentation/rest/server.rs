@@ -9,7 +9,6 @@ use crate::presentation::rest::handlers::{doses, medications};
 pub struct RestServer;
 
 impl RestServer {
-
     /// Run the REST server on the default address 0.0.0.0:8080
     pub fn run(container: Arc<Container>) -> impl Future<Output = std::io::Result<()>> {
         Self::run_with_addr(container, "0.0.0.0:8080")

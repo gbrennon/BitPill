@@ -227,7 +227,6 @@ mod tests {
     }
 }
 
-
 pub struct NavigationState {
     pub focused_field: u8,
     pub scheduled_time: Vec<String>,
@@ -457,4 +456,3 @@ pub fn remove_custom_slot(
     }
     (scheduled_time, scheduled_idx)
 }
-

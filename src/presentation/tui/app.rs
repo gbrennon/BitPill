@@ -87,7 +87,9 @@ impl App {
             event_handler.handle(app, key);
         }
 
-        if let Some(exp) = app.status_expires_at && std::time::Instant::now() >= exp {
+        if let Some(exp) = app.status_expires_at
+            && std::time::Instant::now() >= exp
+        {
             app.clear_status();
         }
 
@@ -150,7 +152,9 @@ mod tests {
             &self,
             _: ListAllMedicationsRequest,
         ) -> Result<ListAllMedicationsResponse, ApplicationError> {
-            Err(ApplicationError::Storage(StorageError("test error".to_string())))
+            Err(ApplicationError::Storage(StorageError(
+                "test error".to_string(),
+            )))
         }
     }
 
@@ -200,7 +204,12 @@ mod tests {
         let app = app_with_error_list_port();
 
         assert!(app.status_message.is_some());
-        assert!(app.status_message.as_deref().unwrap().contains("Error loading medications"));
+        assert!(
+            app.status_message
+                .as_deref()
+                .unwrap()
+                .contains("Error loading medications")
+        );
     }
 
     #[test]
@@ -264,4 +273,3 @@ mod tests {
         assert!(quit);
     }
 }
-

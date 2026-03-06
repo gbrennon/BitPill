@@ -11,7 +11,6 @@ impl MarkDoseTakenResponse {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;

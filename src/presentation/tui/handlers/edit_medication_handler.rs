@@ -211,16 +211,13 @@ impl Handler for EditMedicationHandler {
                             return HandlerResult::Continue;
                         }
 
-                        match app
-                            .services
-                            .edit_medication
-                            .execute(EditMedicationRequest {
-                                id: id.clone(),
-                                name: name.clone(),
-                                amount_mg: parsed_amount,
-                                scheduled_time: parsed.times,
-                                dose_frequency: frequency_str(selected_frequency).to_string(),
-                            }) {
+                        match app.services.edit_medication.execute(EditMedicationRequest {
+                            id: id.clone(),
+                            name: name.clone(),
+                            amount_mg: parsed_amount,
+                            scheduled_time: parsed.times,
+                            dose_frequency: frequency_str(selected_frequency).to_string(),
+                        }) {
                             Ok(_) => {
                                 app.load_medications();
                                 app.set_status("Medication updated successfully", 3000);
@@ -642,11 +639,7 @@ mod tests {
     fn save_medication(app: &App) -> String {
         use crate::application::dtos::requests::CreateMedicationRequest;
         let req = CreateMedicationRequest::new("Aspirin", 100, vec![(8, 0)], "OnceDaily");
-        app.services
-            .create_medication
-            .execute(req)
-            .unwrap()
-            .id
+        app.services.create_medication.execute(req).unwrap().id
     }
 
     #[test]
@@ -694,10 +687,8 @@ mod tests {
         let mut app = new_app();
         app.current_screen = Screen::HomeScreen;
 
-        let result = EditMedicationHandler.handle(
-            &mut app,
-            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
-        );
+        let result = EditMedicationHandler
+            .handle(&mut app, KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
 
         assert!(matches!(result, HandlerResult::Continue));
         assert!(matches!(app.current_screen, Screen::HomeScreen));
@@ -722,7 +713,11 @@ mod tests {
 
         assert!(matches!(
             app.current_screen,
-            Screen::EditMedication { selected_frequency: 0, focused_field: 2, .. }
+            Screen::EditMedication {
+                selected_frequency: 0,
+                focused_field: 2,
+                ..
+            }
         ));
     }
 

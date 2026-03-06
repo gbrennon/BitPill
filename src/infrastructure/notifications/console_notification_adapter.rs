@@ -24,13 +24,10 @@ impl NotificationPort for ConsoleNotificationAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::entities::{medication::Medication, dose_record::DoseRecord};
+    use crate::domain::entities::{dose_record::DoseRecord, medication::Medication};
     use crate::domain::value_objects::{
-        medication_id::MedicationId,
-        medication_name::MedicationName,
-        dosage::Dosage,
-        medication_frequency::DoseFrequency,
-        scheduled_time::ScheduledTime,
+        dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+        medication_name::MedicationName, scheduled_time::ScheduledTime,
     };
 
     #[test]
