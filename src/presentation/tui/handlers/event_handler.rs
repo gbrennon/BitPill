@@ -20,7 +20,9 @@ pub struct EventHandler {
 impl Handler for EventHandler {
     fn handle(&mut self, app: &mut App, key: KeyEvent) -> HandlerResult {
         // Global quit: pressing 'q' anywhere opens a quit confirmation modal.
-        if let KeyCode::Char('q') = key.code && !matches!(app.current_screen, Screen::ConfirmQuit { .. }) {
+        if let KeyCode::Char('q') = key.code
+            && !matches!(app.current_screen, Screen::ConfirmQuit { .. })
+        {
             app.current_screen = Screen::ConfirmQuit {
                 previous: Box::new(app.current_screen.clone()),
             };
@@ -77,13 +79,20 @@ impl Handler for EventHandler {
 
                             let today = Local::now().date_naive();
                             // fetch all today's records (both taken and untaken)
-                            let all_today_records: Vec<DoseRecordDto> = match ListDoseRecordsPort::execute(
-                                &*app.services.list_dose_records,
-                                ListDoseRecordsRequest { medication_id: m.id.clone() },
-                            ) {
-                                Ok(resp) => resp.records.into_iter().filter(|r| r.scheduled_at.date() == today).collect(),
-                                Err(_) => Vec::new(),
-                            };
+                            let all_today_records: Vec<DoseRecordDto> =
+                                match ListDoseRecordsPort::execute(
+                                    &*app.services.list_dose_records,
+                                    ListDoseRecordsRequest {
+                                        medication_id: m.id.clone(),
+                                    },
+                                ) {
+                                    Ok(resp) => resp
+                                        .records
+                                        .into_iter()
+                                        .filter(|r| r.scheduled_at.date() == today)
+                                        .collect(),
+                                    Err(_) => Vec::new(),
+                                };
 
                             // untaken records to present directly
                             let mut records: Vec<DoseRecordDto> = all_today_records
@@ -165,9 +174,17 @@ impl Handler for EventHandler {
                             *vim_enabled
                         };
                         let new = serde_json::json!({ "vim_navigation": value });
-                        match app.services.settings.execute(crate::application::dtos::requests::SettingsRequest { op: crate::application::dtos::requests::SettingsOperation::Update { settings: new.clone() } }) {
+                        match app.services.settings.execute(
+                            crate::application::dtos::requests::SettingsRequest {
+                                op: crate::application::dtos::requests::SettingsOperation::Update {
+                                    settings: new.clone(),
+                                },
+                            },
+                        ) {
                             Ok(_) => app.set_status("Settings saved", 2000),
-                            Err(e) => app.status_message = Some(format!("Settings save error: {e}")),
+                            Err(e) => {
+                                app.status_message = Some(format!("Settings save error: {e}"))
+                            }
                         }
                         app.current_screen = Screen::HomeScreen;
                     }
@@ -415,7 +432,10 @@ mod tests {
 
         h.handle(&mut app, key(KeyCode::Char('n')));
 
-        assert!(matches!(app.current_screen, Screen::CreateMedication { .. }));
+        assert!(matches!(
+            app.current_screen,
+            Screen::CreateMedication { .. }
+        ));
     }
 
     #[test]
@@ -486,7 +506,10 @@ mod tests {
 
         h.handle(&mut app, key(KeyCode::Char('z')));
 
-        assert!(matches!(app.current_screen, Screen::MedicationDetails { .. }));
+        assert!(matches!(
+            app.current_screen,
+            Screen::MedicationDetails { .. }
+        ));
     }
 
     #[test]
@@ -587,12 +610,17 @@ mod tests {
     #[test]
     fn medication_details_e_key_without_matching_medication_stays_on_details() {
         let mut app = app();
-        app.current_screen = Screen::MedicationDetails { id: "nonexistent".into() };
+        app.current_screen = Screen::MedicationDetails {
+            id: "nonexistent".into(),
+        };
         let mut h = EventHandler::default();
 
         h.handle(&mut app, key(KeyCode::Char('e')));
 
-        assert!(matches!(app.current_screen, Screen::MedicationDetails { .. }));
+        assert!(matches!(
+            app.current_screen,
+            Screen::MedicationDetails { .. }
+        ));
     }
 
     #[test]
@@ -618,12 +646,17 @@ mod tests {
     #[test]
     fn medication_details_s_key_without_matching_medication_stays_on_details() {
         let mut app = app();
-        app.current_screen = Screen::MedicationDetails { id: "nonexistent".into() };
+        app.current_screen = Screen::MedicationDetails {
+            id: "nonexistent".into(),
+        };
         let mut h = EventHandler::default();
 
         h.handle(&mut app, key(KeyCode::Char('s')));
 
-        assert!(matches!(app.current_screen, Screen::MedicationDetails { .. }));
+        assert!(matches!(
+            app.current_screen,
+            Screen::MedicationDetails { .. }
+        ));
     }
 
     #[test]

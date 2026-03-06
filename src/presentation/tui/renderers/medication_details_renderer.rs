@@ -60,7 +60,9 @@ mod tests {
             dose_frequency: "OnceDaily".to_string(),
             scheduled_time: vec![(8, 0)],
         }];
-        app.current_screen = Screen::MedicationDetails { id: "m1".to_string() };
+        app.current_screen = Screen::MedicationDetails {
+            id: "m1".to_string(),
+        };
         terminal
             .draw(|f| MedicationDetailsRenderer.render(f, &app))
             .unwrap();
@@ -72,7 +74,9 @@ mod tests {
     fn render_with_unknown_id_shows_not_found() {
         let mut terminal = Terminal::new(TestBackend::new(80, 24)).unwrap();
         let mut app = App::new(AppServices::fake());
-        app.current_screen = Screen::MedicationDetails { id: "ghost".to_string() };
+        app.current_screen = Screen::MedicationDetails {
+            id: "ghost".to_string(),
+        };
         terminal
             .draw(|f| MedicationDetailsRenderer.render(f, &app))
             .unwrap();
