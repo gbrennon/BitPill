@@ -65,6 +65,6 @@ mod tests {
 
         let res = service.execute(DeleteMedicationRequest { id });
         assert!(res.is_ok());
-        assert_eq!(repo.saved_count(), 0);
+        assert_eq!(repo.deleted_count(), 1);
     }
 }
