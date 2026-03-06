@@ -193,7 +193,11 @@ mod tests {
     #[test]
     fn k_key_decrements_selected_index() {
         let mut app = app_with_mark_dose(vec![dto("r1"), dto("r2")]);
-        if let Screen::MarkDose { ref mut selected_index, .. } = app.current_screen {
+        if let Screen::MarkDose {
+            ref mut selected_index,
+            ..
+        } = app.current_screen
+        {
             *selected_index = 1;
         }
         let mut h = MarkDoseHandler;
@@ -245,7 +249,10 @@ mod tests {
         h.handle(&mut app, key(KeyCode::Enter));
 
         // FakeMarkDoseTakenPort returns Ok → navigates to MedicationDetails
-        assert!(matches!(app.current_screen, Screen::MedicationDetails { .. }));
+        assert!(matches!(
+            app.current_screen,
+            Screen::MedicationDetails { .. }
+        ));
     }
 
     #[test]

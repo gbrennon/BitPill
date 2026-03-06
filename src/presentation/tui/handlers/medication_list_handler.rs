@@ -70,9 +70,15 @@ impl Handler for MedicationListHandler {
             crossterm::event::KeyCode::Char('g') => {
                 // open settings
                 let vim_enabled = match app.services.settings.execute(
-                    crate::application::dtos::requests::SettingsRequest { op: crate::application::dtos::requests::SettingsOperation::Get },
+                    crate::application::dtos::requests::SettingsRequest {
+                        op: crate::application::dtos::requests::SettingsOperation::Get,
+                    },
                 ) {
-                    Ok(resp) => resp.settings.get("vim_navigation").and_then(|v| v.as_bool()).unwrap_or(false),
+                    Ok(resp) => resp
+                        .settings
+                        .get("vim_navigation")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false),
                     Err(_) => false,
                 };
                 app.current_screen = Screen::Settings { vim_enabled };
@@ -195,7 +201,10 @@ mod tests {
         let mut app = new_app();
         let mut handler: Box<dyn Handler> = Box::new(MedicationListHandler);
         handler.handle(&mut app, key(KeyCode::Char('c')));
-        assert!(matches!(app.current_screen, Screen::CreateMedication { .. }));
+        assert!(matches!(
+            app.current_screen,
+            Screen::CreateMedication { .. }
+        ));
     }
 
     #[test]
@@ -204,7 +213,12 @@ mod tests {
         app.medications = vec![med("m1")];
         let mut h = MedicationListHandler::default();
         h.handle(&mut app, key(KeyCode::Char('s')));
-        assert!(app.status_message.as_deref().unwrap_or("").contains("Open medication details"));
+        assert!(
+            app.status_message
+                .as_deref()
+                .unwrap_or("")
+                .contains("Open medication details")
+        );
     }
 
     #[test]
@@ -297,7 +311,9 @@ mod tests {
         app.medications = vec![med("med-enter")];
         let mut h = MedicationListHandler;
         h.handle(&mut app, key(KeyCode::Enter));
-        assert!(matches!(app.current_screen, Screen::MedicationDetails { id } if id == "med-enter"));
+        assert!(
+            matches!(app.current_screen, Screen::MedicationDetails { id } if id == "med-enter")
+        );
     }
 
     #[test]
@@ -332,7 +348,9 @@ mod tests {
         app.medications = vec![med("t-id")];
         let mut h = MedicationListHandler;
         h.handle(&mut app, key(KeyCode::Char('t')));
-        assert!(matches!(app.current_screen, Screen::MarkDose { medication_id, .. } if medication_id == "t-id"));
+        assert!(
+            matches!(app.current_screen, Screen::MarkDose { medication_id, .. } if medication_id == "t-id")
+        );
     }
 
     #[test]

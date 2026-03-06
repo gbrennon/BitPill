@@ -1,10 +1,10 @@
+use crate::fakes::FakeMedicationRepository;
 use bitpill::application::dtos::requests::{CreateMedicationRequest, EditMedicationRequest};
 use bitpill::application::ports::inbound::create_medication_port::CreateMedicationPort;
 use bitpill::application::ports::inbound::edit_medication_port::EditMedicationPort;
 use bitpill::application::ports::outbound::medication_repository_port::MedicationRepository;
 use bitpill::application::services::create_medication_service::CreateMedicationService;
 use bitpill::application::services::edit_medication_service::EditMedicationService;
-use crate::fakes::FakeMedicationRepository;
 use std::sync::Arc;
 
 fn seed_medication(repo: Arc<FakeMedicationRepository>) -> String {
@@ -19,7 +19,13 @@ fn execute_with_valid_inputs_returns_response() {
     let id = seed_medication(repo.clone());
     let service = EditMedicationService::new(repo);
 
-    let result = service.execute(EditMedicationRequest::new(&id, "Updated", 200, vec![(9, 0)], "OnceDaily"));
+    let result = service.execute(EditMedicationRequest::new(
+        &id,
+        "Updated",
+        200,
+        vec![(9, 0)],
+        "OnceDaily",
+    ));
 
     assert!(result.is_ok());
     assert_eq!(result.unwrap().id, id);
@@ -32,11 +38,21 @@ fn execute_saves_updated_medication_to_repository() {
     let service = EditMedicationService::new(repo.clone());
 
     service
-        .execute(EditMedicationRequest::new(&id, "UpdatedName", 250, vec![(10, 30)], "TwiceDaily"))
+        .execute(EditMedicationRequest::new(
+            &id,
+            "UpdatedName",
+            250,
+            vec![(10, 30)],
+            "TwiceDaily",
+        ))
         .unwrap();
 
     let saved = repo.find_all().unwrap();
-    let med = saved.iter().rev().find(|m: &&bitpill::domain::entities::medication::Medication| m.id().to_string() == id).unwrap();
+    let med = saved
+        .iter()
+        .rev()
+        .find(|m: &&bitpill::domain::entities::medication::Medication| m.id().to_string() == id)
+        .unwrap();
     assert_eq!(med.name().value(), "UpdatedName");
     assert_eq!(med.dosage().amount_mg(), 250);
 }
@@ -46,7 +62,13 @@ fn execute_with_invalid_uuid_returns_error() {
     let repo = Arc::new(FakeMedicationRepository::new());
     let service = EditMedicationService::new(repo);
 
-    let result = service.execute(EditMedicationRequest::new("not-a-uuid", "Name", 100, vec![(8, 0)], "OnceDaily"));
+    let result = service.execute(EditMedicationRequest::new(
+        "not-a-uuid",
+        "Name",
+        100,
+        vec![(8, 0)],
+        "OnceDaily",
+    ));
 
     assert!(result.is_err());
 }
@@ -57,7 +79,13 @@ fn execute_with_empty_name_returns_error() {
     let id = seed_medication(repo.clone());
     let service = EditMedicationService::new(repo);
 
-    let result = service.execute(EditMedicationRequest::new(&id, "", 100, vec![(8, 0)], "OnceDaily"));
+    let result = service.execute(EditMedicationRequest::new(
+        &id,
+        "",
+        100,
+        vec![(8, 0)],
+        "OnceDaily",
+    ));
 
     assert!(result.is_err());
 }
@@ -69,7 +97,11 @@ fn execute_with_thrice_daily_frequency() {
     let service = EditMedicationService::new(repo);
 
     let result = service.execute(EditMedicationRequest::new(
-        &id, "Med", 100, vec![(8, 0), (14, 0), (20, 0)], "ThriceDaily",
+        &id,
+        "Med",
+        100,
+        vec![(8, 0), (14, 0), (20, 0)],
+        "ThriceDaily",
     ));
 
     assert!(result.is_ok());
@@ -82,7 +114,11 @@ fn execute_with_custom_frequency() {
     let service = EditMedicationService::new(repo);
 
     let result = service.execute(EditMedicationRequest::new(
-        &id, "Med", 100, vec![(9, 0), (21, 0)], "Custom",
+        &id,
+        "Med",
+        100,
+        vec![(9, 0), (21, 0)],
+        "Custom",
     ));
 
     assert!(result.is_ok());
@@ -94,7 +130,13 @@ fn execute_with_invalid_dosage_returns_domain_error() {
     let id = seed_medication(repo.clone());
     let service = EditMedicationService::new(repo);
 
-    let result = service.execute(EditMedicationRequest::new(&id, "Med", 0, vec![(8, 0)], "OnceDaily"));
+    let result = service.execute(EditMedicationRequest::new(
+        &id,
+        "Med",
+        0,
+        vec![(8, 0)],
+        "OnceDaily",
+    ));
 
     assert!(result.is_err());
 }
@@ -105,7 +147,13 @@ fn execute_with_invalid_time_returns_domain_error() {
     let id = seed_medication(repo.clone());
     let service = EditMedicationService::new(repo);
 
-    let result = service.execute(EditMedicationRequest::new(&id, "Med", 100, vec![(25, 0)], "OnceDaily"));
+    let result = service.execute(EditMedicationRequest::new(
+        &id,
+        "Med",
+        100,
+        vec![(25, 0)],
+        "OnceDaily",
+    ));
 
     assert!(result.is_err());
 }
@@ -117,7 +165,13 @@ fn execute_when_repository_save_fails_returns_storage_error() {
     let id = bitpill::domain::value_objects::medication_id::MedicationId::generate().to_string();
     let service = EditMedicationService::new(repo);
 
-    let result = service.execute(EditMedicationRequest::new(&id, "Med", 100, vec![(8, 0)], "OnceDaily"));
+    let result = service.execute(EditMedicationRequest::new(
+        &id,
+        "Med",
+        100,
+        vec![(8, 0)],
+        "OnceDaily",
+    ));
 
     assert!(matches!(result, Err(ApplicationError::Storage(_))));
 }

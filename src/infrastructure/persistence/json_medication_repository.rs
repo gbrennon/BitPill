@@ -166,7 +166,8 @@ mod tests {
         let med = make_medication("Aspirin");
 
         repo.save(&med).expect("first save should succeed");
-        repo.save(&med).expect("second save (update path) should succeed");
+        repo.save(&med)
+            .expect("second save (update path) should succeed");
         let all = repo.find_all().expect("find_all should succeed");
 
         assert_eq!(all.len(), 1); // update, not insert
