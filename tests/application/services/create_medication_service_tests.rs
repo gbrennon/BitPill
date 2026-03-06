@@ -1,12 +1,16 @@
-use bitpill::application::errors::ApplicationError;
+use crate::fakes::FakeMedicationRepository;
 use bitpill::application::dtos::requests::CreateMedicationRequest;
+use bitpill::application::errors::ApplicationError;
 use bitpill::application::ports::inbound::create_medication_port::CreateMedicationPort;
 use bitpill::application::services::create_medication_service::CreateMedicationService;
 use bitpill::domain::errors::DomainError;
-use crate::fakes::FakeMedicationRepository;
 use std::sync::Arc;
 
-fn make_request(name: &str, amount_mg: u32, scheduled_time: Vec<(u32, u32)>) -> CreateMedicationRequest {
+fn make_request(
+    name: &str,
+    amount_mg: u32,
+    scheduled_time: Vec<(u32, u32)>,
+) -> CreateMedicationRequest {
     CreateMedicationRequest::new(name, amount_mg, scheduled_time, "OnceDaily")
 }
 
@@ -25,7 +29,9 @@ fn execute_saves_medication_to_repository() {
     let repo = Arc::new(FakeMedicationRepository::new());
     let service = CreateMedicationService::new(repo.clone());
 
-    service.execute(make_request("Ibuprofen", 200, vec![(8, 0)])).unwrap();
+    service
+        .execute(make_request("Ibuprofen", 200, vec![(8, 0)]))
+        .unwrap();
 
     assert_eq!(repo.saved_count(), 1);
 }
@@ -88,7 +94,8 @@ fn execute_with_twice_daily_frequency() {
 #[test]
 fn execute_with_thrice_daily_frequency() {
     let service = CreateMedicationService::new(Arc::new(FakeMedicationRepository::new()));
-    let req = CreateMedicationRequest::new("Med", 100, vec![(8, 0), (14, 0), (20, 0)], "ThriceDaily");
+    let req =
+        CreateMedicationRequest::new("Med", 100, vec![(8, 0), (14, 0), (20, 0)], "ThriceDaily");
 
     let result = service.execute(req);
 

@@ -18,7 +18,6 @@ impl GetMedicationService {
     }
 }
 
-
 impl GetMedicationPort for GetMedicationService {
     fn execute(
         &self,
@@ -51,4 +50,3 @@ impl GetMedicationPort for GetMedicationService {
         }
     }
 }
-

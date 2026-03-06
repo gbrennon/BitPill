@@ -15,24 +15,22 @@ fn medication_list_screen_renders_items_e2e() {
         dir.path().join("settings.json"),
     );
     let mut app = App::new(AppServices::from_container(&container));
-    app.medications.push(
-        bitpill::application::dtos::responses::MedicationDto {
+    app.medications
+        .push(bitpill::application::dtos::responses::MedicationDto {
             id: "id-1".to_string(),
             name: "Aspirin".to_string(),
             amount_mg: 500,
             scheduled_time: vec![],
             dose_frequency: "OnceDaily".to_string(),
-        },
-    );
-    app.medications.push(
-        bitpill::application::dtos::responses::MedicationDto {
+        });
+    app.medications
+        .push(bitpill::application::dtos::responses::MedicationDto {
             id: "id-2".to_string(),
             name: "Ibuprofen".to_string(),
             amount_mg: 200,
             scheduled_time: vec![],
             dose_frequency: "OnceDaily".to_string(),
-        },
-    );
+        });
     app.selected_index = 0;
     let backend = TestBackend::new(80, 24);
     let mut terminal = Terminal::new(backend).unwrap();

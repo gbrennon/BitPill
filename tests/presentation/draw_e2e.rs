@@ -18,7 +18,9 @@ fn draw_renders_home_screen_without_panic() {
     let container = Container::new_with_paths(meds, doses, settings);
 
     let app = App::new(AppServices::from_container(&container));
-    terminal.draw(|f| draw::draw(f, &app)).expect("draw should not panic");
+    terminal
+        .draw(|f| draw::draw(f, &app))
+        .expect("draw should not panic");
     let backend = terminal.backend_mut();
     let buffer = backend.buffer().clone();
     let any = buffer.content.iter().any(|cell| cell.symbol() != " ");

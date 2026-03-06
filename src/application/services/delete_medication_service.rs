@@ -30,4 +30,3 @@ impl DeleteMedicationPort for DeleteMedicationService {
         Ok(DeleteMedicationResponse {})
     }
 }
-

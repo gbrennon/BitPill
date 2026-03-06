@@ -534,10 +534,8 @@ mod tests {
         let mut app = new_app();
         app.current_screen = Screen::HomeScreen;
 
-        let result = CreateMedicationHandler.handle(
-            &mut app,
-            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
-        );
+        let result = CreateMedicationHandler
+            .handle(&mut app, KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
 
         assert!(matches!(result, HandlerResult::Continue));
         assert!(matches!(app.current_screen, Screen::HomeScreen));
@@ -561,7 +559,11 @@ mod tests {
 
         assert!(matches!(
             app.current_screen,
-            Screen::CreateMedication { selected_frequency: 0, focused_field: 2, .. }
+            Screen::CreateMedication {
+                selected_frequency: 0,
+                focused_field: 2,
+                ..
+            }
         ));
     }
 
@@ -600,7 +602,10 @@ mod tests {
         press(&mut app, KeyCode::Enter);
 
         // set_screen overwrites the ValidationError back to CreateMedication
-        assert!(matches!(app.current_screen, Screen::CreateMedication { .. }));
+        assert!(matches!(
+            app.current_screen,
+            Screen::CreateMedication { .. }
+        ));
     }
 
     #[test]
@@ -620,7 +625,10 @@ mod tests {
 
         press(&mut app, KeyCode::Enter);
 
-        assert!(matches!(app.current_screen, Screen::CreateMedication { .. }));
+        assert!(matches!(
+            app.current_screen,
+            Screen::CreateMedication { .. }
+        ));
     }
 
     #[test]

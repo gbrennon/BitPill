@@ -107,9 +107,9 @@ pub fn render(f: &mut Frame, app: &App) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::presentation::tui::app_services::AppServices;
     use ratatui::Terminal;
     use ratatui::backend::TestBackend;
-    use crate::presentation::tui::app_services::AppServices;
 
     #[test]
     fn render_all_screens_no_panic() {
@@ -172,7 +172,11 @@ mod tests {
 
         for s in screens {
             app.current_screen = s;
-            terminal.draw(|f| { render(f, &app); }).unwrap();
+            terminal
+                .draw(|f| {
+                    render(f, &app);
+                })
+                .unwrap();
         }
     }
 
@@ -194,23 +198,41 @@ mod tests {
         // Exercise render_view with each Screen variant as the `previous` target
         let previous_screens: Vec<Box<Screen>> = vec![
             Box::new(Screen::CreateMedication {
-                name: String::new(), amount_mg: String::new(),
-                selected_frequency: 0, scheduled_time: Vec::new(),
-                scheduled_idx: 0, focused_field: 0, insert_mode: false,
+                name: String::new(),
+                amount_mg: String::new(),
+                selected_frequency: 0,
+                scheduled_time: Vec::new(),
+                scheduled_idx: 0,
+                focused_field: 0,
+                insert_mode: false,
             }),
             Box::new(Screen::EditMedication {
-                id: String::new(), name: String::new(), amount_mg: String::new(),
-                selected_frequency: 0, scheduled_time: Vec::new(),
-                scheduled_idx: 0, focused_field: 0, insert_mode: false,
+                id: String::new(),
+                name: String::new(),
+                amount_mg: String::new(),
+                selected_frequency: 0,
+                scheduled_time: Vec::new(),
+                scheduled_idx: 0,
+                focused_field: 0,
+                insert_mode: false,
             }),
             Box::new(Screen::MedicationDetails { id: String::new() }),
             Box::new(Screen::MarkDose {
-                medication_id: String::new(), records: Vec::new(), selected_index: 0,
+                medication_id: String::new(),
+                records: Vec::new(),
+                selected_index: 0,
             }),
             Box::new(Screen::Settings { vim_enabled: false }),
-            Box::new(Screen::ConfirmDelete { id: String::new(), name: String::new() }),
-            Box::new(Screen::ConfirmCancel { previous: Box::new(Screen::HomeScreen) }),
-            Box::new(Screen::ConfirmQuit { previous: Box::new(Screen::HomeScreen) }),
+            Box::new(Screen::ConfirmDelete {
+                id: String::new(),
+                name: String::new(),
+            }),
+            Box::new(Screen::ConfirmCancel {
+                previous: Box::new(Screen::HomeScreen),
+            }),
+            Box::new(Screen::ConfirmQuit {
+                previous: Box::new(Screen::HomeScreen),
+            }),
         ];
 
         for prev in previous_screens {
@@ -218,7 +240,11 @@ mod tests {
                 message: "e".into(),
                 previous: prev,
             };
-            terminal.draw(|f| { render(f, &app); }).unwrap();
+            terminal
+                .draw(|f| {
+                    render(f, &app);
+                })
+                .unwrap();
         }
     }
 }

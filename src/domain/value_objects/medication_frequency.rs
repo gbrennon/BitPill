@@ -83,7 +83,10 @@ mod tests {
         let freq = DoseFrequency::EveryXHours(6);
         assert_eq!(freq.to_string(), "Every 6 Hours");
 
-        let custom_times = vec![ScheduledTime::new(9, 0).unwrap(), ScheduledTime::new(21, 0).unwrap()];
+        let custom_times = vec![
+            ScheduledTime::new(9, 0).unwrap(),
+            ScheduledTime::new(21, 0).unwrap(),
+        ];
         let freq_custom = DoseFrequency::Custom(custom_times.clone());
         assert!(freq_custom.to_string().contains("Custom"));
         assert!(freq_custom.to_string().contains("09:00"));

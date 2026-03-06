@@ -17,7 +17,8 @@ fn container() -> (Arc<Container>, TempDir) {
 
 #[actix_web::test]
 async fn list_all_returns_200_with_empty_list() {
-    let (c, _dir) = container(); let data = web::Data::new(c);
+    let (c, _dir) = container();
+    let data = web::Data::new(c);
     let app = init_service(
         App::new()
             .app_data(data)
@@ -35,7 +36,8 @@ async fn list_all_returns_200_with_empty_list() {
 
 #[actix_web::test]
 async fn create_returns_201_with_id() {
-    let (c, _dir) = container(); let data = web::Data::new(c);
+    let (c, _dir) = container();
+    let data = web::Data::new(c);
     let app = init_service(
         App::new()
             .app_data(data)
@@ -61,7 +63,8 @@ async fn create_returns_201_with_id() {
 
 #[actix_web::test]
 async fn create_with_invalid_dosage_returns_400() {
-    let (c, _dir) = container(); let data = web::Data::new(c);
+    let (c, _dir) = container();
+    let data = web::Data::new(c);
     let app = init_service(
         App::new()
             .app_data(data)
@@ -85,7 +88,8 @@ async fn create_with_invalid_dosage_returns_400() {
 
 #[actix_web::test]
 async fn create_with_empty_name_returns_400() {
-    let (c, _dir) = container(); let data = web::Data::new(c);
+    let (c, _dir) = container();
+    let data = web::Data::new(c);
     let app = init_service(
         App::new()
             .app_data(data)
@@ -142,7 +146,8 @@ async fn get_by_id_returns_200_for_existing_medication() {
 
 #[actix_web::test]
 async fn get_by_id_returns_500_for_missing_medication() {
-    let (c, _dir) = container(); let data = web::Data::new(c);
+    let (c, _dir) = container();
+    let data = web::Data::new(c);
     let app = init_service(
         App::new()
             .app_data(data)

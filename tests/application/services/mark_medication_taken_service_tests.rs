@@ -1,16 +1,18 @@
+use crate::fakes::FakeDoseRecordRepository;
 use bitpill::application::{
-    errors::ApplicationError,
-    dtos::requests::MarkDoseTakenRequest,
-    services::mark_dose_taken_service::MarkDoseTakenService,
+    dtos::requests::MarkDoseTakenRequest, errors::ApplicationError,
     ports::inbound::mark_dose_taken_port::MarkDoseTakenPort,
+    services::mark_dose_taken_service::MarkDoseTakenService,
 };
 use bitpill::domain::value_objects::dose_record_id::DoseRecordId;
-use crate::fakes::FakeDoseRecordRepository;
 use chrono::NaiveDate;
 use std::sync::Arc;
 
 fn make_datetime(h: u32, m: u32) -> chrono::NaiveDateTime {
-    NaiveDate::from_ymd_opt(2025, 1, 1).unwrap().and_hms_opt(h, m, 0).unwrap()
+    NaiveDate::from_ymd_opt(2025, 1, 1)
+        .unwrap()
+        .and_hms_opt(h, m, 0)
+        .unwrap()
 }
 
 #[test]
@@ -52,7 +54,10 @@ fn execute_saves_record_as_taken() {
     let res = service.execute(req).expect("execute should succeed");
 
     let record_id = DoseRecordId::from(uuid::Uuid::parse_str(&res.record_id).unwrap());
-    let saved = repo.find_by_id(&record_id).unwrap().expect("record should exist");
+    let saved = repo
+        .find_by_id(&record_id)
+        .unwrap()
+        .expect("record should exist");
     assert!(saved.is_taken());
 }
 

@@ -7,13 +7,15 @@ use crate::application::dtos::responses::MarkDoseTakenResponse;
 use crate::application::errors::{ApplicationError, NotFoundError};
 use crate::application::ports::dose_record_repository_port::DoseRecordRepository;
 use crate::application::ports::mark_dose_taken_port::MarkDoseTakenPort;
+use crate::domain::entities::dose_record::DoseRecord;
 use crate::domain::value_objects::dose_record_id::DoseRecordId;
 use crate::domain::value_objects::medication_id::MedicationId;
-use crate::domain::entities::dose_record::DoseRecord;
 
 pub struct MarkDoseTakenService {
     repository: Arc<dyn DoseRecordRepository>,
-    medication_repository: Arc<dyn crate::application::ports::outbound::medication_repository_port::MedicationRepository>,
+    medication_repository: Arc<
+        dyn crate::application::ports::outbound::medication_repository_port::MedicationRepository,
+    >,
 }
 
 impl MarkDoseTakenService {
@@ -21,7 +23,10 @@ impl MarkDoseTakenService {
         repository: Arc<dyn DoseRecordRepository>,
         medication_repository: Arc<dyn crate::application::ports::outbound::medication_repository_port::MedicationRepository>,
     ) -> Self {
-        Self { repository, medication_repository }
+        Self {
+            repository,
+            medication_repository,
+        }
     }
 }
 

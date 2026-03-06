@@ -1,8 +1,8 @@
-use bitpill::application::errors::ApplicationError;
+use crate::fakes::FakeSettingsRepository;
 use bitpill::application::dtos::requests::{SettingsOperation, SettingsRequest};
+use bitpill::application::errors::ApplicationError;
 use bitpill::application::ports::inbound::settings_port::SettingsPort;
 use bitpill::application::services::settings_service::SettingsService;
-use crate::fakes::FakeSettingsRepository;
 use serde_json::json;
 use std::sync::Arc;
 
@@ -12,7 +12,9 @@ fn execute_get_returns_settings() {
     let repo = Arc::new(FakeSettingsRepository::new(initial.clone()));
     let svc = SettingsService::new(repo);
 
-    let req = SettingsRequest { op: SettingsOperation::Get };
+    let req = SettingsRequest {
+        op: SettingsOperation::Get,
+    };
     let resp = svc.execute(req).expect("execute failed");
 
     assert_eq!(resp.settings, initial);
@@ -25,7 +27,11 @@ fn execute_update_persists_settings() {
     let svc = SettingsService::new(repo.clone());
 
     let new_settings = json!({"vim_navigation": true});
-    let req = SettingsRequest { op: SettingsOperation::Update { settings: new_settings.clone() } };
+    let req = SettingsRequest {
+        op: SettingsOperation::Update {
+            settings: new_settings.clone(),
+        },
+    };
     let resp = svc.execute(req).expect("execute failed");
 
     assert_eq!(resp.settings, new_settings);
@@ -37,7 +43,9 @@ fn execute_update_persists_settings() {
 fn execute_get_load_error_returns_storage() {
     let repo = Arc::new(FakeSettingsRepository::failing_load());
     let svc = SettingsService::new(repo);
-    let req = SettingsRequest { op: SettingsOperation::Get };
+    let req = SettingsRequest {
+        op: SettingsOperation::Get,
+    };
 
     let res = svc.execute(req);
 
@@ -50,7 +58,9 @@ fn execute_update_save_error_returns_storage() {
     let repo = Arc::new(FakeSettingsRepository::failing_save(initial));
     let svc = SettingsService::new(repo);
     let req = SettingsRequest {
-        op: SettingsOperation::Update { settings: json!({"k": "v"}) },
+        op: SettingsOperation::Update {
+            settings: json!({"k": "v"}),
+        },
     };
 
     let res = svc.execute(req);

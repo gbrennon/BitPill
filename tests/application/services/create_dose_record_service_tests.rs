@@ -1,9 +1,8 @@
+use crate::fakes::FakeDoseRecordRepository;
 use bitpill::application::{
-    dtos::requests::CreateDoseRecordRequest,
-    ports::create_dose_record_port::CreateDoseRecordPort,
+    dtos::requests::CreateDoseRecordRequest, ports::create_dose_record_port::CreateDoseRecordPort,
     services::create_dose_record_service::CreateDoseRecordService,
 };
-use crate::fakes::FakeDoseRecordRepository;
 use chrono::NaiveDate;
 use std::sync::Arc;
 
@@ -19,7 +18,10 @@ fn execute_with_invalid_medication_id_returns_invalid_input() {
 
     let result = service.execute(req);
 
-    assert!(matches!(result, Err(bitpill::application::errors::ApplicationError::InvalidInput(_))));
+    assert!(matches!(
+        result,
+        Err(bitpill::application::errors::ApplicationError::InvalidInput(_))
+    ));
 }
 
 #[test]

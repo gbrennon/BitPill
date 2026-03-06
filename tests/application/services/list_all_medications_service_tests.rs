@@ -1,8 +1,8 @@
+use crate::common::fixtures;
+use crate::fakes::FakeMedicationRepository;
 use bitpill::application::dtos::requests::ListAllMedicationsRequest;
 use bitpill::application::ports::inbound::list_all_medications_port::ListAllMedicationsPort;
 use bitpill::application::services::list_all_medications_service::ListAllMedicationsService;
-use crate::common::fixtures;
-use crate::fakes::FakeMedicationRepository;
 use std::sync::Arc;
 
 #[test]

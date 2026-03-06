@@ -1,39 +1,29 @@
-use std::{
-    sync::Arc,
-    path::PathBuf,
-    env,
-};
+use std::{env, path::PathBuf, sync::Arc};
 
 use crate::{
     application::{
-        ports::{
-            inbound::{
-                create_medication_port::CreateMedicationPort,
-                create_dose_record_port::CreateDoseRecordPort,
-                delete_medication_port::DeleteMedicationPort,
-                edit_medication_port::EditMedicationPort,
-                get_medication_port::GetMedicationPort,
-                list_all_medications_port::ListAllMedicationsPort,
-                list_dose_records_port::ListDoseRecordsPort,
-                mark_dose_taken_port::MarkDoseTakenPort,
-                settings_port::SettingsPort,
-                update_medication_port::UpdateMedicationPort,
-                schedule_dose_port::ScheduleDosePort,
-            },
+        ports::inbound::{
+            create_dose_record_port::CreateDoseRecordPort,
+            create_medication_port::CreateMedicationPort,
+            delete_medication_port::DeleteMedicationPort, edit_medication_port::EditMedicationPort,
+            get_medication_port::GetMedicationPort,
+            list_all_medications_port::ListAllMedicationsPort,
+            list_dose_records_port::ListDoseRecordsPort, mark_dose_taken_port::MarkDoseTakenPort,
+            schedule_dose_port::ScheduleDosePort, settings_port::SettingsPort,
+            update_medication_port::UpdateMedicationPort,
         },
         services::{
-            create_medication_service::CreateMedicationService,
             create_dose_record_service::CreateDoseRecordService,
+            create_medication_service::CreateMedicationService,
+            delete_medication_service::DeleteMedicationService,
             edit_medication_service::EditMedicationService,
             get_medication_service::GetMedicationService,
             list_all_medications_service::ListAllMedicationsService,
             list_dose_records_service::ListDoseRecordsService,
             mark_dose_taken_service::MarkDoseTakenService,
-            schedule_dose_service::ScheduleDoseService,
+            schedule_dose_service::ScheduleDoseService, settings_service::SettingsService,
             update_medication_service::UpdateMedicationService,
-            settings_service::SettingsService,
-            delete_medication_service::DeleteMedicationService,
-        }
+        },
     },
     infrastructure::{
         clock::system_clock::SystemClock,
@@ -43,7 +33,7 @@ use crate::{
             json_medication_repository::JsonMedicationRepository,
             json_settings_repository::JsonSettingsRepository,
         },
-    }
+    },
 };
 
 /// Composition root — the only place that instantiates concrete adapters
@@ -70,45 +60,43 @@ impl Container {
         let notification = Arc::new(ConsoleNotificationAdapter);
         let clock = Arc::new(SystemClock);
         let settings_repo = Arc::new(JsonSettingsRepository::new(
-                env::var("BITPILL_SETTINGS_FILE")
+            env::var("BITPILL_SETTINGS_FILE")
                 .map(PathBuf::from)
                 .unwrap_or_else(|_| PathBuf::from("settings.json")),
         ));
 
         Self {
             create_medication_service: Arc::new(CreateMedicationService::new(
-                                               medication_repo.clone(),
-                                       )),
-                                       list_all_medications_service: Arc::new(ListAllMedicationsService::new(
-                                               medication_repo.clone(),
-                                       )),
-                                       list_dose_records_service: Arc::new(ListDoseRecordsService::new(
-                                               dose_record_repo.clone(),
-                                       )),
-                                       create_dose_record_service: Arc::new(CreateDoseRecordService::new(
-                                               dose_record_repo.clone(),
-                                       )),
-                                       mark_dose_taken_service: Arc::new(MarkDoseTakenService::new(
-                                               dose_record_repo.clone(),
-                                               medication_repo.clone(),
-                                       )),
-                                       schedule_dose_service: Arc::new(ScheduleDoseService::new(
-                                               medication_repo.clone(),
-                                               dose_record_repo.clone(),
-                                               notification.clone(),
-                                               clock.clone(),
-                                       )),
-                                       get_medication_service: Arc::new(GetMedicationService::new(medication_repo.clone())),
-                                       update_medication_service: Arc::new(UpdateMedicationService::new(
-                                               medication_repo.clone(),
-                                       )),
-                                       edit_medication_service: Arc::new(EditMedicationService::new(medication_repo.clone())),
-                                       delete_medication_service: Arc::new(
-                                           DeleteMedicationService::new(medication_repo.clone()),
-                                       ),
-                                       settings_service: Arc::new(
-                                           SettingsService::new(settings_repo.clone()),
-                                       )
+                medication_repo.clone(),
+            )),
+            list_all_medications_service: Arc::new(ListAllMedicationsService::new(
+                medication_repo.clone(),
+            )),
+            list_dose_records_service: Arc::new(ListDoseRecordsService::new(
+                dose_record_repo.clone(),
+            )),
+            create_dose_record_service: Arc::new(CreateDoseRecordService::new(
+                dose_record_repo.clone(),
+            )),
+            mark_dose_taken_service: Arc::new(MarkDoseTakenService::new(
+                dose_record_repo.clone(),
+                medication_repo.clone(),
+            )),
+            schedule_dose_service: Arc::new(ScheduleDoseService::new(
+                medication_repo.clone(),
+                dose_record_repo.clone(),
+                notification.clone(),
+                clock.clone(),
+            )),
+            get_medication_service: Arc::new(GetMedicationService::new(medication_repo.clone())),
+            update_medication_service: Arc::new(UpdateMedicationService::new(
+                medication_repo.clone(),
+            )),
+            edit_medication_service: Arc::new(EditMedicationService::new(medication_repo.clone())),
+            delete_medication_service: Arc::new(DeleteMedicationService::new(
+                medication_repo.clone(),
+            )),
+            settings_service: Arc::new(SettingsService::new(settings_repo.clone())),
         }
     }
 
@@ -128,38 +116,36 @@ impl Container {
 
         Self {
             create_medication_service: Arc::new(CreateMedicationService::new(
-                                               medication_repo.clone(),
-                                       )),
-                                       list_all_medications_service: Arc::new(ListAllMedicationsService::new(
-                                               medication_repo.clone(),
-                                       )),
-                                       list_dose_records_service: Arc::new(
-                                           ListDoseRecordsService::new(dose_record_repo.clone()),
-                                       ),
-                                       create_dose_record_service: Arc::new(CreateDoseRecordService::new(dose_record_repo.clone())),
-                                       mark_dose_taken_service: Arc::new(MarkDoseTakenService::new(
-                                               dose_record_repo.clone(),
-                                               medication_repo.clone(),
-                                       )),
-                                       schedule_dose_service: Arc::new(ScheduleDoseService::new(
-                                               medication_repo.clone(),
-                                               dose_record_repo.clone(),
-                                               notification.clone(),
-                                               clock.clone(),
-                                       )),
-                                       get_medication_service: Arc::new(GetMedicationService::new(medication_repo.clone())),
-                                       update_medication_service: Arc::new(UpdateMedicationService::new(
-                                               medication_repo.clone(),
-                                       )),
-                                       edit_medication_service: Arc::new(EditMedicationService::new(medication_repo.clone())),
-                                       delete_medication_service: Arc::new(
-                                           DeleteMedicationService::new(medication_repo.clone()),
-                                       ),
-                                       settings_service: Arc::new(
-                                           SettingsService::new(
-                                               settings_repo.clone(),
-                                           )
-                                       ),
+                medication_repo.clone(),
+            )),
+            list_all_medications_service: Arc::new(ListAllMedicationsService::new(
+                medication_repo.clone(),
+            )),
+            list_dose_records_service: Arc::new(ListDoseRecordsService::new(
+                dose_record_repo.clone(),
+            )),
+            create_dose_record_service: Arc::new(CreateDoseRecordService::new(
+                dose_record_repo.clone(),
+            )),
+            mark_dose_taken_service: Arc::new(MarkDoseTakenService::new(
+                dose_record_repo.clone(),
+                medication_repo.clone(),
+            )),
+            schedule_dose_service: Arc::new(ScheduleDoseService::new(
+                medication_repo.clone(),
+                dose_record_repo.clone(),
+                notification.clone(),
+                clock.clone(),
+            )),
+            get_medication_service: Arc::new(GetMedicationService::new(medication_repo.clone())),
+            update_medication_service: Arc::new(UpdateMedicationService::new(
+                medication_repo.clone(),
+            )),
+            edit_medication_service: Arc::new(EditMedicationService::new(medication_repo.clone())),
+            delete_medication_service: Arc::new(DeleteMedicationService::new(
+                medication_repo.clone(),
+            )),
+            settings_service: Arc::new(SettingsService::new(settings_repo.clone())),
         }
     }
 }

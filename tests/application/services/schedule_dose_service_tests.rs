@@ -1,18 +1,15 @@
+use crate::fakes::{
+    FakeClock, FakeDoseRecordRepository, FakeMedicationRepository, FakeNotificationPort,
+};
 use bitpill::application::dtos::requests::ScheduleDoseRequest;
 use bitpill::application::ports::inbound::schedule_dose_port::ScheduleDosePort;
 use bitpill::application::services::schedule_dose_service::ScheduleDoseService;
 use bitpill::domain::{
     entities::medication::Medication,
     value_objects::{
-        dosage::Dosage,
-        medication_frequency::DoseFrequency,
-        medication_id::MedicationId,
-        medication_name::MedicationName,
-        scheduled_time::ScheduledTime,
+        dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+        medication_name::MedicationName, scheduled_time::ScheduledTime,
     },
-};
-use crate::fakes::{
-    FakeClock, FakeDoseRecordRepository, FakeMedicationRepository, FakeNotificationPort,
 };
 use std::sync::Arc;
 
@@ -29,7 +26,11 @@ fn make_medication(name: &str, hour: u32, minute: u32) -> Medication {
 fn make_service(
     medications: Vec<Medication>,
     clock: FakeClock,
-) -> (ScheduleDoseService, Arc<FakeDoseRecordRepository>, Arc<FakeNotificationPort>) {
+) -> (
+    ScheduleDoseService,
+    Arc<FakeDoseRecordRepository>,
+    Arc<FakeNotificationPort>,
+) {
     let dose_repo = Arc::new(FakeDoseRecordRepository::new());
     let notif = Arc::new(FakeNotificationPort::new());
     let service = ScheduleDoseService::new(

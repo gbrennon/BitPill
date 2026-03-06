@@ -1,7 +1,6 @@
 use crate::application::dtos::requests::{
     CreateMedicationRequest, DeleteMedicationRequest, EditMedicationRequest, GetMedicationRequest,
-    ListAllMedicationsRequest, ListDoseRecordsRequest, MarkDoseTakenRequest,
-     SettingsRequest,
+    ListAllMedicationsRequest, ListDoseRecordsRequest, MarkDoseTakenRequest, SettingsRequest,
 };
 use crate::application::dtos::responses::{
     CreateMedicationResponse, DeleteMedicationResponse, EditMedicationResponse,
@@ -24,7 +23,9 @@ impl ListAllMedicationsPort for FakeListAllMedicationsPort {
         &self,
         _request: ListAllMedicationsRequest,
     ) -> Result<ListAllMedicationsResponse, ApplicationError> {
-        Ok(ListAllMedicationsResponse { medications: vec![] })
+        Ok(ListAllMedicationsResponse {
+            medications: vec![],
+        })
     }
 }
 
@@ -34,7 +35,9 @@ impl CreateMedicationPort for FakeCreateMedicationPort {
         &self,
         _request: CreateMedicationRequest,
     ) -> Result<CreateMedicationResponse, ApplicationError> {
-        Ok(CreateMedicationResponse { id: "fake-id".into() })
+        Ok(CreateMedicationResponse {
+            id: "fake-id".into(),
+        })
     }
 }
 
@@ -44,7 +47,9 @@ impl EditMedicationPort for FakeEditMedicationPort {
         &self,
         _request: EditMedicationRequest,
     ) -> Result<EditMedicationResponse, ApplicationError> {
-        Ok(EditMedicationResponse { id: "fake-id".into() })
+        Ok(EditMedicationResponse {
+            id: "fake-id".into(),
+        })
     }
 }
 

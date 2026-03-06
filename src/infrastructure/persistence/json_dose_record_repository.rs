@@ -174,7 +174,8 @@ mod tests {
         let record = make_record();
 
         repo.save(&record).expect("first save should succeed");
-        repo.save(&record).expect("second save (update path) should succeed");
+        repo.save(&record)
+            .expect("second save (update path) should succeed");
         let all = repo
             .find_all_by_medication(&make_med_id())
             .expect("find_all should succeed");

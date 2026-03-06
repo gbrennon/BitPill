@@ -1,20 +1,12 @@
 use std::sync::Arc;
+use std::convert::TryFrom;
 
 use crate::application::dtos::requests::CreateMedicationRequest;
 use crate::application::dtos::responses::CreateMedicationResponse;
 use crate::application::errors::ApplicationError;
 use crate::application::ports::create_medication_port::CreateMedicationPort;
 use crate::application::ports::medication_repository_port::MedicationRepository;
-use crate::domain::{
-    entities::medication::Medication,
-    value_objects::{
-        dosage::Dosage,
-        medication_frequency::DoseFrequency,
-        medication_id::MedicationId,
-        medication_name::MedicationName,
-        scheduled_time::ScheduledTime,
-    },
-};
+use crate::domain::entities::medication::Medication;
 
 pub struct CreateMedicationService {
     repository: Arc<dyn MedicationRepository>,
@@ -31,24 +23,7 @@ impl CreateMedicationPort for CreateMedicationService {
         &self,
         request: CreateMedicationRequest,
     ) -> Result<CreateMedicationResponse, ApplicationError> {
-        let id = MedicationId::generate();
-        let name = MedicationName::new(request.name)?;
-        let dosage = Dosage::new(request.amount_mg)?;
-        let times = request
-            .scheduled_time
-            .into_iter()
-            .map(|(h, m)| ScheduledTime::new(h, m))
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let dose_frequency = match request.dose_frequency.as_str() {
-            "OnceDaily" => DoseFrequency::OnceDaily,
-            "TwiceDaily" => DoseFrequency::TwiceDaily,
-            "ThriceDaily" => DoseFrequency::ThriceDaily,
-            "Custom" => DoseFrequency::Custom(times.clone()),
-            _ => DoseFrequency::OnceDaily,
-        };
-
-        let medication = Medication::new(id, name, dosage, times, dose_frequency);
+        let medication = Medication::try_from(request)?;
 
         self.repository.save(&medication)?;
 
@@ -57,3 +32,71 @@ impl CreateMedicationPort for CreateMedicationService {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::application::ports::fakes::FakeMedicationRepository;
+
+    fn make_service(repo: Arc<FakeMedicationRepository>) -> CreateMedicationService {
+        CreateMedicationService::new(repo)
+    }
+
+    fn valid_request() -> CreateMedicationRequest {
+        CreateMedicationRequest::new("Aspirin", 500, vec![(8, 0)], "OnceDaily")
+    }
+
+    #[test]
+    fn execute_with_valid_request_returns_non_empty_id() {
+        let repo = Arc::new(FakeMedicationRepository::new());
+        let service = make_service(repo);
+
+        let result = service.execute(valid_request());
+
+        assert!(result.is_ok());
+        assert!(!result.unwrap().id.is_empty());
+    }
+
+    #[test]
+    fn execute_with_valid_request_saves_to_repository() {
+        let repo = Arc::new(FakeMedicationRepository::new());
+        let service = make_service(repo.clone());
+
+        service.execute(valid_request()).unwrap();
+
+        assert_eq!(repo.saved_count(), 1);
+    }
+
+    #[test]
+    fn execute_with_empty_name_returns_domain_error() {
+        let repo = Arc::new(FakeMedicationRepository::new());
+        let service = make_service(repo);
+        let request = CreateMedicationRequest::new("", 500, vec![(8, 0)], "OnceDaily");
+
+        let result = service.execute(request);
+
+        assert!(matches!(result, Err(ApplicationError::Domain(_))));
+    }
+
+    #[test]
+    fn execute_with_zero_dosage_returns_domain_error() {
+        let repo = Arc::new(FakeMedicationRepository::new());
+        let service = make_service(repo);
+        let request = CreateMedicationRequest::new("Aspirin", 0, vec![(8, 0)], "OnceDaily");
+
+        let result = service.execute(request);
+
+        assert!(matches!(result, Err(ApplicationError::Domain(_))));
+    }
+
+    #[test]
+    fn execute_when_repository_fails_returns_storage_error() {
+        let repo = Arc::new(FakeMedicationRepository::failing());
+        let service = make_service(repo);
+
+        let result = service.execute(valid_request());
+
+        assert!(matches!(result, Err(ApplicationError::Storage(_))));
+    }
+}
+

@@ -1,5 +1,5 @@
-mod fakes;
 mod common;
+mod fakes;
 
 #[path = "services/create_medication_service_tests.rs"]
 mod create_medication_service_tests;
