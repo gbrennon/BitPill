@@ -30,7 +30,8 @@ impl UpdateMedicationPort for UpdateMedicationService {
         let id = Uuid::parse_str(&request.id)
             .map_err(|_| ApplicationError::InvalidInput("invalid id".into()))?;
 
-        let medication = MedicationMapper::from_request(request, Some(MedicationId::from(id)))?;
+        let mapper = UpdateMedicationMapper;
+        let medication = mapper.from_request(request, Some(MedicationId::from(id)))?;
 
         self.repository.save(&medication)?;
 
