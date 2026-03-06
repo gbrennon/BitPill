@@ -7,7 +7,6 @@ use crate::application::ports::inbound::get_medication_port::GetMedicationPort;
 use crate::application::ports::inbound::list_all_medications_port::ListAllMedicationsPort;
 use crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort;
 use crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort;
-use crate::application::ports::inbound::mark_medication_taken_port::MarkMedicationTakenPort;
 use crate::application::ports::inbound::settings_port::SettingsPort;
 use crate::infrastructure::container::Container;
 
@@ -21,7 +20,6 @@ pub struct AppServices {
     pub get_medication: Arc<dyn GetMedicationPort>,
     pub list_dose_records: Arc<dyn ListDoseRecordsPort>,
     pub mark_dose_taken: Arc<dyn MarkDoseTakenPort>,
-    pub mark_medication_taken: Arc<dyn MarkMedicationTakenPort>,
     pub settings: Arc<dyn SettingsPort>,
 }
 
@@ -37,7 +35,6 @@ impl AppServices {
             get_medication: container.get_medication_service.clone(),
             list_dose_records: container.list_dose_records_service.clone(),
             mark_dose_taken: container.mark_dose_taken_service.clone(),
-            mark_medication_taken: container.mark_medication_taken_service.clone(),
             settings: container.settings_service.clone(),
         }
     }
@@ -51,7 +48,7 @@ impl AppServices {
         use crate::application::ports::fakes::{
             FakeCreateMedicationPort, FakeDeleteMedicationPort, FakeEditMedicationPort,
             FakeGetMedicationPort, FakeListAllMedicationsPort, FakeListDoseRecordsPort,
-            FakeMarkDoseTakenPort, FakeMarkMedicationTakenPort, FakeSettingsPort,
+            FakeMarkDoseTakenPort, FakeSettingsPort,
         };
         Self {
             list_all_medications: Arc::new(FakeListAllMedicationsPort),
@@ -61,7 +58,6 @@ impl AppServices {
             get_medication: Arc::new(FakeGetMedicationPort),
             list_dose_records: Arc::new(FakeListDoseRecordsPort),
             mark_dose_taken: Arc::new(FakeMarkDoseTakenPort),
-            mark_medication_taken: Arc::new(FakeMarkMedicationTakenPort),
             settings: Arc::new(FakeSettingsPort),
         }
     }
@@ -82,7 +78,6 @@ mod tests {
         let _ = &services.get_medication;
         let _ = &services.list_dose_records;
         let _ = &services.mark_dose_taken;
-        let _ = &services.mark_medication_taken;
         let _ = &services.settings;
     }
 }
