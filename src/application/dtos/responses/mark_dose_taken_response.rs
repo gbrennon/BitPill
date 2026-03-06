@@ -10,3 +10,18 @@ impl MarkDoseTakenResponse {
         }
     }
 }
+
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn response_new_and_fields() {
+        let raw_id = "some-id";
+
+        let response = MarkDoseTakenResponse::new("some-id");
+
+        assert_eq!(response.record_id, raw_id);
+    }
+}
