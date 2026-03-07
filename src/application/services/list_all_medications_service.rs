@@ -33,7 +33,7 @@ impl ListAllMedicationsPort for ListAllMedicationsService {
                     .iter()
                     .map(|t| (t.hour(), t.minute()))
                     .collect(),
-                dose_frequency: m.dose_frequency().to_string(),
+                dose_frequency: m.dose_frequency().as_str().to_string(),
             })
             .collect();
         Ok(ListAllMedicationsResponse { medications: dtos })

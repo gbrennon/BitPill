@@ -30,6 +30,20 @@ impl DoseFrequency {
             DoseFrequency::Custom(times) => times.clone(),
         }
     }
+
+    /// Returns the canonical string slice for this variant.
+    ///
+    /// Unlike [`Display`](std::fmt::Display), this is not human-readable; it matches
+    /// the strings expected by the application layer mappers and TUI handlers.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            DoseFrequency::OnceDaily => "OnceDaily",
+            DoseFrequency::TwiceDaily => "TwiceDaily",
+            DoseFrequency::ThriceDaily => "ThriceDaily",
+            DoseFrequency::EveryXHours(_) => "EveryXHours",
+            DoseFrequency::Custom(_) => "Custom",
+        }
+    }
 }
 
 impl std::fmt::Display for DoseFrequency {
