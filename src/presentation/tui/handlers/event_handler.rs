@@ -53,6 +53,7 @@ impl Handler for EventHandler {
                                 "OnceDaily" => 0,
                                 "TwiceDaily" => 1,
                                 "ThriceDaily" => 2,
+                                "Custom" => 3,
                                 _ => 0,
                             };
                             app.current_screen = Screen::EditMedication {
