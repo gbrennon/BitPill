@@ -7,6 +7,7 @@ use crate::domain::{entities::medication::Medication, value_objects::medication_
 pub struct FakeMedicationRepository {
     medications: Mutex<Vec<Medication>>,
     fail_on_save: bool,
+    deleted_count: Mutex<usize>,
 }
 
 impl FakeMedicationRepository {
@@ -14,6 +15,7 @@ impl FakeMedicationRepository {
         Self {
             medications: Mutex::new(Vec::new()),
             fail_on_save: false,
+            deleted_count: Mutex::new(0),
         }
     }
 
@@ -21,6 +23,7 @@ impl FakeMedicationRepository {
         Self {
             medications: Mutex::new(medications),
             fail_on_save: false,
+            deleted_count: Mutex::new(0),
         }
     }
 
@@ -28,11 +31,16 @@ impl FakeMedicationRepository {
         Self {
             medications: Mutex::new(Vec::new()),
             fail_on_save: true,
+            deleted_count: Mutex::new(0),
         }
     }
 
     pub fn saved_count(&self) -> usize {
         self.medications.lock().unwrap().len()
+    }
+
+    pub fn deleted_count(&self) -> usize {
+        *self.deleted_count.lock().unwrap()
     }
 }
 
@@ -61,7 +69,14 @@ impl MedicationRepository for FakeMedicationRepository {
 
     fn delete(&self, id: &MedicationId) -> Result<(), StorageError> {
         let mut meds = self.medications.lock().unwrap();
+        let before = meds.len();
         meds.retain(|m| m.id() != id);
+        let after = meds.len();
+        let removed = before.saturating_sub(after);
+        if removed > 0 {
+            let mut cnt = self.deleted_count.lock().unwrap();
+            *cnt += removed;
+        }
         Ok(())
     }
 }
