@@ -66,7 +66,9 @@ mod tests {
     fn execute_with_invalid_medication_id_returns_invalid_input() {
         let repo = std::sync::Arc::new(FakeDoseRecordRepository::new());
         let service = make_service(repo);
-        let req = super::ListDoseRecordsRequest { medication_id: "not-a-uuid".into() };
+        let req = super::ListDoseRecordsRequest {
+            medication_id: "not-a-uuid".into(),
+        };
 
         let res = service.execute(req);
         assert!(matches!(res, Err(ApplicationError::InvalidInput(_))));
@@ -75,10 +77,12 @@ mod tests {
     #[test]
     fn execute_with_records_returns_dtos() {
         let med_id = MedicationId::generate();
-        let record = DoseRecord::new(med_id.clone(), make_datetime(8,0));
+        let record = DoseRecord::new(med_id.clone(), make_datetime(8, 0));
         let repo = std::sync::Arc::new(FakeDoseRecordRepository::with(record.clone()));
         let service = make_service(repo);
-        let req = super::ListDoseRecordsRequest { medication_id: med_id.to_string() };
+        let req = super::ListDoseRecordsRequest {
+            medication_id: med_id.to_string(),
+        };
 
         let res = service.execute(req).unwrap();
         assert_eq!(res.records.len(), 1);

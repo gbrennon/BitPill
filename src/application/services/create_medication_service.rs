@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use std::convert::TryFrom;
+use std::sync::Arc;
 
 use crate::application::dtos::requests::CreateMedicationRequest;
 use crate::application::dtos::responses::CreateMedicationResponse;
@@ -99,4 +99,3 @@ mod tests {
         assert!(matches!(result, Err(ApplicationError::Storage(_))));
     }
 }
-
