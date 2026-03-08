@@ -1,25 +1,20 @@
-use bitpill::infrastructure::persistence::json_settings_repository::JsonSettingsRepository;
+use bitpill::{
+    application::ports::outbound::settings_repository_port::SettingsRepositoryPort,
+    infrastructure::persistence::json_settings_repository::JsonSettingsRepository,
+};
 use serde_json::json;
-use std::env;
-use std::fs;
+use tempfile::tempdir;
 
 #[test]
 fn save_and_load_settings_roundtrip() {
-    // create a unique path in the system temp dir
-    let mut path = env::temp_dir();
-    let file_name = format!("bitpill_settings_test_{}.json", std::process::id());
-    path.push(file_name);
-
-    // ensure no leftover file
-    let _ = fs::remove_file(&path);
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("settings.json");
 
     let repo = JsonSettingsRepository::new(path.clone());
     let v = json!({"theme":"dark","volume":5});
 
     repo.save(&v).expect("save failed");
     let loaded = repo.load().expect("load failed");
-    assert_eq!(loaded, v);
 
-    // cleanup
-    let _ = fs::remove_file(&path);
+    assert_eq!(loaded, v);
 }

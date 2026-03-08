@@ -44,3 +44,7 @@ tools:
 # Remove build artifacts
 clean:
     cargo clean
+
+# Install the CLI tool globally
+install:
+    cargo install --path . --locked
