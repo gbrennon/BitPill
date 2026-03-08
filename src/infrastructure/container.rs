@@ -1,4 +1,7 @@
-use std::{env, path::PathBuf, sync::Arc};
+use std::sync::Arc;
+
+#[cfg(any(test, feature = "test-helpers"))]
+use std::path::PathBuf;
 
 use crate::{
     application::{
@@ -27,6 +30,10 @@ use crate::{
     },
     infrastructure::{
         clock::system_clock::SystemClock,
+        config::{
+            app_initializer::AppInitializer,
+            app_paths::AppPaths,
+        },
         notifications::console_notification_adapter::ConsoleNotificationAdapter,
         persistence::{
             json_dose_record_repository::JsonDoseRecordRepository,
@@ -55,15 +62,15 @@ pub struct Container {
 
 impl Container {
     pub fn new() -> Self {
-        let medication_repo = Arc::new(JsonMedicationRepository::with_default_path());
-        let dose_record_repo = Arc::new(JsonDoseRecordRepository::with_default_path());
+        let paths = AppPaths::resolve();
+        if let Err(e) = AppInitializer::initialize(&paths) {
+            eprintln!("Warning: could not initialize config directory: {e}");
+        }
+        let medication_repo = Arc::new(JsonMedicationRepository::new(paths.medications_path().clone()));
+        let dose_record_repo = Arc::new(JsonDoseRecordRepository::new(paths.dose_records_path().clone()));
         let notification = Arc::new(ConsoleNotificationAdapter);
         let clock = Arc::new(SystemClock);
-        let settings_repo = Arc::new(JsonSettingsRepository::new(
-            env::var("BITPILL_SETTINGS_FILE")
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| PathBuf::from("settings.json")),
-        ));
+        let settings_repo = Arc::new(JsonSettingsRepository::new(paths.settings_path().clone()));
 
         Self {
             create_medication_service: Arc::new(CreateMedicationService::new(
