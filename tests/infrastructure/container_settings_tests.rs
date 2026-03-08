@@ -1,7 +1,9 @@
 #[test]
-fn get_settings_service_returns_same_reference() {
+fn settings_service_arc_is_same_instance() {
     let c = bitpill::infrastructure::container::Container::new();
-    let r1 = c.get_settings_service() as *const _;
-    let r2 = c.get_settings_service() as *const _;
-    assert_eq!(r1, r2);
+
+    let s1 = c.settings_service.clone();
+    let s2 = c.settings_service.clone();
+
+    assert!(std::sync::Arc::ptr_eq(&s1, &s2));
 }
