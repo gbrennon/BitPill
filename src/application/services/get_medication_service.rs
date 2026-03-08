@@ -50,7 +50,10 @@ mod tests {
     use super::*;
     use crate::application::ports::fakes::FakeMedicationRepository;
     use crate::domain::entities::medication::Medication;
-    use crate::domain::value_objects::{medication_id::MedicationId, medication_name::MedicationName, dosage::Dosage, scheduled_time::ScheduledTime, medication_frequency::DoseFrequency};
+    use crate::domain::value_objects::{
+        dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+        medication_name::MedicationName, scheduled_time::ScheduledTime,
+    };
 
     fn make_service(repo: std::sync::Arc<FakeMedicationRepository>) -> GetMedicationService {
         GetMedicationService::new(repo)
@@ -60,7 +63,9 @@ mod tests {
     fn execute_when_not_found_returns_not_found_error() {
         let repo = std::sync::Arc::new(FakeMedicationRepository::new());
         let service = make_service(repo);
-        let req = super::GetMedicationRequest { id: uuid::Uuid::now_v7().to_string() };
+        let req = super::GetMedicationRequest {
+            id: uuid::Uuid::now_v7().to_string(),
+        };
 
         let res = service.execute(req);
         assert!(matches!(res, Err(ApplicationError::NotFound(_))));
@@ -72,12 +77,14 @@ mod tests {
             MedicationId::generate(),
             MedicationName::new("Test").unwrap(),
             Dosage::new(123).unwrap(),
-            vec![ScheduledTime::new(8,0).unwrap()],
+            vec![ScheduledTime::new(8, 0).unwrap()],
             DoseFrequency::OnceDaily,
         );
         let repo = std::sync::Arc::new(FakeMedicationRepository::with(vec![med.clone()]));
         let service = make_service(repo);
-        let req = super::GetMedicationRequest { id: med.id().to_string() };
+        let req = super::GetMedicationRequest {
+            id: med.id().to_string(),
+        };
 
         let res = service.execute(req).unwrap();
         assert_eq!(res.medication.id, med.id().to_string());

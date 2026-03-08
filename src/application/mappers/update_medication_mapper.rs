@@ -91,8 +91,13 @@ mod tests {
     #[test]
     fn map_with_invalid_time_returns_domain_error() {
         let mapper = UpdateMedicationMapper;
-        let request =
-            UpdateMedicationRequest::new(Uuid::nil().to_string(), "Aspirin", 500, vec![(25, 0)], "OnceDaily");
+        let request = UpdateMedicationRequest::new(
+            Uuid::nil().to_string(),
+            "Aspirin",
+            500,
+            vec![(25, 0)],
+            "OnceDaily",
+        );
 
         let result = mapper.map((request, make_id()));
 
@@ -109,4 +114,3 @@ mod tests {
         assert_eq!(med.dose_frequency(), &DoseFrequency::OnceDaily);
     }
 }
-

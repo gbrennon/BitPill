@@ -68,7 +68,9 @@ mod tests {
 
         assert!(matches!(
             result,
-            Err(ApplicationError::Domain(crate::domain::errors::DomainError::EmptyMedicationName))
+            Err(ApplicationError::Domain(
+                crate::domain::errors::DomainError::EmptyMedicationName
+            ))
         ));
     }
 
@@ -78,7 +80,9 @@ mod tests {
 
         assert!(matches!(
             result,
-            Err(ApplicationError::Domain(crate::domain::errors::DomainError::InvalidDosage))
+            Err(ApplicationError::Domain(
+                crate::domain::errors::DomainError::InvalidDosage
+            ))
         ));
     }
 
@@ -127,7 +131,9 @@ mod tests {
 
         assert!(matches!(
             result,
-            Err(ApplicationError::Domain(crate::domain::errors::DomainError::EmptyMedicationName))
+            Err(ApplicationError::Domain(
+                crate::domain::errors::DomainError::EmptyMedicationName
+            ))
         ));
     }
 
@@ -139,7 +145,9 @@ mod tests {
 
         assert!(matches!(
             result,
-            Err(ApplicationError::Domain(crate::domain::errors::DomainError::InvalidDosage))
+            Err(ApplicationError::Domain(
+                crate::domain::errors::DomainError::InvalidDosage
+            ))
         ));
     }
 
