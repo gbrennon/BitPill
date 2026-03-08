@@ -81,7 +81,8 @@ mod tests {
     fn execute_with_invalid_uuid_returns_invalid_input_error() {
         let repo = Arc::new(FakeMedicationRepository::new());
         let service = make_service(repo);
-        let request = UpdateMedicationRequest::new("not-a-uuid", "Ibuprofen", 200, vec![(8, 0)], "OnceDaily");
+        let request =
+            UpdateMedicationRequest::new("not-a-uuid", "Ibuprofen", 200, vec![(8, 0)], "OnceDaily");
 
         let result = service.execute(request);
 
@@ -103,7 +104,8 @@ mod tests {
     fn execute_with_zero_dosage_returns_domain_error() {
         let repo = Arc::new(FakeMedicationRepository::new());
         let service = make_service(repo);
-        let request = UpdateMedicationRequest::new(valid_id(), "Ibuprofen", 0, vec![(8, 0)], "OnceDaily");
+        let request =
+            UpdateMedicationRequest::new(valid_id(), "Ibuprofen", 0, vec![(8, 0)], "OnceDaily");
 
         let result = service.execute(request);
 
@@ -120,4 +122,3 @@ mod tests {
         assert!(matches!(result, Err(ApplicationError::Storage(_))));
     }
 }
-

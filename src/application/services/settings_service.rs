@@ -48,12 +48,17 @@ mod tests {
         }
     }
 
-    impl crate::application::ports::outbound::settings_repository_port::SettingsRepositoryPort for InMemorySettingsRepo {
+    impl crate::application::ports::outbound::settings_repository_port::SettingsRepositoryPort
+        for InMemorySettingsRepo
+    {
         fn load(&self) -> Result<serde_json::Value, crate::application::errors::StorageError> {
             Ok(self.value.lock().unwrap().clone())
         }
 
-        fn save(&self, settings: &serde_json::Value) -> Result<(), crate::application::errors::StorageError> {
+        fn save(
+            &self,
+            settings: &serde_json::Value,
+        ) -> Result<(), crate::application::errors::StorageError> {
             *self.value.lock().unwrap() = settings.clone();
             Ok(())
         }
@@ -65,9 +70,11 @@ mod tests {
 
     #[test]
     fn execute_get_returns_saved_settings() {
-        let repo = std::sync::Arc::new(InMemorySettingsRepo::new(json!({"k": "v"}))); 
+        let repo = std::sync::Arc::new(InMemorySettingsRepo::new(json!({"k": "v"})));
         let service = make_service(repo);
-        let req = SettingsRequest { op: SettingsOperation::Get };
+        let req = SettingsRequest {
+            op: SettingsOperation::Get,
+        };
 
         let res = service.execute(req).unwrap();
         assert_eq!(res.settings, json!({"k":"v"}));
@@ -75,10 +82,14 @@ mod tests {
 
     #[test]
     fn execute_update_saves_and_returns_settings() {
-        let repo = std::sync::Arc::new(InMemorySettingsRepo::new(json!({}))); 
+        let repo = std::sync::Arc::new(InMemorySettingsRepo::new(json!({})));
         let service = make_service(repo.clone());
         let new_settings = json!({"a":1});
-        let req = SettingsRequest { op: SettingsOperation::Update { settings: new_settings.clone() } };
+        let req = SettingsRequest {
+            op: SettingsOperation::Update {
+                settings: new_settings.clone(),
+            },
+        };
 
         let res = service.execute(req).unwrap();
         assert_eq!(res.settings, new_settings);

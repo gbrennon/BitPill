@@ -44,7 +44,9 @@ mod tests {
     fn execute_with_invalid_uuid_returns_invalid_input() {
         let repo = std::sync::Arc::new(FakeMedicationRepository::new());
         let service = make_service(repo);
-        let req = DeleteMedicationRequest { id: "not-a-uuid".into() };
+        let req = DeleteMedicationRequest {
+            id: "not-a-uuid".into(),
+        };
 
         let res = service.execute(req);
         assert!(matches!(res, Err(ApplicationError::InvalidInput(_))));
