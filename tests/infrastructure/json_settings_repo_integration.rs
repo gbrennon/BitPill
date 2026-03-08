@@ -1,7 +1,9 @@
-use tempfile::tempdir;
-use bitpill::infrastructure::container::Container;
-use bitpill::application::dtos::requests::{SettingsOperation, SettingsRequest};
+use bitpill::{
+    application::dtos::requests::{SettingsOperation, SettingsRequest},
+    infrastructure::container::Container,
+};
 use serde_json::json;
+use tempfile::tempdir;
 
 #[test]
 fn settings_persisted_across_containers() {
@@ -10,12 +12,12 @@ fn settings_persisted_across_containers() {
     let doses = dir.path().join("doses.json");
     let settings = dir.path().join("settings.json");
 
-    let mut c1 = Container::new_with_paths(meds.clone(), doses.clone(), settings.clone());
+    let c1 = Container::new_with_paths(meds.clone(), doses.clone(), settings.clone());
     let req = SettingsRequest { op: SettingsOperation::Update { settings: json!({"k":"v"}) } };
-    c1.get_settings_service().execute(req).expect("save");
+    c1.settings_service.execute(req).expect("save");
 
     let c2 = Container::new_with_paths(meds, doses, settings);
     let get = SettingsRequest { op: SettingsOperation::Get };
-    let resp = c2.get_settings_service().execute(get).expect("load");
+    let resp = c2.settings_service.execute(get).expect("load");
     assert_eq!(resp.settings["k"], "v");
 }
