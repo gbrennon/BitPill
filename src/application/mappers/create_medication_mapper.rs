@@ -117,4 +117,3 @@ mod tests {
         assert_eq!(med.dose_frequency(), &DoseFrequency::OnceDaily);
     }
 }
-

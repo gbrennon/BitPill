@@ -36,4 +36,3 @@ pub trait Mapper<T>: Send + Sync {
     /// before calling.
     fn map(&self, src: Self::Source) -> Result<T, DomainError>;
 }
-
