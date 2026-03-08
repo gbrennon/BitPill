@@ -99,9 +99,14 @@ impl ScheduleDosePort for ScheduleDoseService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::application::ports::fakes::{FakeClock, FakeDoseRecordRepository, FakeMedicationRepository, FakeNotificationPort};
+    use crate::application::ports::fakes::{
+        FakeClock, FakeDoseRecordRepository, FakeMedicationRepository, FakeNotificationPort,
+    };
     use crate::domain::entities::medication::Medication;
-    use crate::domain::value_objects::{medication_id::MedicationId, medication_name::MedicationName, dosage::Dosage, scheduled_time::ScheduledTime, medication_frequency::DoseFrequency};
+    use crate::domain::value_objects::{
+        dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+        medication_name::MedicationName, scheduled_time::ScheduledTime,
+    };
 
     fn make_service(
         med_repo: std::sync::Arc<FakeMedicationRepository>,
@@ -118,15 +123,20 @@ mod tests {
             MedicationId::generate(),
             MedicationName::new("Test").unwrap(),
             Dosage::new(100).unwrap(),
-            vec![ScheduledTime::new(8,0).unwrap()],
+            vec![ScheduledTime::new(8, 0).unwrap()],
             DoseFrequency::OnceDaily,
         );
         let med_repo = std::sync::Arc::new(FakeMedicationRepository::with(vec![med.clone()]));
         let dose_repo = std::sync::Arc::new(FakeDoseRecordRepository::new());
         let notification = std::sync::Arc::new(FakeNotificationPort::new());
-        let clock = std::sync::Arc::new(FakeClock::at(8,0));
+        let clock = std::sync::Arc::new(FakeClock::at(8, 0));
 
-        let service = make_service(med_repo.clone(), dose_repo.clone(), notification.clone(), clock.clone());
+        let service = make_service(
+            med_repo.clone(),
+            dose_repo.clone(),
+            notification.clone(),
+            clock.clone(),
+        );
         let created = service.execute().unwrap();
         assert_eq!(created.len(), 1);
         assert_eq!(notification.call_count(), 1);
@@ -139,13 +149,13 @@ mod tests {
             MedicationId::generate(),
             MedicationName::new("Test").unwrap(),
             Dosage::new(100).unwrap(),
-            vec![ScheduledTime::new(9,0).unwrap()],
+            vec![ScheduledTime::new(9, 0).unwrap()],
             DoseFrequency::OnceDaily,
         );
         let med_repo = std::sync::Arc::new(FakeMedicationRepository::with(vec![med]));
         let dose_repo = std::sync::Arc::new(FakeDoseRecordRepository::new());
         let notification = std::sync::Arc::new(FakeNotificationPort::new());
-        let clock = std::sync::Arc::new(FakeClock::at(8,0));
+        let clock = std::sync::Arc::new(FakeClock::at(8, 0));
 
         let service = make_service(med_repo, dose_repo, notification, clock);
         let created = service.execute().unwrap();
