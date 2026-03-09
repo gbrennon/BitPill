@@ -46,7 +46,7 @@ jobs:
       - name: CI setup
         run: |
           set -euo pipefail
-          ./.ci/setup.sh
+          ./scripts/setup.sh
 
       - name: Run tests via just
         run: |
