@@ -25,3 +25,9 @@ assert_eq!(freq3.to_string(), "Every Monday");
 ```
 
 `MedicationFrequency` is used as a field in the [`Medication`](../entities/medication.md) entity to specify how often the medication should be taken.
+
+## Methods
+
+### `to_string() -> String`
+
+Formats the frequency as a human-readable string.
