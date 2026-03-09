@@ -1,4 +1,4 @@
-# `MediationFrequency` -> `src/domain/value_objects/medication_frequency.rs`
+# `MedicationFrequency` -> `src/domain/value_objects/medication_frequency.rs`
 
 A value object representing how often a medication should be taken.
 
