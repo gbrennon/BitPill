@@ -1,0 +1,66 @@
+name: Run Tests with Coverage
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache cargo registry and git
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+
+      - name: Cache cargo target directory
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-target-
+
+      - name: Cache cargo bin
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin
+          # Cargo bin tools (just, cargo-llvm-cov, etc.) are not determined by Cargo.lock.
+          # Use a stable key tied to the setup script hash so the cache busts only when
+          # the set of installed tools actually changes.
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/scripts/setup.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-bin-
+
+      - name: CI setup
+        run: |
+          set -euo pipefail
+          ./scripts/setup.sh
+
+      - name: Run tests via just
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/.cargo/bin:$PATH"
+          just test
+
+      - name: Show coverage files (if any)
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ -d target/llvm-cov/html ]; then
+            echo "HTML report available at target/llvm-cov/html/index.html"
+          fi
