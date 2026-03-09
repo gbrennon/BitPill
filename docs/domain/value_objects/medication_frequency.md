@@ -28,6 +28,4 @@ assert_eq!(freq3.to_string(), "Every Monday");
 
 ## Methods
 
-### `to_string() -> String`
-
-Formats the frequency as a human-readable string.
+### `as_str() -> String`
