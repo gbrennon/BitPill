@@ -13,7 +13,7 @@ jobs:
       CARGO_TERM_COLOR: always
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -39,7 +39,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cargo/bin
-          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
+          # Cargo bin tools (just, cargo-llvm-cov, etc.) are not determined by Cargo.lock.
+          # Use a stable key tied to the setup script hash so the cache busts only when
+          # the set of installed tools actually changes.
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/scripts/setup.sh') }}
           restore-keys: |
             ${{ runner.os }}-cargo-bin-
 
