@@ -22,7 +22,7 @@ run:
 
 # Run all tests with coverage
 test:
-    cargo llvm-cov --features test-helpers --ignore-filename-regex "ports/fakes"
+    ./scripts/check_coverage.sh
 
 # Lint (zero warnings enforced)
 lint:
