@@ -13,8 +13,6 @@ if ! command -v rustup >/dev/null 2>&1; then
   sh "$tmp_dir/rustup-init.sh" -y
 fi
 
-export PATH="$HOME/.cargo/bin:$PATH"
-
 # Ensure stable toolchain and developer components
 # Source cargo env if present (rustup installer writes this file).
 if [[ -f "$HOME/.cargo/env" ]]; then
@@ -30,9 +28,6 @@ fi
 # Use non-interactive default stable toolchain and add components
 rustup default stable --no-modify-path || rustup default stable
 rustup component add rustfmt clippy || true
-
-# Ensure cargo is available in PATH now
-export PATH="$HOME/.cargo/bin:$PATH"
 
 # Install just (task runner) if missing
 if ! command -v just >/dev/null 2>&1; then
