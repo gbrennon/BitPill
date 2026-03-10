@@ -1,4 +1,4 @@
-use crossterm::event::KeyEvent;
+use crate::presentation::tui::input::Key;
 
 use crate::application::dtos::requests::MarkDoseTakenRequest;
 use crate::presentation::tui::app::App;
@@ -14,7 +14,7 @@ impl Default for MarkDoseHandler {
 }
 
 impl Handler for MarkDoseHandler {
-    fn handle(&mut self, app: &mut App, key: KeyEvent) -> HandlerResult {
+    fn handle(&mut self, app: &mut App, key: Key) -> HandlerResult {
         // Extract current mark-dose state up-front to avoid borrowing `app` mutably while it's still borrowed immutably.
         let (med_id, recs, sel_idx) = if let Screen::MarkDose {
             medication_id,

@@ -11,7 +11,7 @@ impl Default for ScheduleResultHandler {
 }
 
 impl Handler for ScheduleResultHandler {
-    fn handle(&mut self, app: &mut App, _key: crossterm::event::KeyEvent) -> HandlerResult {
+    fn handle(&mut self, app: &mut App, _key: crate::presentation::tui::input::Key) -> HandlerResult {
         app.current_screen = Screen::HomeScreen;
         app.load_medications();
         HandlerResult::Continue

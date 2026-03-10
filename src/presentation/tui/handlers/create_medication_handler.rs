@@ -8,7 +8,7 @@ use crate::presentation::tui::handlers::time_slot_parser::{
     frequency_str, parse_slots, validate_slot_count,
 };
 use crate::presentation::tui::screen::Screen;
-use crossterm::event::KeyEvent;
+use crate::presentation::tui::input::Key;
 
 pub struct CreateMedicationHandler;
 
@@ -19,7 +19,7 @@ impl Default for CreateMedicationHandler {
 }
 
 impl Handler for CreateMedicationHandler {
-    fn handle(&mut self, app: &mut App, key: KeyEvent) -> HandlerResult {
+    fn handle(&mut self, app: &mut App, key: Key) -> HandlerResult {
         let (
             name,
             amount_mg,
@@ -72,8 +72,8 @@ impl Handler for CreateMedicationHandler {
             };
         };
 
-        match key.code {
-            crossterm::event::KeyCode::Esc => {
+        match key {
+            Key::Esc => {
                 if insert_mode {
                     set_screen(app, name, amount_mg, selected_frequency, nav, false);
                 } else {

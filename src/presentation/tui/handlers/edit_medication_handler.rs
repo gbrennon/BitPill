@@ -8,7 +8,7 @@ use crate::presentation::tui::handlers::time_slot_parser::{
     frequency_str, parse_slots, validate_slot_count,
 };
 use crate::presentation::tui::screen::Screen;
-use crossterm::event::KeyEvent;
+use crate::presentation::tui::input::Key;
 
 pub struct EditMedicationHandler;
 
@@ -19,7 +19,7 @@ impl Default for EditMedicationHandler {
 }
 
 impl Handler for EditMedicationHandler {
-    fn handle(&mut self, app: &mut App, key: KeyEvent) -> HandlerResult {
+    fn handle(&mut self, app: &mut App, key: Key) -> HandlerResult {
         let (
             id,
             name,
