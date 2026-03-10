@@ -13,22 +13,40 @@ if ! command -v rustup >/dev/null 2>&1; then
   sh "$tmp_dir/rustup-init.sh" -y
 fi
 
-export PATH="$HOME/.cargo/bin:$PATH"
-
 # Ensure stable toolchain and developer components
-rustup default stable
-rustup component add rustfmt clippy
+# Source cargo env if present (rustup installer writes this file).
+if [[ -f "$HOME/.cargo/env" ]]; then
+  # shellcheck disable=SC1090
+  source "$HOME/.cargo/env" || true
+fi
+
+if ! command -v rustup >/dev/null 2>&1; then
+  echo "rustup not found after install. Please check output above." >&2
+  exit 1
+fi
+
+# Use non-interactive default stable toolchain and add components
+rustup default stable --no-modify-path || rustup default stable
+rustup component add rustfmt clippy || true
 
 # Install just (task runner) if missing
-if ! command -v just >/dev/null 2>&1; then
+# Always install in CI to avoid stale cache issues
+if [[ -n "${CI:-}" ]] || ! command -v just >/dev/null 2>&1; then
   echo "Installing just..."
-  cargo install just --locked
+  cargo install just --locked || {
+    echo "cargo install just failed" >&2
+    exit 1
+  }
 fi
 
 # Install cargo-llvm-cov for coverage reporting
-if ! command -v cargo-llvm-cov >/dev/null 2>&1; then
+# Always install in CI to avoid stale cache issues
+if [[ -n "${CI:-}" ]] || ! command -v cargo-llvm-cov >/dev/null 2>&1; then
   echo "Installing cargo-llvm-cov..."
-  cargo install cargo-llvm-cov --locked
+  cargo install cargo-llvm-cov --locked || {
+    echo "cargo install cargo-llvm-cov failed" >&2
+    exit 1
+  }
 fi
 
 # Display versions for debugging
