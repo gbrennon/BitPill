@@ -62,6 +62,7 @@ else
 fi
 if command -v just >/dev/null 2>&1; then
   just --version
+  just tools
 else
   echo "just not found"
 fi
