@@ -2,6 +2,7 @@
 
 > **Work in progress.** A personal medication management application built in Rust.
 
+verifying forgejo updates
 BitPill helps individuals manage their daily medications — tracking pills, dosages, and schedules in one place.
 
 It is being built with a focus on reliability and correctness, because when it comes to medication, errors matter.
