@@ -30,7 +30,8 @@ rustup default stable --no-modify-path || rustup default stable
 rustup component add rustfmt clippy || true
 
 # Install just (task runner) if missing
-if ! command -v just >/dev/null 2>&1; then
+# Always install in CI to avoid stale cache issues
+if [[ -n "${CI:-}" ]] || ! command -v just >/dev/null 2>&1; then
   echo "Installing just..."
   cargo install just --locked || {
     echo "cargo install just failed" >&2
@@ -39,7 +40,8 @@ if ! command -v just >/dev/null 2>&1; then
 fi
 
 # Install cargo-llvm-cov for coverage reporting
-if ! command -v cargo-llvm-cov >/dev/null 2>&1; then
+# Always install in CI to avoid stale cache issues
+if [[ -n "${CI:-}" ]] || ! command -v cargo-llvm-cov >/dev/null 2>&1; then
   echo "Installing cargo-llvm-cov..."
   cargo install cargo-llvm-cov --locked || {
     echo "cargo install cargo-llvm-cov failed" >&2

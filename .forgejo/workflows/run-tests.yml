@@ -49,6 +49,7 @@ jobs:
       - name: CI setup
         run: |
           set -euo pipefail
+          export PATH="$HOME/.cargo/bin:$PATH"
           ./scripts/setup.sh
 
       - name: Run tests via just
