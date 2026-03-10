@@ -67,7 +67,7 @@ else
   echo "just not found"
 fi
 if command -v cargo-llvm-cov >/dev/null 2>&1; then
-  cargo-llvm-cov --version
+  cargo llvm-cov --version
 else
   echo "cargo-llvm-cov not found"
 fi
