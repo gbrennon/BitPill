@@ -231,3 +231,5 @@ just          # fmt-check + lint + test with coverage
 ```
 
 All of these must pass before a contribution is considered complete.
+
+<!-- ci-test: 2026-03-10T06:37:37Z -->
