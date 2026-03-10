@@ -2,6 +2,7 @@ pub mod app;
 pub mod app_services;
 pub mod components;
 pub mod draw;
+pub mod event_source;
 pub mod handlers;
 pub mod presenters;
 pub mod renderers;

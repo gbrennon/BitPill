@@ -1,4 +1,4 @@
-use crossterm::event::{KeyCode, KeyEvent};
+use crate::presentation::tui::input::Key;
 
 use crate::presentation::tui::app::App;
 use crate::presentation::tui::handlers::create_medication_handler::CreateMedicationHandler;
@@ -18,9 +18,9 @@ pub struct EventHandler {
 }
 
 impl Handler for EventHandler {
-    fn handle(&mut self, app: &mut App, key: KeyEvent) -> HandlerResult {
+    fn handle(&mut self, app: &mut App, key: Key) -> HandlerResult {
         // Global quit: pressing 'q' anywhere opens a quit confirmation modal.
-        if let KeyCode::Char('q') = key.code
+        if let Key::Char('q') = key
             && !matches!(app.current_screen, Screen::ConfirmQuit { .. })
         {
             app.current_screen = Screen::ConfirmQuit {
@@ -35,11 +35,11 @@ impl Handler for EventHandler {
             Screen::EditMedication { .. } => self.edit_medication_handler.handle(app, key),
             Screen::MedicationDetails { .. } => {
                 // handle simple navigation and edit shortcut inside details screen
-                match key.code {
-                    KeyCode::Esc => {
+                match key {
+                    Key::Esc => {
                         app.current_screen = Screen::HomeScreen;
                     }
-                    KeyCode::Char('e') => {
+                    Key::Char('e') => {
                         if let Screen::MedicationDetails { id } = &app.current_screen
                             && let Some(m) = app.medications.iter().find(|m| m.id == *id)
                         {
@@ -68,7 +68,7 @@ impl Handler for EventHandler {
                             };
                         }
                     }
-                    KeyCode::Char('s') => {
+                    Key::Char('s') => {
                         // open selection of today's registered dose records AND scheduled slots to mark as taken
                         if let Screen::MedicationDetails { id } = &app.current_screen
                             && let Some(m) = app.medications.iter().find(|m| m.id == *id)
@@ -161,13 +161,13 @@ impl Handler for EventHandler {
                 HandlerResult::Continue
             }
             Screen::Settings { vim_enabled } => {
-                match key.code {
-                    KeyCode::Char(' ') => {
+                match key {
+                    Key::Char(' ') => {
                         app.current_screen = Screen::Settings {
                             vim_enabled: !*vim_enabled,
                         };
                     }
-                    KeyCode::Char('s') => {
+                    Key::Char('s') => {
                         // persist settings: read current state value and update
                         let value = if let Screen::Settings { vim_enabled } = &app.current_screen {
                             *vim_enabled
@@ -189,7 +189,7 @@ impl Handler for EventHandler {
                         }
                         app.current_screen = Screen::HomeScreen;
                     }
-                    KeyCode::Esc => {
+                    Key::Esc => {
                         app.current_screen = Screen::HomeScreen;
                     }
                     _ => {}
@@ -197,8 +197,8 @@ impl Handler for EventHandler {
                 HandlerResult::Continue
             }
             Screen::ConfirmDelete { .. } => {
-                match key.code {
-                    KeyCode::Char('y') | KeyCode::Char('Y') => {
+                match key {
+                    Key::Char('y') | Key::Char('Y') => {
                         if let Screen::ConfirmDelete { id, .. } = &app.current_screen {
                             // call delete service
                             match crate::application::ports::inbound::delete_medication_port::DeleteMedicationPort::execute(
@@ -216,7 +216,7 @@ impl Handler for EventHandler {
                         }
                         app.current_screen = Screen::HomeScreen;
                     }
-                    KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
+                    Key::Char('n') | Key::Char('N') | Key::Esc => {
                         app.current_screen = Screen::HomeScreen;
                     }
                     _ => {}
@@ -224,11 +224,11 @@ impl Handler for EventHandler {
                 HandlerResult::Continue
             }
             Screen::ConfirmCancel { previous } => {
-                match key.code {
-                    KeyCode::Char('y') | KeyCode::Char('Y') => {
+                match key {
+                    Key::Char('y') | Key::Char('Y') => {
                         app.current_screen = Screen::HomeScreen;
                     }
-                    KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
+                    Key::Char('n') | Key::Char('N') | Key::Esc => {
                         // return to previous view
                         app.current_screen = *previous.clone();
                     }
@@ -237,7 +237,7 @@ impl Handler for EventHandler {
                 HandlerResult::Continue
             }
             Screen::ConfirmQuit { previous } => {
-                match key.code {
+                match key {
                     KeyCode::Char('y') | KeyCode::Char('Y') => {
                         app.should_quit = true;
                     }
@@ -272,14 +272,14 @@ mod tests {
     use crate::presentation::tui::app::App;
     use crate::presentation::tui::app_services::AppServices;
     use crate::presentation::tui::screen::Screen;
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::presentation::tui::input::Key;
 
     fn app() -> App {
         App::new(AppServices::fake())
     }
 
-    fn key(code: KeyCode) -> KeyEvent {
-        KeyEvent::new(code, KeyModifiers::NONE)
+    fn key(k: Key) -> Key {
+        k
     }
 
     #[test]
