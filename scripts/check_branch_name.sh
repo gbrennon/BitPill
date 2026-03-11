@@ -1,27 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Validates the current branch name against allowed patterns.
-#
-# Required environment variables:
-#   EVENT_NAME  — github.event_name (e.g. "push" or "pull_request")
-#   HEAD_REF    — github.head_ref (branch name for pull_request events)
-#
-# GITHUB_REF_NAME and GITHUB_REF are set automatically by the Actions runner
-# and are used as fallbacks for push events.
+resolve_current_branch_name() {
+  if [ "$EVENT_NAME" = "pull_request" ]; then
+    echo "$HEAD_REF"
+  else
+    echo "${GITHUB_REF_NAME:-${GITHUB_REF#refs/heads/}}"
+  fi
+}
 
-if [ "$EVENT_NAME" = "pull_request" ]; then
-    branch="$HEAD_REF"
-else
-    branch="${GITHUB_REF_NAME:-${GITHUB_REF#refs/heads/}}"
-fi
-
-echo "Branch: $branch"
-
-# Allow: main, develop, feature/*, fix/*, hotfix/*
-if [[ ! "$branch" =~ ^(main|develop|feature/.+|fix/.+|hotfix/.+)$ ]]; then
+abort_if_branch_name_violates_naming_convention() {
+  local branch="$1"
+  if [[ ! "$branch" =~ ^(main|develop|feature/.+|fix/.+|hotfix/.+)$ ]]; then
     echo "Branch name '$branch' does not match allowed patterns" >&2
     exit 1
-fi
+  fi
+}
 
-echo "Branch name check: PASS"
+validate_branch_name() {
+  local branch
+  branch="$(resolve_current_branch_name)"
+  echo "Branch: $branch"
+  abort_if_branch_name_violates_naming_convention "$branch"
+  echo "Branch name check: PASS"
+}
+
+validate_branch_name
