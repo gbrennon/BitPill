@@ -24,14 +24,15 @@ collect_commit_messages() {
 abort_if_any_commit_message_violates_conventional_commits() {
   local commits="$1"
   local types="feat|fix|docs|style|refactor|perf|test|chore|revert|ci|build"
+  local merge="^Merge .+"
   local pattern="^(${types})(\(.+\))?: .+"
 
   echo "$commits" | while IFS= read -r msg; do
     if [ -z "$msg" ]; then
-      continue  # skip blank separator lines
+      continue
     fi
 
-    if ! echo "$msg" | grep -qE "$pattern"; then
+    if ! echo "$msg" | grep -qE "(${pattern}|${merge})"; then
       echo "Invalid conventional commit message: '$msg'" >&2
       echo "Allowed types: ${types//|/, }" >&2
       exit 1
