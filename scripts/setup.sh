@@ -8,9 +8,12 @@ install_os_dependencies() {
 }
 
 install_rustup_if_missing() {
+  # install rustup if its missing.
+  # rustup will act as a version manager.
   if command -v rustup >/dev/null 2>&1; then
     return
   fi
+
   echo "Installing rustup..."
   local tmp_dir
   tmp_dir="$(mktemp -d)"
