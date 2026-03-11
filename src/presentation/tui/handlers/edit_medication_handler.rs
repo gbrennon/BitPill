@@ -7,8 +7,8 @@ use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
 use crate::presentation::tui::handlers::time_slot_parser::{
     frequency_str, parse_slots, validate_slot_count,
 };
-use crate::presentation::tui::screen::Screen;
 use crate::presentation::tui::input::Key;
+use crate::presentation::tui::screen::Screen;
 
 pub struct EditMedicationHandler;
 
@@ -77,8 +77,8 @@ impl Handler for EditMedicationHandler {
             };
         };
 
-        match key.code {
-            crossterm::event::KeyCode::Esc => {
+        match key {
+            Key::Esc => {
                 if insert_mode {
                     set_screen(app, id, name, amount_mg, selected_frequency, nav, false);
                 } else {
@@ -92,17 +92,11 @@ impl Handler for EditMedicationHandler {
                     );
                 }
             }
-            crossterm::event::KeyCode::Tab
-            | crossterm::event::KeyCode::Right
-            | crossterm::event::KeyCode::Char('l')
-                if !insert_mode =>
-            {
+            Key::Tab | Key::Right | Key::Char('l') if !insert_mode => {
                 let (sel, new_nav) = navigate_right(nav, selected_frequency);
                 set_screen(app, id, name, amount_mg, sel, new_nav, insert_mode);
             }
-            crossterm::event::KeyCode::Char('j') | crossterm::event::KeyCode::Down
-                if !insert_mode =>
-            {
+            Key::Char('j') | Key::Down if !insert_mode => {
                 let new_nav = navigate_down(nav, selected_frequency);
                 set_screen(
                     app,
@@ -114,15 +108,11 @@ impl Handler for EditMedicationHandler {
                     insert_mode,
                 );
             }
-            crossterm::event::KeyCode::Char('h') | crossterm::event::KeyCode::Left
-                if !insert_mode =>
-            {
+            Key::Char('h') | Key::Left if !insert_mode => {
                 let (sel, new_nav) = navigate_left(nav, selected_frequency);
                 set_screen(app, id, name, amount_mg, sel, new_nav, insert_mode);
             }
-            crossterm::event::KeyCode::Char('k') | crossterm::event::KeyCode::Up
-                if !insert_mode =>
-            {
+            Key::Char('k') | Key::Up if !insert_mode => {
                 let new_nav = navigate_up(nav);
                 set_screen(
                     app,
@@ -134,7 +124,7 @@ impl Handler for EditMedicationHandler {
                     insert_mode,
                 );
             }
-            crossterm::event::KeyCode::Char('d')
+            Key::Char('d')
                 if !insert_mode
                     && focused_field == 3
                     && selected_frequency == 3
@@ -157,7 +147,7 @@ impl Handler for EditMedicationHandler {
                     insert_mode,
                 );
             }
-            crossterm::event::KeyCode::Enter => {
+            Key::Enter => {
                 let parsed_amount: u32 = match amount_mg.trim().parse() {
                     Ok(v) => v,
                     Err(_) => {
@@ -231,7 +221,7 @@ impl Handler for EditMedicationHandler {
                     }
                 }
             }
-            crossterm::event::KeyCode::Backspace if insert_mode => {
+            Key::Backspace if insert_mode => {
                 let NavigationState {
                     focused_field,
                     mut scheduled_time,
@@ -268,10 +258,10 @@ impl Handler for EditMedicationHandler {
                     insert_mode,
                 );
             }
-            crossterm::event::KeyCode::Char('i') if !insert_mode => {
+            Key::Char('i') if !insert_mode => {
                 set_screen(app, id, name, amount_mg, selected_frequency, nav, true);
             }
-            crossterm::event::KeyCode::Char(c) if insert_mode => {
+            Key::Char(c) if insert_mode => {
                 let NavigationState {
                     focused_field,
                     mut scheduled_time,
@@ -376,7 +366,7 @@ impl EditMedicationHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crossterm::event::KeyCode;
 
     fn make_screen(focused_field: u8, insert_mode: bool) -> Screen {
         Screen::EditMedication {
@@ -392,7 +382,7 @@ mod tests {
     }
 
     fn press(app: &mut App, code: KeyCode) {
-        EditMedicationHandler.handle(app, KeyEvent::new(code, KeyModifiers::NONE));
+        EditMedicationHandler.handle(app, crate::presentation::tui::input::from_code(code));
     }
 
     fn new_app() -> App {
@@ -603,7 +593,7 @@ mod tests {
         let mut app = new_app();
         app.current_screen = make_screen(0, true);
         let mut handler: Box<dyn Handler> = Box::new(EditMedicationHandler);
-        handler.handle(&mut app, KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE));
+        handler.handle(&mut app, crate::presentation::tui::input::from_code(KeyCode::Esc));
         assert!(matches!(
             app.current_screen,
             Screen::EditMedication {
@@ -688,7 +678,7 @@ mod tests {
         app.current_screen = Screen::HomeScreen;
 
         let result = EditMedicationHandler
-            .handle(&mut app, KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
+            .handle(&mut app, crate::presentation::tui::input::from_code(KeyCode::Enter));
 
         assert!(matches!(result, HandlerResult::Continue));
         assert!(matches!(app.current_screen, Screen::HomeScreen));
