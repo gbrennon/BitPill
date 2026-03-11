@@ -2,7 +2,6 @@
 
 > **Work in progress.** A personal medication management application built in Rust.
 
-verifying forgejo updates
 BitPill helps individuals manage their daily medications — tracking pills, dosages, and schedules in one place.
 
 It is being built with a focus on reliability and correctness, because when it comes to medication, errors matter.
@@ -131,6 +130,7 @@ just test        # tests + coverage report
 just lint        # cargo clippy -- -D warnings
 just fmt         # cargo fmt
 just fmt-check   # formatting check only
+just lint-workflows  # validate .forgejo/workflows/*.yml with actionlint
 just clean       # cargo clean
 just tools       # install rustfmt, clippy, cargo-llvm-cov
 ```
@@ -232,3 +232,39 @@ just          # fmt-check + lint + test with coverage
 ```
 
 All of these must pass before a contribution is considered complete.
+
+### Validating workflows before push
+
+Use [`actionlint`](https://github.com/rhysd/actionlint) to statically validate all workflow files without needing a runner or Docker:
+
+```bash
+# Install (one-time)
+curl -sL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash | bash
+mv actionlint ~/.local/bin/    # or anywhere on $PATH
+
+# Validate
+just lint-workflows
+```
+
+`actionlint` checks: YAML syntax, `${{ }}` expression types, shell scripts (via shellcheck), action inputs, and `env:` variable usage.
+
+To also *run* workflows locally end-to-end (requires Docker), use [`act`](https://github.com/nektos/act):
+
+```bash
+# Install
+curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+
+# Dry-run (resolves actions, validates steps without executing)
+act push --dry-run
+act pull_request --dry-run
+
+# Run a specific workflow
+act push -W .forgejo/workflows/lint.yml
+act push -W .forgejo/workflows/run-tests.yml
+act pull_request -W .forgejo/workflows/commit-check.yml
+act pull_request -W .forgejo/workflows/check-branch.yml
+```
+
+> **Forgejo note:** workflows use `actions/checkout@v4` and `actions/cache@v4`. These resolve from GitHub if your instance has `DEFAULT_ACTIONS_URL = https://github.com` in `app.ini`, or from `code.forgejo.org` if you prefix them with `https://code.forgejo.org/`.
+
+<!-- ci-test: 2026-03-10T06:37:37Z -->

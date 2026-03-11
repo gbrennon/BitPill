@@ -1,4 +1,4 @@
-use crossterm::event::KeyEvent;
+use crate::presentation::tui::input::Key;
 
 use crate::application::dtos::requests::MarkDoseTakenRequest;
 use crate::presentation::tui::app::App;
@@ -14,7 +14,7 @@ impl Default for MarkDoseHandler {
 }
 
 impl Handler for MarkDoseHandler {
-    fn handle(&mut self, app: &mut App, key: KeyEvent) -> HandlerResult {
+    fn handle(&mut self, app: &mut App, key: Key) -> HandlerResult {
         // Extract current mark-dose state up-front to avoid borrowing `app` mutably while it's still borrowed immutably.
         let (med_id, recs, sel_idx) = if let Screen::MarkDose {
             medication_id,
@@ -27,11 +27,11 @@ impl Handler for MarkDoseHandler {
             return HandlerResult::Continue;
         };
 
-        match key.code {
-            crossterm::event::KeyCode::Esc => {
+        match key {
+            Key::Esc => {
                 app.current_screen = Screen::HomeScreen;
             }
-            crossterm::event::KeyCode::Char('j') | crossterm::event::KeyCode::Down => {
+            Key::Char('j') | Key::Down => {
                 let idx = (sel_idx + 1).min(recs.len().saturating_sub(1));
                 app.current_screen = Screen::MarkDose {
                     medication_id: med_id.clone(),
@@ -39,7 +39,7 @@ impl Handler for MarkDoseHandler {
                     selected_index: idx,
                 };
             }
-            crossterm::event::KeyCode::Char('k') | crossterm::event::KeyCode::Up => {
+            Key::Char('k') | Key::Up => {
                 let idx = sel_idx.saturating_sub(1);
                 app.current_screen = Screen::MarkDose {
                     medication_id: med_id.clone(),
@@ -47,7 +47,7 @@ impl Handler for MarkDoseHandler {
                     selected_index: idx,
                 };
             }
-            crossterm::event::KeyCode::Enter => {
+            Key::Enter => {
                 if recs.is_empty() {
                     app.set_status("No records to mark", 3000);
                     app.current_screen = Screen::HomeScreen;
@@ -93,7 +93,7 @@ mod tests {
     use crate::presentation::tui::app_services::AppServices;
     use crate::presentation::tui::screen::Screen;
     use chrono::NaiveDate;
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crossterm::event::KeyCode;
 
     fn app_with_mark_dose(records: Vec<DoseRecordDto>) -> App {
         let mut app = App::new(AppServices::fake());
@@ -105,8 +105,8 @@ mod tests {
         app
     }
 
-    fn key(code: KeyCode) -> KeyEvent {
-        KeyEvent::new(code, KeyModifiers::NONE)
+    fn key(code: KeyCode) -> crate::presentation::tui::input::Key {
+        crate::presentation::tui::input::from_code(code)
     }
 
     fn dto(id: &str) -> DoseRecordDto {

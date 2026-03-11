@@ -42,8 +42,14 @@ fn initialize_does_not_overwrite_existing_data_files() {
 
     AppInitializer::initialize(&fixture.paths).unwrap();
 
-    assert_eq!(fs::read_to_string(fixture.paths.medications_path()).unwrap(), custom);
-    assert_eq!(fs::read_to_string(fixture.paths.dose_records_path()).unwrap(), custom);
+    assert_eq!(
+        fs::read_to_string(fixture.paths.medications_path()).unwrap(),
+        custom
+    );
+    assert_eq!(
+        fs::read_to_string(fixture.paths.dose_records_path()).unwrap(),
+        custom
+    );
 }
 
 #[test]
@@ -66,7 +72,11 @@ fn initialize_settings_does_not_overwrite_existing_user_value() {
 
     let content = fs::read_to_string(fixture.paths.settings_path()).unwrap();
     let v: Value = serde_json::from_str(&content).unwrap();
-    assert_eq!(v["vim_enabled"], Value::Bool(true), "user value must be preserved");
+    assert_eq!(
+        v["vim_enabled"],
+        Value::Bool(true),
+        "user value must be preserved"
+    );
 }
 
 #[test]
@@ -82,8 +92,15 @@ fn initialize_settings_adds_new_default_keys_to_existing_file() {
 
     let content = fs::read_to_string(fixture.paths.settings_path()).unwrap();
     let v: Value = serde_json::from_str(&content).unwrap();
-    assert_eq!(v["some_other_key"], "user_value", "user keys must be preserved");
-    assert_eq!(v["vim_enabled"], Value::Bool(false), "missing default must be added");
+    assert_eq!(
+        v["some_other_key"], "user_value",
+        "user keys must be preserved"
+    );
+    assert_eq!(
+        v["vim_enabled"],
+        Value::Bool(false),
+        "missing default must be added"
+    );
 }
 
 #[test]

@@ -4,7 +4,7 @@ use bitpill::presentation::tui::app::App;
 use bitpill::presentation::tui::app_services::AppServices;
 use bitpill::presentation::tui::handlers::medication_list_handler::MedicationListHandler;
 use bitpill::presentation::tui::handlers::port::Handler;
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use bitpill::presentation::tui::input::Key;
 use tempfile::tempdir;
 
 #[test]
@@ -30,8 +30,7 @@ fn handler_saves_dose_record_to_file() {
     app.selected_index = 0;
 
     let mut handler = MedicationListHandler::default();
-    let key = KeyEvent::new(KeyCode::Char('s'), KeyModifiers::NONE);
-    handler.handle(&mut app, key);
+    handler.handle(&mut app, Key::Char('s'));
 
     // Now pressing 's' should show an instruction to open details
     assert!(app.status_message.is_some());

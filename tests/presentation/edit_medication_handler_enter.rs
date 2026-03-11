@@ -4,8 +4,8 @@ use bitpill::presentation::tui::app::App;
 use bitpill::presentation::tui::app_services::AppServices;
 use bitpill::presentation::tui::handlers::edit_medication_handler::EditMedicationHandler;
 use bitpill::presentation::tui::handlers::port::Handler;
+use bitpill::presentation::tui::input::Key;
 use bitpill::presentation::tui::screen::Screen;
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use tempfile::tempdir;
 
 #[test]
@@ -39,8 +39,7 @@ fn handle_enter_updates_medication() {
     };
 
     let mut handler = EditMedicationHandler::default();
-    let key = KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE);
-    handler.handle(&mut app, key);
+    handler.handle(&mut app, Key::Enter);
 
     assert!(matches!(app.current_screen, Screen::HomeScreen));
     assert_eq!(
