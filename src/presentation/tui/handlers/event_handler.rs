@@ -238,10 +238,10 @@ impl Handler for EventHandler {
             }
             Screen::ConfirmQuit { previous } => {
                 match key {
-                    KeyCode::Char('y') | KeyCode::Char('Y') => {
+                    Key::Char('y') | Key::Char('Y') => {
                         app.should_quit = true;
                     }
-                    KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
+                    Key::Char('n') | Key::Char('N') | Key::Esc => {
                         // return to previous view
                         app.current_screen = *previous.clone();
                     }
@@ -250,15 +250,8 @@ impl Handler for EventHandler {
                 HandlerResult::Continue
             }
             Screen::ValidationError { previous, .. } => {
-                match key.code {
-                    KeyCode::Esc | KeyCode::Enter => {
-                        app.current_screen = *previous.clone();
-                    }
-                    _ => {
-                        // any key dismisses the modal
-                        app.current_screen = *previous.clone();
-                    }
-                }
+                // any key dismisses the modal
+                app.current_screen = *previous.clone();
                 HandlerResult::Continue
             }
             Screen::MarkDose { .. } => self.mark_dose_handler.handle(app, key),
@@ -271,15 +264,16 @@ mod tests {
     use super::*;
     use crate::presentation::tui::app::App;
     use crate::presentation::tui::app_services::AppServices;
-    use crate::presentation::tui::screen::Screen;
     use crate::presentation::tui::input::Key;
+    use crate::presentation::tui::screen::Screen;
+    use crossterm::event::KeyCode;
 
     fn app() -> App {
         App::new(AppServices::fake())
     }
 
-    fn key(k: Key) -> Key {
-        k
+    fn key(code: KeyCode) -> Key {
+        crate::presentation::tui::input::from_code(code)
     }
 
     #[test]

@@ -1,7 +1,7 @@
 use crate::presentation::tui::app::App;
 use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
-use crate::presentation::tui::screen::Screen;
 use crate::presentation::tui::input::Key;
+use crate::presentation::tui::screen::Screen;
 use serde_json::Value;
 
 pub struct MedicationListHandler;
@@ -169,13 +169,14 @@ mod tests {
     use crate::presentation::tui::app::App;
     use crate::presentation::tui::app_services::AppServices;
     use crate::presentation::tui::input::Key;
+    use crossterm::event::KeyCode;
 
     fn new_app() -> App {
         App::new(AppServices::fake())
     }
 
-    fn key(k: Key) -> Key {
-        k
+    fn key(code: KeyCode) -> Key {
+        crate::presentation::tui::input::from_code(code)
     }
 
     fn med(id: &str) -> MedicationDto {
