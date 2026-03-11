@@ -30,10 +30,7 @@ use crate::{
     },
     infrastructure::{
         clock::system_clock::SystemClock,
-        config::{
-            app_initializer::AppInitializer,
-            app_paths::AppPaths,
-        },
+        config::{app_initializer::AppInitializer, app_paths::AppPaths},
         notifications::console_notification_adapter::ConsoleNotificationAdapter,
         persistence::{
             json_dose_record_repository::JsonDoseRecordRepository,
@@ -66,8 +63,12 @@ impl Container {
         if let Err(e) = AppInitializer::initialize(&paths) {
             eprintln!("Warning: could not initialize config directory: {e}");
         }
-        let medication_repo = Arc::new(JsonMedicationRepository::new(paths.medications_path().clone()));
-        let dose_record_repo = Arc::new(JsonDoseRecordRepository::new(paths.dose_records_path().clone()));
+        let medication_repo = Arc::new(JsonMedicationRepository::new(
+            paths.medications_path().clone(),
+        ));
+        let dose_record_repo = Arc::new(JsonDoseRecordRepository::new(
+            paths.dose_records_path().clone(),
+        ));
         let notification = Arc::new(ConsoleNotificationAdapter);
         let clock = Arc::new(SystemClock);
         let settings_repo = Arc::new(JsonSettingsRepository::new(paths.settings_path().clone()));

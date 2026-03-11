@@ -63,9 +63,7 @@ impl AppInitializer {
         let defaults = default_settings();
         let mut changed = false;
 
-        if let (Some(user_map), Value::Object(default_map)) =
-            (existing.as_object_mut(), defaults)
-        {
+        if let (Some(user_map), Value::Object(default_map)) = (existing.as_object_mut(), defaults) {
             for (key, value) in default_map {
                 if !user_map.contains_key(&key) {
                     user_map.insert(key, value);

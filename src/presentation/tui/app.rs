@@ -1,7 +1,6 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use crossterm::event::{self, Event};
 use crossterm::execute;
 use crossterm::terminal::{
     EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
@@ -14,8 +13,10 @@ use crate::application::dtos::responses::MedicationDto;
 use crate::infrastructure::container::Container;
 use crate::presentation::tui::app_services::AppServices;
 use crate::presentation::tui::draw;
+use crate::presentation::tui::event_source::{EventSource, RealEventSource};
 use crate::presentation::tui::handlers::event_handler::EventHandler;
 use crate::presentation::tui::handlers::port::Handler;
+use crate::presentation::tui::input::Key;
 use crate::presentation::tui::screen::Screen;
 
 pub struct App {
@@ -74,17 +75,23 @@ impl App {
     }
 
     /// Runs one iteration of the event loop. Returns `true` if the app should quit.
+    /// If `event_source` is None, uses RealEventSource (requires TTY).
     pub fn tick<B: ratatui::backend::Backend>(
         terminal: &mut Terminal<B>,
         app: &mut App,
+        event_source: Option<&dyn EventSource>,
     ) -> Result<bool, Box<dyn std::error::Error>> {
         terminal.draw(|f| draw::draw(f, app))?;
 
-        if event::poll(Duration::from_millis(100))?
-            && let Event::Key(key) = event::read()?
-        {
-            let mut event_handler = EventHandler::default();
-            event_handler.handle(app, key);
+        let es = event_source.unwrap_or(&RealEventSource);
+        if es.poll(Duration::from_millis(100))? {
+            match es.read_key()? {
+                Key::Other => {}
+                key => {
+                    let mut event_handler = EventHandler::default();
+                    event_handler.handle(app, key);
+                }
+            }
         }
 
         if let Some(exp) = app.status_expires_at
@@ -97,12 +104,14 @@ impl App {
     }
 
     /// Inner event loop, generic over the backend for testability.
+    /// If `event_source` is None, uses RealEventSource (requires TTY).
     pub fn run_with<B: ratatui::backend::Backend>(
         terminal: &mut Terminal<B>,
         app: &mut App,
+        event_source: Option<&dyn EventSource>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         loop {
-            if App::tick(terminal, app)? {
+            if App::tick(terminal, app, event_source)? {
                 break;
             }
         }
@@ -120,7 +129,7 @@ impl App {
 
         let mut app = App::new(services);
 
-        App::run_with(&mut terminal, &mut app)?;
+        App::run_with(&mut terminal, &mut app, None)?;
 
         disable_raw_mode()?;
         execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
@@ -142,6 +151,7 @@ mod tests {
     use crate::application::errors::{ApplicationError, StorageError};
     use crate::application::ports::inbound::list_all_medications_port::ListAllMedicationsPort;
     use crate::presentation::tui::app_services::AppServices;
+    use crate::presentation::tui::event_source::FakeEventSource;
     use crate::presentation::tui::screen::Screen;
 
     use super::*;
@@ -218,8 +228,9 @@ mod tests {
         let mut terminal = Terminal::new(backend).unwrap();
         let mut app = App::new_fake();
         app.should_quit = true;
+        let fake_es = FakeEventSource::new().no_event();
 
-        App::run_with(&mut terminal, &mut app).unwrap();
+        App::run_with(&mut terminal, &mut app, Some(&fake_es)).unwrap();
     }
 
     #[test]
@@ -230,8 +241,9 @@ mod tests {
         app.set_status("expiring", 1);
         std::thread::sleep(Duration::from_millis(10));
         app.should_quit = true;
+        let fake_es = FakeEventSource::new().no_event();
 
-        App::run_with(&mut terminal, &mut app).unwrap();
+        App::run_with(&mut terminal, &mut app, Some(&fake_es)).unwrap();
 
         assert!(app.status_message.is_none());
     }
@@ -243,8 +255,9 @@ mod tests {
         let mut app = App::new_fake();
         app.set_status("still active", 60_000);
         app.should_quit = true;
+        let fake_es = FakeEventSource::new().no_event();
 
-        App::run_with(&mut terminal, &mut app).unwrap();
+        App::run_with(&mut terminal, &mut app, Some(&fake_es)).unwrap();
 
         assert_eq!(app.status_message.as_deref(), Some("still active"));
     }
@@ -255,8 +268,9 @@ mod tests {
         let mut terminal = Terminal::new(backend).unwrap();
         let mut app = App::new_fake();
         app.should_quit = false;
+        let fake_es = FakeEventSource::new().no_event();
 
-        let quit = App::tick(&mut terminal, &mut app).unwrap();
+        let quit = App::tick(&mut terminal, &mut app, Some(&fake_es)).unwrap();
 
         assert!(!quit);
     }
@@ -267,8 +281,9 @@ mod tests {
         let mut terminal = Terminal::new(backend).unwrap();
         let mut app = App::new_fake();
         app.should_quit = true;
+        let fake_es = FakeEventSource::new().no_event();
 
-        let quit = App::tick(&mut terminal, &mut app).unwrap();
+        let quit = App::tick(&mut terminal, &mut app, Some(&fake_es)).unwrap();
 
         assert!(quit);
     }

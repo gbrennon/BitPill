@@ -47,7 +47,12 @@ fn mark_dose_taken_creates_taken_record_when_id_is_medication_id() {
 
     let med_res = container
         .create_medication_service
-        .execute(CreateMedicationRequest::new("TestMed", 50, vec![(8, 0)], "OnceDaily"))
+        .execute(CreateMedicationRequest::new(
+            "TestMed",
+            50,
+            vec![(8, 0)],
+            "OnceDaily",
+        ))
         .expect("medication creation should succeed");
 
     let taken_at = NaiveDate::from_ymd_opt(2025, 6, 1)

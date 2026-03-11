@@ -28,6 +28,10 @@ test:
 lint:
     cargo clippy -- -D warnings
 
+# Lint fixes (automatically apply suggestions)
+lint-fix:
+    cargo clippy --fix --allow-dirty --allow-staged
+
 # Format all source files
 fmt:
     cargo fmt
@@ -40,6 +44,10 @@ fmt-check:
 tools:
     rustup component add rustfmt clippy
     cargo install cargo-llvm-cov --locked
+
+# Validate workflow files statically (requires actionlint)
+lint-workflows:
+    actionlint .forgejo/workflows/*.yml
 
 # Remove build artifacts
 clean:
