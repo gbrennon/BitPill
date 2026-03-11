@@ -90,19 +90,39 @@ mod tests {
     fn resolve_returns_paths_ending_with_expected_filenames() {
         let paths = AppPaths::resolve();
 
-        assert!(paths.medications_path().to_str().unwrap().ends_with("medications.json"));
-        assert!(paths.dose_records_path().to_str().unwrap().ends_with("dose_records.json"));
-        assert!(paths.settings_path().to_str().unwrap().ends_with("settings.json"));
+        assert!(
+            paths
+                .medications_path()
+                .to_str()
+                .unwrap()
+                .ends_with("medications.json")
+        );
+        assert!(
+            paths
+                .dose_records_path()
+                .to_str()
+                .unwrap()
+                .ends_with("dose_records.json")
+        );
+        assert!(
+            paths
+                .settings_path()
+                .to_str()
+                .unwrap()
+                .ends_with("settings.json")
+        );
     }
 
     #[test]
     fn config_dir_contains_bitpill_segment() {
         let paths = AppPaths::resolve();
 
-        assert!(paths
-            .config_dir()
-            .components()
-            .any(|c| c.as_os_str() == APP_DIR_NAME));
+        assert!(
+            paths
+                .config_dir()
+                .components()
+                .any(|c| c.as_os_str() == APP_DIR_NAME)
+        );
     }
 
     #[test]
