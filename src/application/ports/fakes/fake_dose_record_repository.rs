@@ -11,6 +11,12 @@ pub struct FakeDoseRecordRepository {
     records: Mutex<Vec<DoseRecord>>,
 }
 
+impl Default for FakeDoseRecordRepository {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FakeDoseRecordRepository {
     pub fn new() -> Self {
         Self {

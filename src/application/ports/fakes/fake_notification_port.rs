@@ -8,6 +8,12 @@ pub struct FakeNotificationPort {
     calls: Mutex<Vec<String>>,
 }
 
+impl Default for FakeNotificationPort {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FakeNotificationPort {
     pub fn new() -> Self {
         Self {

@@ -10,6 +10,12 @@ pub struct FakeMedicationRepository {
     deleted_count: Mutex<usize>,
 }
 
+impl Default for FakeMedicationRepository {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FakeMedicationRepository {
     pub fn new() -> Self {
         Self {
