@@ -14,9 +14,9 @@ install_rustup_if_missing() {
   echo "Installing rustup..."
   local tmp_dir
   tmp_dir="$(mktemp -d)"
-  trap 'rm -rf "$tmp_dir"' EXIT
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o "$tmp_dir/rustup-init.sh"
   sh "$tmp_dir/rustup-init.sh" -y
+  rm -rf "$tmp_dir"
 }
 
 source_cargo_env_if_present() {
@@ -34,7 +34,7 @@ abort_if_rustup_unavailable() {
 }
 
 configure_rust_stable_toolchain_with_dev_components() {
-  rustup default stable --no-modify-path || rustup default stable
+  rustup default stable
   rustup component add rustfmt clippy || true
 }
 
