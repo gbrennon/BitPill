@@ -1,4 +1,4 @@
-name: Test
+name: Lint
 
 on:
   push:
@@ -7,15 +7,13 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
     env:
       CARGO_TERM_COLOR: always
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Cache cargo registry and git
         uses: actions/cache@v4
@@ -26,14 +24,6 @@ jobs:
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-registry-
-
-      - name: Cache cargo target directory
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-target-
 
       - name: Cache cargo bin
         uses: actions/cache@v4
@@ -48,11 +38,12 @@ jobs:
           export PATH="$HOME/.cargo/bin:$PATH"
           ./scripts/setup.sh
 
-      - name: Run tests
+      - name: Check formatting
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
-          just test
+          just fmt-check
 
-      - name: Show coverage report
-        if: always()
-        run: bash scripts/show_coverage_report.sh
+      - name: Lint
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          just lint
