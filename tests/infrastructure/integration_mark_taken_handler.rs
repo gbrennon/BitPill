@@ -13,8 +13,9 @@ use bitpill::{
     },
     infrastructure::container::Container,
     presentation::tui::{
-        app::App, app_services::AppServices, input::Key,
+        app::App, app_services::AppServices,
         handlers::medication_list_handler::MedicationListHandler, handlers::port::Handler,
+        input::Key,
     },
 };
 use std::sync::Arc;
