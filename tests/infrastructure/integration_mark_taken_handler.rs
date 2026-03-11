@@ -13,13 +13,10 @@ use bitpill::{
     },
     infrastructure::container::Container,
     presentation::tui::{
-        app::App,
-        app_services::AppServices,
-        handlers::medication_list_handler::MedicationListHandler,
-        handlers::port::Handler,
+        app::App, app_services::AppServices, input::Key,
+        handlers::medication_list_handler::MedicationListHandler, handlers::port::Handler,
     },
 };
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use std::sync::Arc;
 
 #[test]
@@ -27,10 +24,9 @@ fn medication_list_handler_saves_taken_dose_record_on_s() {
     let fake_dose_repo: Arc<dyn DoseRecordRepository> = Arc::new(FakeDoseRecordRepository::new());
     let fake_med_repo: Arc<dyn MedicationRepository> = Arc::new(FakeMedicationRepository::new());
     let mut container = Container::new();
-    container.mark_dose_taken_service = Arc::new(MarkDoseTakenService::new(
-        fake_dose_repo,
-        fake_med_repo,
-    )) as Arc<dyn MarkDoseTakenPort>;
+    container.mark_dose_taken_service =
+        Arc::new(MarkDoseTakenService::new(fake_dose_repo, fake_med_repo))
+            as Arc<dyn MarkDoseTakenPort>;
     let services = AppServices::from_container(&container);
 
     let mut app = App::new(services);
@@ -45,8 +41,7 @@ fn medication_list_handler_saves_taken_dose_record_on_s() {
     app.selected_index = 0;
 
     let mut handler = MedicationListHandler::default();
-    let key = KeyEvent::new(KeyCode::Char('s'), KeyModifiers::NONE);
-    handler.handle(&mut app, key);
+    handler.handle(&mut app, Key::Char('s'));
 
     assert!(app.status_message.is_some());
     assert!(
