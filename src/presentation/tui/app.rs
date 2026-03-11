@@ -1,8 +1,6 @@
-use std::io::IsTerminal;
 use std::sync::Arc;
 use std::time::Duration;
 
-use crossterm::event::{self, Event};
 use crossterm::execute;
 use crossterm::terminal::{
     EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
@@ -16,9 +14,9 @@ use crate::infrastructure::container::Container;
 use crate::presentation::tui::app_services::AppServices;
 use crate::presentation::tui::draw;
 use crate::presentation::tui::event_source::{EventSource, RealEventSource};
-use crate::presentation::tui::input::Key;
 use crate::presentation::tui::handlers::event_handler::EventHandler;
 use crate::presentation::tui::handlers::port::Handler;
+use crate::presentation::tui::input::Key;
 use crate::presentation::tui::screen::Screen;
 
 pub struct App {
