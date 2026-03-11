@@ -1,13 +1,9 @@
-name: Commit Check
+name: Check Commit Messages
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push, pull_request]
 
 jobs:
-  commit-check:
+  check-commits:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,60 +12,11 @@ jobs:
           fetch-depth: 0
 
       - name: Ensure full history
-        run: |
-          if git rev-parse --is-shallow-repository | grep -q true; then
-            git fetch --no-tags --prune --unshallow
-          fi
+        run: bash scripts/ensure_full_history.sh
 
       - name: Check commit messages
-        run: |
-          set -euo pipefail
-
-          # For pull requests, check the range between base and head. Otherwise check recent commits.
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            # Attempt to resolve base and head refs; fall back to last 20 commits if unavailable
-            if git rev-parse --verify "origin/${{ github.event.pull_request.base.ref }}" >/dev/null 2>&1 && \
-               git rev-parse --verify "origin/${{ github.event.pull_request.head.ref }}" >/dev/null 2>&1; then
-              range="origin/${{ github.event.pull_request.base.ref }}..origin/${{ github.event.pull_request.head.ref }}"
-              commits=$(git log --format=%s "$range" || true)
-            else
-              commits=$(git log --format=%s -n 20 || true)
-            fi
-          else
-            commits=$(git log --format=%s -n 20 || true)
-          fi
-
-          if [ -z "$commits" ]; then
-            echo "No commits to check"
-            exit 0
-          fi
-
-          # Simple validation: no empty commit messages
-          echo "$commits" | while IFS= read -r msg; do
-            if [ -z "$msg" ]; then
-              echo "Empty commit message detected" >&2
-              exit 1
-            fi
-          done
-
-      - name: Check branch name
-        run: |
-          set -euo pipefail
-
-          # Determine branch name based on event type
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            # Use the PR head branch name for pull_request events
-            branch="${{ github.head_ref }}"
-          else
-            # Prefer GITHUB_REF_NAME if available, otherwise strip refs/heads/ from GITHUB_REF
-            branch="${GITHUB_REF_NAME:-${GITHUB_REF#refs/heads/}}"
-          fi
-
-          echo "Branch: $branch"
-
-          # Allow main, develop, feature/*, fix/*, hotfix/*
-          # Note: anchored with $ to prevent partial matches (e.g. main-bad would match ^main without it)
-          if [[ ! "$branch" =~ ^(main|develop|feature/.+|fix/.+|hotfix/.+)$ ]]; then
-            echo "Branch name '$branch' does not match allowed patterns" >&2
-            exit 1
-          fi
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: bash scripts/check_commit_messages.sh

@@ -1,7 +1,7 @@
 use crate::presentation::tui::app::App;
 use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
+use crate::presentation::tui::input::Key;
 use crate::presentation::tui::screen::Screen;
-use crossterm::event::KeyEvent;
 use serde_json::Value;
 
 pub struct MedicationListHandler;
@@ -13,7 +13,7 @@ impl Default for MedicationListHandler {
 }
 
 impl Handler for MedicationListHandler {
-    fn handle(&mut self, app: &mut App, key: KeyEvent) -> HandlerResult {
+    fn handle(&mut self, app: &mut App, key: Key) -> HandlerResult {
         // Query application Settings service (inbound port) instead of reading repository directly
         let _vim_enabled = match app.services.settings.execute(
             crate::application::dtos::requests::SettingsRequest {
@@ -27,26 +27,26 @@ impl Handler for MedicationListHandler {
                 .unwrap_or(false),
             Err(_) => false,
         };
-        match key.code {
-            crossterm::event::KeyCode::Char('j') | crossterm::event::KeyCode::Char('l') => {
+        match key {
+            Key::Char('j') | Key::Char('l') => {
                 if !app.medications.is_empty() {
                     app.selected_index =
                         (app.selected_index + 1).min(app.medications.len().saturating_sub(1));
                 }
             }
-            crossterm::event::KeyCode::Down => {
+            Key::Down => {
                 if !app.medications.is_empty() {
                     app.selected_index =
                         (app.selected_index + 1).min(app.medications.len().saturating_sub(1));
                 }
             }
-            crossterm::event::KeyCode::Char('k') | crossterm::event::KeyCode::Char('h') => {
+            Key::Char('k') | Key::Char('h') => {
                 app.selected_index = app.selected_index.saturating_sub(1);
             }
-            crossterm::event::KeyCode::Up => {
+            Key::Up => {
                 app.selected_index = app.selected_index.saturating_sub(1);
             }
-            crossterm::event::KeyCode::Char('c') => {
+            Key::Char('c') => {
                 app.current_screen = Screen::CreateMedication {
                     name: String::new(),
                     amount_mg: String::new(),
@@ -57,17 +57,17 @@ impl Handler for MedicationListHandler {
                     insert_mode: false,
                 };
             }
-            crossterm::event::KeyCode::Char('s') => {
+            Key::Char('s') => {
                 // Mark-as-taken is only available from the Medication Details screen.
                 app.set_status("Open medication details (v) to mark doses as taken", 3000);
             }
-            crossterm::event::KeyCode::Char('v') => {
+            Key::Char('v') => {
                 if !app.medications.is_empty() {
                     let med = &app.medications[app.selected_index];
                     app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
                 }
             }
-            crossterm::event::KeyCode::Char('g') => {
+            Key::Char('g') => {
                 // open settings
                 let vim_enabled = match app.services.settings.execute(
                     crate::application::dtos::requests::SettingsRequest {
@@ -83,7 +83,7 @@ impl Handler for MedicationListHandler {
                 };
                 app.current_screen = Screen::Settings { vim_enabled };
             }
-            crossterm::event::KeyCode::Char('t') => {
+            Key::Char('t') => {
                 if !app.medications.is_empty() {
                     let med = &app.medications[app.selected_index];
                     match crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort::execute(
@@ -105,7 +105,7 @@ impl Handler for MedicationListHandler {
                     }
                 }
             }
-            crossterm::event::KeyCode::Char('d') => {
+            Key::Char('d') => {
                 if !app.medications.is_empty() {
                     let med = &app.medications[app.selected_index];
                     app.current_screen = Screen::ConfirmDelete {
@@ -114,7 +114,7 @@ impl Handler for MedicationListHandler {
                     };
                 }
             }
-            crossterm::event::KeyCode::Char('e') => {
+            Key::Char('e') => {
                 if !app.medications.is_empty() {
                     let med = &app.medications[app.selected_index];
                     let times = med
@@ -142,15 +142,15 @@ impl Handler for MedicationListHandler {
                     };
                 }
             }
-            crossterm::event::KeyCode::Esc => {
+            Key::Esc => {
                 app.load_medications();
             }
-            crossterm::event::KeyCode::Char('q') => {
+            Key::Char('q') => {
                 app.current_screen = Screen::ConfirmQuit {
                     previous: Box::new(app.current_screen.clone()),
                 };
             }
-            crossterm::event::KeyCode::Enter => {
+            Key::Enter => {
                 if !app.medications.is_empty() {
                     let med = &app.medications[app.selected_index];
                     app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
@@ -168,14 +168,15 @@ mod tests {
     use crate::application::dtos::responses::MedicationDto;
     use crate::presentation::tui::app::App;
     use crate::presentation::tui::app_services::AppServices;
-    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::presentation::tui::input::Key;
+    use crossterm::event::KeyCode;
 
     fn new_app() -> App {
         App::new(AppServices::fake())
     }
 
-    fn key(code: KeyCode) -> KeyEvent {
-        KeyEvent::new(code, KeyModifiers::NONE)
+    fn key(code: KeyCode) -> Key {
+        crate::presentation::tui::input::from_code(code)
     }
 
     fn med(id: &str) -> MedicationDto {
