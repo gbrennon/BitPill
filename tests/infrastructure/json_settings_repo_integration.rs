@@ -13,11 +13,17 @@ fn settings_persisted_across_containers() {
     let settings = dir.path().join("settings.json");
 
     let c1 = Container::new_with_paths(meds.clone(), doses.clone(), settings.clone());
-    let req = SettingsRequest { op: SettingsOperation::Update { settings: json!({"k":"v"}) } };
+    let req = SettingsRequest {
+        op: SettingsOperation::Update {
+            settings: json!({"k":"v"}),
+        },
+    };
     c1.settings_service.execute(req).expect("save");
 
     let c2 = Container::new_with_paths(meds, doses, settings);
-    let get = SettingsRequest { op: SettingsOperation::Get };
+    let get = SettingsRequest {
+        op: SettingsOperation::Get,
+    };
     let resp = c2.settings_service.execute(get).expect("load");
     assert_eq!(resp.settings["k"], "v");
 }
