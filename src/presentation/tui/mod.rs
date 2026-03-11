@@ -4,6 +4,7 @@ pub mod components;
 pub mod draw;
 pub mod event_source;
 pub mod handlers;
+pub mod input;
 pub mod presenters;
 pub mod renderers;
 pub mod screen;
