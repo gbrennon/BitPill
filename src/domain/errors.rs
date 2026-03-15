@@ -6,7 +6,7 @@ use thiserror::Error;
 /// Every public constructor and mutating method that enforces a business rule
 /// returns `Result<_, DomainError>` so callers know exactly which invariant
 /// was violated without parsing error strings.
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq)]
 pub enum DomainError {
     /// Returned by [`Dosage::new`](crate::domain::value_objects::dosage::Dosage::new)
     /// when the supplied amount is `0`. A dosage must be at least 1 mg.
@@ -43,4 +43,12 @@ pub enum DomainError {
     /// logged as taken in the future.
     #[error("taken-at time cannot be in the future")]
     TakenAtInFuture,
+
+    /// Returned when a domain value object increase is bigger than the maximum allowed value.
+    #[error("stock amount cannot exceed 255")]
+    StockAmountOverflow,
+
+    /// Returned when stock decrease is bigger than the amount registered.
+    #[error("decrease stock amount cannot be bigger than the amount registered.")]
+    StockAmountNotEnough
 }
