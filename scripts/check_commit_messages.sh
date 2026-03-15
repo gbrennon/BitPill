@@ -1,15 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-resolve_commit_range() {
-  if [ "$EVENT_NAME" = "pull_request" ] && \
-     git rev-parse --verify "origin/${BASE_REF}" >/dev/null 2>&1 && \
-     git rev-parse --verify "origin/${HEAD_REF}" >/dev/null 2>&1; then
-    echo "origin/${BASE_REF}..origin/${HEAD_REF}"
-  else
-    echo ""
-  fi
-}
+# Source common functions
+source "$(dirname "$0")/lib/common.sh"
 
 collect_commit_messages() {
   local range
