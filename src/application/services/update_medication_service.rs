@@ -29,8 +29,9 @@ impl UpdateMedicationPort for UpdateMedicationService {
         let id = Uuid::parse_str(&request.id)
             .map_err(|_| ApplicationError::InvalidInput("invalid id".into()))?;
         let id_str = request.id.clone();
+        let med_id = MedicationId::from(id);
 
-        let medication = Medication::try_from((request, MedicationId::from(id)))?;
+        let medication = Medication::try_from((request, med_id))?;
 
         self.repository.save(&medication)?;
 
