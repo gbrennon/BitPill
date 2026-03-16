@@ -10,6 +10,10 @@ use crate::domain::value_objects::{
 /// an identity, a human-readable name, a dosage, and an optional list of
 /// scheduled administration times.
 ///
+/// Refill history is tracked separately via [`MedicationRefill`] entities,
+/// which carry a `medication_id` foreign key (the same pattern used by
+/// [`DoseRecord`]).
+///
 /// # Invariants
 ///
 /// - `id` is supplied by the caller — use [`MedicationId::create`] to generate
@@ -18,6 +22,9 @@ use crate::domain::value_objects::{
 /// - `name` and `dosage` are validated value objects; they can only hold
 ///   legal values (non-empty name, non-zero dosage).
 /// - `scheduled_time` may be empty (unscheduled medication is allowed).
+///
+/// [`MedicationRefill`]: crate::domain::entities::medication_refill::MedicationRefill
+/// [`DoseRecord`]: crate::domain::entities::dose_record::DoseRecord
 ///
 /// # Examples
 ///
@@ -56,11 +63,6 @@ pub struct Medication {
 
 impl Medication {
     /// Creates a new `Medication` with the supplied `id`.
-    ///
-    /// Use [`MedicationId::generate`] to generate a fresh identifier, or
-    /// `MedicationId::from(uuid)` to reconstitute one from storage.
-    /// `name` and `dosage` are pre-validated value objects.
-    /// `scheduled_time` may be an empty `Vec` for unscheduled medications.
     pub fn new(
         id: MedicationId,
         name: MedicationName,
@@ -68,19 +70,10 @@ impl Medication {
         scheduled_time: Vec<ScheduledTime>,
         dose_frequency: DoseFrequency,
     ) -> Self {
-        Self {
-            id,
-            name,
-            dosage,
-            scheduled_time,
-            dose_frequency,
-        }
+        Self { id, name, dosage, scheduled_time, dose_frequency }
     }
 
     /// Reconstitutes a `Medication` from a known `id` (e.g. loaded from storage).
-    ///
-    /// Identical to [`new`](Self::new) — prefer `new` when building fresh
-    /// instances and `with_id` when the intent is explicit reconstitution.
     pub fn with_id(
         id: MedicationId,
         name: MedicationName,
@@ -88,33 +81,21 @@ impl Medication {
         scheduled_time: Vec<ScheduledTime>,
         dose_frequency: DoseFrequency,
     ) -> Self {
-        Self {
-            id,
-            name,
-            dosage,
-            scheduled_time,
-            dose_frequency,
-        }
+        Self { id, name, dosage, scheduled_time, dose_frequency }
     }
 
-    /// Returns the unique identifier of this medication.
     pub fn id(&self) -> &MedicationId {
         &self.id
     }
 
-    /// Returns the medication's name.
     pub fn name(&self) -> &MedicationName {
         &self.name
     }
 
-    /// Returns the prescribed dosage.
     pub fn dosage(&self) -> &Dosage {
         &self.dosage
     }
 
-    /// Returns the list of scheduled administration times.
-    ///
-    /// An empty slice means the medication has no fixed schedule.
     pub fn scheduled_time(&self) -> &[ScheduledTime] {
         &self.scheduled_time
     }
