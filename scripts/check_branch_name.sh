@@ -1,13 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-resolve_current_branch_name() {
-  if [ "$EVENT_NAME" = "pull_request" ]; then
-    echo "$HEAD_REF"
-  else
-    echo "${GITHUB_REF_NAME:-${GITHUB_REF#refs/heads/}}"
-  fi
-}
+# Source common functions
+source "$(dirname "$0")/lib/common.sh"
 
 abort_if_branch_name_violates_naming_convention() {
   local branch="$1"

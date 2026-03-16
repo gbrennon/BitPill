@@ -9,12 +9,6 @@ use crate::domain::ports::mapper::Mapper;
 use crate::domain::value_objects::medication_id::MedicationId;
 
 /// Convert a CreateMedicationRequest into a domain Medication.
-///
-/// This TryFrom implementation delegates the mapping work to
-/// `CreateMedicationMapper.map(request)` and converts any DomainError into
-/// `ApplicationError` (see `ApplicationError::Domain` which implements `From<DomainError>`).
-///
-/// Ownership: the DTO is consumed by-value; callers that need to retain it must clone it first.
 impl TryFrom<CreateMedicationRequest> for Medication {
     type Error = ApplicationError;
 
@@ -24,10 +18,6 @@ impl TryFrom<CreateMedicationRequest> for Medication {
 }
 
 /// Convert an (UpdateMedicationRequest, MedicationId) tuple into a domain Medication.
-///
-/// Delegates to `UpdateMedicationMapper.map((request, id))`. Input is consumed by-value;
-/// any caller-owned copies must be cloned beforehand. Domain validation errors are wrapped
-/// into `ApplicationError::Domain` automatically via `#[from]` conversion.
 impl TryFrom<(UpdateMedicationRequest, MedicationId)> for Medication {
     type Error = ApplicationError;
 

@@ -24,6 +24,14 @@ run:
 test:
     ./scripts/check_coverage.sh
 
+# Run tests matching a specific path or name filter
+# Examples:
+#   just test-path src/application/services/create_medication_service.rs
+#   just test-path services::create_medication
+#   just test-path create_medication
+test-path filter:
+    ./scripts/test_path.sh "{{filter}}"
+
 # Lint (zero warnings enforced)
 lint:
     cargo clippy -- -D warnings
