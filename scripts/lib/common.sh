@@ -135,8 +135,8 @@ extract_coverage_totals_from_json() {
 
 normalize_path() {
   local path="$1"
-  # Strip leading project-name prefix (e.g. "BitPill/src/" -> "src/")
-  path=$(echo "$path" | sed 's|^[^/]*/src/|src/|')
+  # Strip any leading absolute or relative prefix up to the src/ directory
+  path=$(echo "$path" | sed 's|.*/src/|src/|')
   # Remap bare layer paths that live under src/presentation/
   # Covers: tui/, rest/, dtos/, application/, domain/, infrastructure/, presentation/
   path=$(echo "$path" | sed \
