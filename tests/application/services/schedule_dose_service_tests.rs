@@ -20,6 +20,7 @@ fn make_medication(name: &str, hour: u32, minute: u32) -> Medication {
         Dosage::new(500).unwrap(),
         vec![ScheduledTime::new(hour, minute).unwrap()],
         DoseFrequency::OnceDaily,
+        vec![],
     )
 }
 

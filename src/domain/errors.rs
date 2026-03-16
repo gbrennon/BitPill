@@ -43,12 +43,4 @@ pub enum DomainError {
     /// logged as taken in the future.
     #[error("taken-at time cannot be in the future")]
     TakenAtInFuture,
-
-    /// Returned when a domain value object increase is bigger than the maximum allowed value.
-    #[error("stock amount cannot exceed 255")]
-    StockAmountOverflow,
-
-    /// Returned when stock decrease is bigger than the amount registered.
-    #[error("decrease stock amount cannot be bigger than the amount registered.")]
-    StockAmountNotEnough
 }
