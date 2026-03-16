@@ -8,11 +8,6 @@ use crate::domain::value_objects::{
 };
 
 /// Mapper that produces a `Medication` from an `(UpdateMedicationRequest, MedicationId)` tuple.
-///
-/// Responsibility: validate and map incoming update DTO fields into the existing
-/// domain `Medication` identity supplied by `MedicationId`. Keeps mapping logic
-/// centralized so services remain thin. Consumes the input tuple by-value and
-/// returns `DomainError` on validation failure.
 pub struct UpdateMedicationMapper;
 
 impl Mapper<Medication> for UpdateMedicationMapper {
