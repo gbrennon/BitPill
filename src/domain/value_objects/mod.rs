@@ -6,3 +6,4 @@ pub mod medication_name;
 pub mod scheduled_time;
 pub mod taken_at;
 pub mod stock_amount;
+pub mod stock_id;
