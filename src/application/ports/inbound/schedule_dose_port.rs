@@ -1,6 +1,10 @@
-use crate::application::dtos::requests::ScheduleDoseRequest;
-use crate::application::dtos::responses::schedule_dose_response::ScheduleDoseResponse;
-use crate::application::errors::ApplicationError;
+use crate::application::{
+    dtos::{
+        requests::ScheduleDoseRequest,
+        responses::ScheduleDoseResponse
+    },
+    errors::ApplicationError
+};
 
 /// A scheduling tick port. The service uses its injected [`ClockPort`] to determine
 /// the current time.
