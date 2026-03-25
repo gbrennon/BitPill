@@ -3,9 +3,7 @@ use std::sync::Arc;
 use chrono::Timelike;
 
 use crate::application::dtos::requests::ScheduleDoseRequest;
-use crate::application::dtos::responses::schedule_dose_response::{
-    DoseRecordDto, ScheduleDoseResponse,
-};
+use crate::application::dtos::responses::{ScheduleDoseResponse, ScheduledDoseRecordDto};
 use crate::application::errors::ApplicationError;
 use crate::application::ports::{
     clock_port::ClockPort, dose_record_repository_port::DoseRecordRepository,
@@ -86,7 +84,7 @@ impl ScheduleDosePort for ScheduleDoseService {
         let records = self.execute()?;
         let created = records
             .into_iter()
-            .map(|r| DoseRecordDto {
+            .map(|r| ScheduledDoseRecordDto {
                 id: r.id().to_string(),
                 medication_id: r.medication_id().to_string(),
                 scheduled_at: r.scheduled_at(),
