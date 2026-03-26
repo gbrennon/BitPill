@@ -38,6 +38,23 @@ impl AppInitializer {
         Ok(())
     }
 
+    /// Initialize from explicit paths instead of AppPaths.
+    pub fn initialize_from_paths(
+        medications_path: &Path,
+        dose_records_path: &Path,
+        settings_path: &Path,
+    ) -> io::Result<()> {
+        if let Some(parent) = medications_path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+
+        Self::init_data_file(medications_path, DEFAULT_MEDICATIONS)?;
+        Self::init_data_file(dose_records_path, DEFAULT_DOSE_RECORDS)?;
+        Self::init_settings_file(settings_path)?;
+
+        Ok(())
+    }
+
     fn init_data_file(path: &Path, default_content: &str) -> io::Result<()> {
         if !path.exists() {
             fs::write(path, default_content)?;

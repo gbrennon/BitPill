@@ -6,3 +6,12 @@ pub mod medication_name;
 pub mod medication_refill_id;
 pub mod scheduled_time;
 pub mod taken_at;
+
+pub use dosage::Dosage;
+pub use dose_record_id::DoseRecordId;
+pub use medication_frequency::DoseFrequency;
+pub use medication_id::MedicationId;
+pub use medication_name::MedicationName;
+pub use medication_refill_id::MedicationRefillId;
+pub use scheduled_time::ScheduledTime;
+pub use taken_at::TakenAt;

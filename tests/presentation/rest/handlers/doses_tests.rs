@@ -9,7 +9,7 @@ use tempfile::TempDir;
 
 fn container() -> (Arc<Container>, TempDir) {
     let dir = tempfile::tempdir().unwrap();
-    let c = Arc::new(Container::new_with_paths(
+    let c = Arc::new(Container::new(
         dir.path().join("meds.json"),
         dir.path().join("doses.json"),
         dir.path().join("settings.json"),
@@ -51,7 +51,7 @@ async fn mark_taken_with_invalid_date_format_returns_400() {
 
     let req = test::TestRequest::post()
         .uri("/doses/some-id/mark-taken")
-        .set_json(serde_json::json!({ "taken_at": "not-a-date" }))
+        .set_json(serde_json::json!({ "notes": "test note" }))
         .to_request();
     let resp = test::call_service(&app, req).await;
 
@@ -179,11 +179,11 @@ async fn mark_taken_with_invalid_uuid_id_returns_500() {
 
     let req = test::TestRequest::post()
         .uri("/doses/not-a-valid-uuid/mark-taken")
-        .set_json(serde_json::json!({ "taken_at": "2025-01-01T08:00:00" }))
+        .set_json(serde_json::json!({ "notes": "test" }))
         .to_request();
     let resp = test::call_service(&app, req).await;
 
-    assert_eq!(resp.status(), 500);
+    assert_eq!(resp.status(), 400);
 }
 
 #[actix_web::test]

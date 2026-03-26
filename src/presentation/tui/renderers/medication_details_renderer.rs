@@ -46,8 +46,8 @@ mod tests {
     use crate::application::dtos::responses::MedicationDto;
     use crate::presentation::tui::app::App;
     use crate::presentation::tui::app_services::AppServices;
-    use ratatui::Terminal;
     use ratatui::backend::TestBackend;
+    use ratatui::Terminal;
 
     #[test]
     fn render_on_medication_details_screen_does_not_panic() {
@@ -59,6 +59,8 @@ mod tests {
             amount_mg: 100,
             dose_frequency: "OnceDaily".to_string(),
             scheduled_time: vec![(8, 0)],
+            taken_today: 0,
+            scheduled_today: 0,
         }];
         app.current_screen = Screen::MedicationDetails {
             id: "m1".to_string(),

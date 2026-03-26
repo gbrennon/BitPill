@@ -32,7 +32,7 @@ fn execute_creates_and_saves_record() {
     let med_repo = Arc::new(crate::fakes::FakeMedicationRepository::with(vec![med]));
     let service = MarkDoseTakenService::new(repo.clone(), med_repo);
     let med_id = uuid::Uuid::nil().to_string();
-    let req = MarkDoseTakenRequest::new(med_id.clone(), make_datetime(9, 0));
+    let req = MarkDoseTakenRequest::new(med_id.clone());
 
     let res = service.execute(req).expect("execute should succeed");
 
@@ -47,7 +47,7 @@ fn execute_saves_record_as_taken() {
     let med_repo = Arc::new(crate::fakes::FakeMedicationRepository::with(vec![med]));
     let service = MarkDoseTakenService::new(repo.clone(), med_repo);
     let med_id = uuid::Uuid::nil().to_string();
-    let req = MarkDoseTakenRequest::new(med_id.clone(), make_datetime(9, 0));
+    let req = MarkDoseTakenRequest::new(med_id.clone());
 
     let res = service.execute(req).expect("execute should succeed");
 
@@ -64,7 +64,7 @@ fn execute_with_invalid_medication_id_returns_error() {
     let repo = Arc::new(FakeDoseRecordRepository::new());
     let med_repo = Arc::new(crate::fakes::FakeMedicationRepository::new());
     let service = MarkDoseTakenService::new(repo, med_repo);
-    let req = MarkDoseTakenRequest::new("not-a-uuid", make_datetime(9, 0));
+    let req = MarkDoseTakenRequest::new("not-a-uuid");
 
     let res = service.execute(req);
 
@@ -79,7 +79,7 @@ fn execute_when_save_fails_returns_storage_error() {
     let med_repo = Arc::new(crate::fakes::FakeMedicationRepository::with(vec![med]));
     let service = MarkDoseTakenService::new(repo, med_repo);
     let med_id = uuid::Uuid::nil().to_string();
-    let req = MarkDoseTakenRequest::new(med_id, make_datetime(9, 0));
+    let req = MarkDoseTakenRequest::new(med_id);
 
     let res = service.execute(req);
 

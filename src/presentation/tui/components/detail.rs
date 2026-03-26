@@ -45,9 +45,9 @@ mod tests {
     use super::*;
     use crate::application::dtos::responses::MedicationDto;
     use chrono::NaiveDate;
-    use ratatui::Terminal;
     use ratatui::backend::TestBackend;
     use ratatui::layout::Rect;
+    use ratatui::Terminal;
 
     fn med(with_schedule: bool) -> MedicationDto {
         MedicationDto {
@@ -56,6 +56,8 @@ mod tests {
             amount_mg: 100,
             dose_frequency: "OnceDaily".to_string(),
             scheduled_time: if with_schedule { vec![(8, 0)] } else { vec![] },
+            taken_today: 0,
+            scheduled_today: 0,
         }
     }
 
