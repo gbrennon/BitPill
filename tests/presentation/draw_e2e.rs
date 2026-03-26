@@ -2,8 +2,8 @@ use bitpill::infrastructure::container::Container;
 use bitpill::presentation::tui::app::App;
 use bitpill::presentation::tui::app_services::AppServices;
 use bitpill::presentation::tui::draw;
-use ratatui::Terminal;
 use ratatui::backend::TestBackend;
+use ratatui::Terminal;
 use tempfile::tempdir;
 
 #[test]
@@ -15,7 +15,7 @@ fn draw_renders_home_screen_without_panic() {
     let meds = dir.path().join("meds.json");
     let doses = dir.path().join("doses.json");
     let settings = dir.path().join("settings.json");
-    let container = Container::new_with_paths(meds, doses, settings);
+    let container = Container::new(meds, doses, settings);
 
     let app = App::new(AppServices::from_container(&container));
     terminal

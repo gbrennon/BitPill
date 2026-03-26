@@ -5,8 +5,8 @@ use crate::presentation::tui::templates::screen_template::ScreenTemplate;
 // External crates
 use crate::presentation::tui::styles::{content_style, highlight_style};
 use chrono::Datelike;
-use ratatui::Frame;
 use ratatui::text::{Line, Span};
+use ratatui::Frame;
 
 pub struct MedicationDetailsInput<'a> {
     pub medication: Option<&'a MedicationDto>,
@@ -68,10 +68,10 @@ impl MedicationDetailsPresenter {
                     let mut taken_opt: Option<chrono::NaiveDateTime> = None;
                     if let Some(scheduled_dt) = scheduled_dt_opt {
                         for r in input.records.iter() {
+                            // Check if this record is taken AND scheduled near this slot time
                             if let Some(taken) = r.taken_at {
-                                // match within ±15 minutes
-                                let diff = (taken - scheduled_dt).num_minutes().abs();
-                                if taken.date() == today && diff <= 15 {
+                                let diff = (r.scheduled_at - scheduled_dt).num_minutes().abs();
+                                if diff <= 15 {
                                     taken_opt = Some(taken);
                                     break;
                                 }
@@ -123,8 +123,8 @@ mod tests {
     use super::*;
     use crate::application::dtos::responses::MedicationDto;
     use chrono::NaiveDate;
-    use ratatui::Terminal;
     use ratatui::backend::TestBackend;
+    use ratatui::Terminal;
 
     fn make_terminal() -> Terminal<TestBackend> {
         Terminal::new(TestBackend::new(80, 24)).unwrap()
@@ -137,6 +137,8 @@ mod tests {
             amount_mg: 100,
             dose_frequency: "OnceDaily".to_string(),
             scheduled_time: if has_schedule { vec![(8, 0)] } else { vec![] },
+            taken_today: 0,
+            scheduled_today: 0,
         }
     }
 

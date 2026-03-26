@@ -51,7 +51,7 @@ mod tests {
 
     fn make_container() -> (Arc<Container>, tempfile::TempDir) {
         let dir = tempdir().unwrap();
-        let c = Arc::new(Container::new_with_paths(
+        let c = Arc::new(Container::new(
             dir.path().join("meds.json"),
             dir.path().join("doses.json"),
             dir.path().join("settings.json"),

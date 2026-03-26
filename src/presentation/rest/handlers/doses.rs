@@ -6,11 +6,11 @@ use serde::{Deserialize, Serialize};
 use crate::application::dtos::requests::{MarkDoseTakenRequest, ScheduleDoseRequest};
 use crate::application::errors::{ApplicationError, NotFoundError};
 use crate::infrastructure::container::Container;
-use chrono::NaiveDateTime;
+
 
 #[derive(Deserialize)]
 pub struct MarkTakenBody {
-    pub taken_at: String,
+    pub notes: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -42,20 +42,11 @@ pub async fn schedule(data: web::Data<Arc<Container>>) -> HttpResponse {
 pub async fn mark_taken(
     data: web::Data<Arc<Container>>,
     path: web::Path<String>,
-    body: web::Json<MarkTakenBody>,
+    _body: web::Json<MarkTakenBody>,
 ) -> HttpResponse {
     let id = path.into_inner();
 
-    let taken_at = match NaiveDateTime::parse_from_str(&body.taken_at, "%Y-%m-%dT%H:%M:%S") {
-        Ok(dt) => dt,
-        Err(_) => {
-            return HttpResponse::BadRequest().json(ErrorBody {
-                error: "invalid taken_at format, expected YYYY-MM-DDTHH:MM:SS".into(),
-            });
-        }
-    };
-
-    let request = MarkDoseTakenRequest::new(id, taken_at);
+    let request = MarkDoseTakenRequest::new(id);
     match data.mark_dose_taken_service.execute(request) {
         Ok(resp) => HttpResponse::Ok().json(MarkTakenResponseBody {
             record_id: resp.record_id,
@@ -65,6 +56,9 @@ pub async fn mark_taken(
                 error: "dose record not found".into(),
             })
         }
+        Err(ApplicationError::InvalidInput(e)) => HttpResponse::BadRequest().json(ErrorBody {
+            error: e,
+        }),
         Err(ApplicationError::Domain(e)) => HttpResponse::BadRequest().json(ErrorBody {
             error: e.to_string(),
         }),

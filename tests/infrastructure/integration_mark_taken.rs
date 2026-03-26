@@ -12,7 +12,7 @@ use tempfile::tempdir;
 fn create_dose_record_persists_to_disk() {
     let dir = tempdir().unwrap();
     let dose_path = dir.path().join("dose_records.json");
-    let container = Container::new_with_paths(
+    let container = Container::new(
         dir.path().join("medications.json"),
         dose_path.clone(),
         dir.path().join("settings.json"),
@@ -39,7 +39,7 @@ fn create_dose_record_persists_to_disk() {
 #[test]
 fn mark_dose_taken_creates_taken_record_when_id_is_medication_id() {
     let dir = tempdir().unwrap();
-    let container = Container::new_with_paths(
+    let container = Container::new(
         dir.path().join("medications.json"),
         dir.path().join("dose_records.json"),
         dir.path().join("settings.json"),
@@ -55,11 +55,7 @@ fn mark_dose_taken_creates_taken_record_when_id_is_medication_id() {
         ))
         .expect("medication creation should succeed");
 
-    let taken_at = NaiveDate::from_ymd_opt(2025, 6, 1)
-        .unwrap()
-        .and_hms_opt(8, 0, 0)
-        .unwrap();
-    let req = MarkDoseTakenRequest::new(med_res.id.clone(), taken_at);
+    let req = MarkDoseTakenRequest::new(med_res.id.clone());
     let res = container
         .mark_dose_taken_service
         .execute(req)

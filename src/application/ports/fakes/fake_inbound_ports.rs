@@ -92,6 +92,8 @@ impl GetMedicationPort for FakeGetMedicationPortOk {
                 amount_mg: self.medication.amount_mg,
                 scheduled_time: self.medication.scheduled_time.clone(),
                 dose_frequency: self.medication.dose_frequency.clone(),
+                taken_today: 0,
+                scheduled_today: 0,
             },
         })
     }
