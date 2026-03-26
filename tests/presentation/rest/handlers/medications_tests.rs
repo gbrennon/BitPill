@@ -7,7 +7,7 @@ use tempfile::TempDir;
 
 fn container() -> (Arc<Container>, TempDir) {
     let dir = tempfile::tempdir().unwrap();
-    let c = Arc::new(Container::new_with_paths(
+    let c = Arc::new(Container::new(
         dir.path().join("meds.json"),
         dir.path().join("doses.json"),
         dir.path().join("settings.json"),
@@ -271,7 +271,7 @@ async fn create_with_storage_error_returns_500() {
     // Make medications path a directory so writes fail
     let meds_path = dir.path().join("meds_dir");
     fs::create_dir_all(&meds_path).unwrap();
-    let c = Arc::new(Container::new_with_paths(
+    let c = Arc::new(Container::new(
         meds_path,
         dir.path().join("doses.json"),
         dir.path().join("settings.json"),

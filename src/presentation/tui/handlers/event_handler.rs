@@ -79,30 +79,26 @@ impl Handler for EventHandler {
                             use chrono::Local;
 
                             let today = Local::now().date_naive();
-                            // fetch all today's records (both taken and untaken)
-                            let all_today_records: Vec<DoseRecordDto> =
+                            // fetch ALL dose records for this medication (not just today's)
+                            let all_records: Vec<DoseRecordDto> =
                                 match ListDoseRecordsPort::execute(
                                     &*app.services.list_dose_records,
                                     ListDoseRecordsRequest {
                                         medication_id: m.id.clone(),
                                     },
                                 ) {
-                                    Ok(resp) => resp
-                                        .records
-                                        .into_iter()
-                                        .filter(|r| r.scheduled_at.date() == today)
-                                        .collect(),
+                                    Ok(resp) => resp.records,
                                     Err(_) => Vec::new(),
                                 };
 
-                            // untaken records to present directly
-                            let mut records: Vec<DoseRecordDto> = all_today_records
+                            // Only include untaken records
+                            let mut records: Vec<DoseRecordDto> = all_records
                                 .iter()
                                 .filter(|r| r.taken_at.is_none())
                                 .cloned()
                                 .collect();
 
-                            // append synthetic scheduled slots only if there isn't a taken record matching that slot
+                            // append synthetic scheduled slots only if there isn't a record (taken or untaken) matching that slot
                             for (i, (h, mm)) in m.scheduled_time.iter().enumerate() {
                                 let scheduled_dt = chrono::NaiveDate::from_ymd_opt(
                                     today.year(),
@@ -112,24 +108,12 @@ impl Handler for EventHandler {
                                 .and_then(|d| d.and_hms_opt(*h, *mm, 0))
                                 .unwrap_or(Local::now().naive_local());
 
-                                // if any record was already taken near this scheduled_dt, skip adding a synthetic slot
-                                let already_taken = all_today_records.iter().any(|r| {
-                                    if let Some(taken) = r.taken_at {
-                                        let diff = (taken - scheduled_dt).num_minutes().abs();
-                                        diff <= 15
-                                    } else {
-                                        false
-                                    }
+                                // Check if there's ANY record (taken or not) with scheduled time near this slot
+                                let record_exists = all_records.iter().any(|r| {
+                                    let diff = (r.scheduled_at - scheduled_dt).num_minutes().abs();
+                                    diff <= 15
                                 });
-                                if already_taken {
-                                    continue;
-                                }
-
-                                // if an untaken record already exists for this scheduled_dt, skip duplicate
-                                let has_untaken = records.iter().any(|r| {
-                                    (r.scheduled_at - scheduled_dt).num_minutes().abs() <= 15
-                                });
-                                if has_untaken {
+                                if record_exists {
                                     continue;
                                 }
 
@@ -142,14 +126,13 @@ impl Handler for EventHandler {
                                 });
                             }
 
+                            let med_id = id.clone();
                             if records.is_empty() {
-                                app.set_status(
-                                    "No untaken records or scheduled slots for today",
-                                    3000,
-                                );
+                                app.set_status("No doses to mark as taken", 3000);
+                                app.current_screen = Screen::MedicationDetails { id: med_id };
                             } else {
                                 app.current_screen = Screen::MarkDose {
-                                    medication_id: id.clone(),
+                                    medication_id: med_id,
                                     records,
                                     selected_index: 0,
                                 };
@@ -629,6 +612,8 @@ mod tests {
             amount_mg: 100,
             scheduled_time: vec![(8, 0)],
             dose_frequency: "OnceDaily".into(),
+            taken_today: 0,
+            scheduled_today: 0,
         }];
         app.current_screen = Screen::MedicationDetails { id: "med-1".into() };
         let mut h = EventHandler::default();
@@ -665,6 +650,8 @@ mod tests {
             amount_mg: 100,
             scheduled_time: vec![(8, 0)],
             dose_frequency: "OnceDaily".into(),
+            taken_today: 0,
+            scheduled_today: 0,
         }];
         app.current_screen = Screen::MedicationDetails { id: "med-1".into() };
         let mut h = EventHandler::default();

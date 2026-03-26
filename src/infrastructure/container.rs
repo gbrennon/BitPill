@@ -1,7 +1,5 @@
-use std::sync::Arc;
-
-#[cfg(any(test, feature = "test-helpers"))]
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use crate::{
     application::{
@@ -30,7 +28,7 @@ use crate::{
     },
     infrastructure::{
         clock::system_clock::SystemClock,
-        config::{app_initializer::AppInitializer, app_paths::AppPaths},
+        config::app_initializer::AppInitializer,
         notifications::console_notification_adapter::ConsoleNotificationAdapter,
         persistence::{
             json_dose_record_repository::JsonDoseRecordRepository,
@@ -58,60 +56,13 @@ pub struct Container {
 }
 
 impl Container {
-    pub fn new() -> Self {
-        let paths = AppPaths::resolve();
-        if let Err(e) = AppInitializer::initialize(&paths) {
-            eprintln!("Warning: could not initialize config directory: {e}");
-        }
-        let medication_repo = Arc::new(JsonMedicationRepository::new(
-            paths.medications_path().clone(),
-        ));
-        let dose_record_repo = Arc::new(JsonDoseRecordRepository::new(
-            paths.dose_records_path().clone(),
-        ));
-        let notification = Arc::new(ConsoleNotificationAdapter);
-        let clock = Arc::new(SystemClock);
-        let settings_repo = Arc::new(JsonSettingsRepository::new(paths.settings_path().clone()));
-
-        Self {
-            create_medication_service: Arc::new(CreateMedicationService::new(
-                medication_repo.clone(),
-            )),
-            list_all_medications_service: Arc::new(ListAllMedicationsService::new(
-                medication_repo.clone(),
-            )),
-            list_dose_records_service: Arc::new(ListDoseRecordsService::new(
-                dose_record_repo.clone(),
-            )),
-            create_dose_record_service: Arc::new(CreateDoseRecordService::new(
-                dose_record_repo.clone(),
-            )),
-            mark_dose_taken_service: Arc::new(MarkDoseTakenService::new(
-                dose_record_repo.clone(),
-                medication_repo.clone(),
-            )),
-            schedule_dose_service: Arc::new(ScheduleDoseService::new(
-                medication_repo.clone(),
-                dose_record_repo.clone(),
-                notification.clone(),
-                clock.clone(),
-            )),
-            get_medication_service: Arc::new(GetMedicationService::new(medication_repo.clone())),
-            update_medication_service: Arc::new(UpdateMedicationService::new(
-                medication_repo.clone(),
-            )),
-            edit_medication_service: Arc::new(EditMedicationService::new(medication_repo.clone())),
-            delete_medication_service: Arc::new(DeleteMedicationService::new(
-                medication_repo.clone(),
-            )),
-            settings_service: Arc::new(SettingsService::new(settings_repo.clone())),
-        }
-    }
-
-    /// Constructs a container pointing all persistence to the given paths.
-    /// Intended for integration tests — avoids touching any real data files.
-    #[cfg(any(test, feature = "test-helpers"))]
-    pub fn new_with_paths(
+    /// Constructs a container with explicit paths for all persistence.
+    ///
+    /// # Arguments
+    /// * `medications_path` - Path to medications JSON file
+    /// * `dose_records_path` - Path to dose records JSON file  
+    /// * `settings_path` - Path to settings JSON file
+    pub fn new(
         medications_path: PathBuf,
         dose_records_path: PathBuf,
         settings_path: PathBuf,
@@ -122,12 +73,21 @@ impl Container {
         let clock = Arc::new(SystemClock);
         let settings_repo = Arc::new(JsonSettingsRepository::new(settings_path));
 
+        if let Err(e) = AppInitializer::initialize_from_paths(
+            medication_repo.path(),
+            dose_record_repo.path(),
+            settings_repo.path(),
+        ) {
+            eprintln!("Warning: could not initialize config directory: {e}");
+        }
+
         Self {
             create_medication_service: Arc::new(CreateMedicationService::new(
                 medication_repo.clone(),
             )),
             list_all_medications_service: Arc::new(ListAllMedicationsService::new(
                 medication_repo.clone(),
+                dose_record_repo.clone(),
             )),
             list_dose_records_service: Arc::new(ListDoseRecordsService::new(
                 dose_record_repo.clone(),
@@ -145,7 +105,10 @@ impl Container {
                 notification.clone(),
                 clock.clone(),
             )),
-            get_medication_service: Arc::new(GetMedicationService::new(medication_repo.clone())),
+            get_medication_service: Arc::new(GetMedicationService::new(
+                medication_repo.clone(),
+                dose_record_repo.clone(),
+            )),
             update_medication_service: Arc::new(UpdateMedicationService::new(
                 medication_repo.clone(),
             )),
@@ -158,21 +121,15 @@ impl Container {
     }
 }
 
-impl Default for Container {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use tempfile::tempdir;
 
     #[test]
-    fn new_with_paths_builds_successfully_in_test_cfg() {
+    fn new_builds_successfully() {
         let dir = tempdir().unwrap();
-        let _container = Container::new_with_paths(
+        let _container = Container::new(
             dir.path().join("medications.json"),
             dir.path().join("doses.json"),
             dir.path().join("settings.json"),
