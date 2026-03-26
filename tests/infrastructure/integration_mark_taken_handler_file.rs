@@ -11,7 +11,7 @@ use tempfile::tempdir;
 fn handler_saves_dose_record_to_file() {
     let dir = tempdir().unwrap();
     let dose_path = dir.path().join("dose_records.json");
-    let container = Container::new_with_paths(
+    let container = Container::new(
         dir.path().join("medications.json"),
         dose_path.clone(),
         dir.path().join("settings.json"),
@@ -25,6 +25,8 @@ fn handler_saves_dose_record_to_file() {
         amount_mg: 10,
         scheduled_time: vec![(8, 0)],
         dose_frequency: "OnceDaily".to_string(),
+        taken_today: 0,
+        scheduled_today: 0,
     };
     app.medications.push(med);
     app.selected_index = 0;
@@ -34,10 +36,9 @@ fn handler_saves_dose_record_to_file() {
 
     // Now pressing 's' should show an instruction to open details
     assert!(app.status_message.is_some());
-    assert!(
-        app.status_message
-            .as_ref()
-            .unwrap()
-            .contains("Open medication details")
-    );
+    assert!(app
+        .status_message
+        .as_ref()
+        .unwrap()
+        .contains("Open medication details"));
 }

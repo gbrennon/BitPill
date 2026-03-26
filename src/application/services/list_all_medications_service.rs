@@ -3,16 +3,24 @@ use std::sync::Arc;
 use crate::application::dtos::requests::ListAllMedicationsRequest;
 use crate::application::dtos::responses::{ListAllMedicationsResponse, MedicationDto};
 use crate::application::errors::ApplicationError;
+use crate::application::ports::dose_record_repository_port::DoseRecordRepository;
 use crate::application::ports::list_all_medications_port::ListAllMedicationsPort;
 use crate::application::ports::medication_repository_port::MedicationRepository;
 
 pub struct ListAllMedicationsService {
     repository: Arc<dyn MedicationRepository>,
+    dose_record_repository: Arc<dyn DoseRecordRepository>,
 }
 
 impl ListAllMedicationsService {
-    pub fn new(repository: Arc<dyn MedicationRepository>) -> Self {
-        Self { repository }
+    pub fn new(
+        repository: Arc<dyn MedicationRepository>,
+        dose_record_repository: Arc<dyn DoseRecordRepository>,
+    ) -> Self {
+        Self {
+            repository,
+            dose_record_repository,
+        }
     }
 }
 
@@ -22,18 +30,39 @@ impl ListAllMedicationsPort for ListAllMedicationsService {
         _request: ListAllMedicationsRequest,
     ) -> Result<ListAllMedicationsResponse, ApplicationError> {
         let medications = self.repository.find_all()?;
+        let today = chrono::Local::now().date_naive();
         let dtos = medications
             .into_iter()
-            .map(|m| MedicationDto {
-                id: m.id().to_string(),
-                name: m.name().value().to_string(),
-                amount_mg: m.dosage().amount_mg(),
-                scheduled_time: m
-                    .scheduled_time()
+            .map(|m| {
+                let med_id = m.id().clone();
+                let scheduled_today = m.scheduled_time().len();
+                let all_records = self
+                    .dose_record_repository
+                    .find_all_by_medication(&med_id)
+                    .unwrap_or_default();
+                let taken_today = all_records
                     .iter()
-                    .map(|t| (t.hour(), t.minute()))
-                    .collect(),
-                dose_frequency: m.dose_frequency().as_str().to_string(),
+                    .filter(|r| {
+                        if let Some(taken) = r.taken_at() {
+                            taken.date() == today
+                        } else {
+                            false
+                        }
+                    })
+                    .count();
+                MedicationDto {
+                    id: m.id().to_string(),
+                    name: m.name().value().to_string(),
+                    amount_mg: m.dosage().amount_mg(),
+                    scheduled_time: m
+                        .scheduled_time()
+                        .iter()
+                        .map(|t| (t.hour(), t.minute()))
+                        .collect(),
+                    dose_frequency: m.dose_frequency().as_str().to_string(),
+                    taken_today,
+                    scheduled_today,
+                }
             })
             .collect();
         Ok(ListAllMedicationsResponse { medications: dtos })

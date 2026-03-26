@@ -10,7 +10,7 @@ use tempfile::tempdir;
 #[test]
 fn handle_enter_creates_medication() {
     let dir = tempdir().unwrap();
-    let container = Container::new_with_paths(
+    let container = Container::new(
         dir.path().join("medications.json"),
         dir.path().join("doses.json"),
         dir.path().join("settings.json"),
