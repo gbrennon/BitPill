@@ -18,6 +18,10 @@ impl JsonSettingsRepository {
             inner_lock: Mutex::new(()),
         }
     }
+
+    pub fn path(&self) -> &PathBuf {
+        &self.path
+    }
 }
 
 impl SettingsRepositoryPort for JsonSettingsRepository {

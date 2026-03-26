@@ -19,8 +19,8 @@ fn make_datetime(h: u32, m: u32) -> chrono::NaiveDateTime {
         .unwrap()
 }
 
-fn make_request(record_id: &DoseRecordId, h: u32, m: u32) -> MarkDoseTakenRequest {
-    MarkDoseTakenRequest::new(record_id.to_string(), make_datetime(h, m))
+fn make_request(record_id: &DoseRecordId) -> MarkDoseTakenRequest {
+    MarkDoseTakenRequest::new(record_id.to_string())
 }
 
 #[test]
@@ -31,7 +31,7 @@ fn execute_marks_existing_dose_record_as_taken() {
     let service =
         MarkDoseTakenService::new(Arc::new(FakeDoseRecordRepository::with(record)), med_repo);
 
-    let result = service.execute(make_request(&record_id, 8, 5));
+    let result = service.execute(make_request(&record_id));
 
     assert!(result.is_ok());
     assert!(!result.unwrap().record_id.is_empty());
@@ -43,7 +43,7 @@ fn execute_with_unknown_id_returns_not_found_error() {
     let service = MarkDoseTakenService::new(Arc::new(FakeDoseRecordRepository::new()), med_repo);
     let unknown_id = DoseRecordId::generate();
 
-    let result = service.execute(make_request(&unknown_id, 8, 5));
+    let result = service.execute(make_request(&unknown_id));
 
     assert!(matches!(
         result,
@@ -55,7 +55,7 @@ fn execute_with_unknown_id_returns_not_found_error() {
 fn execute_with_invalid_record_id_returns_invalid_input_error() {
     let med_repo = Arc::new(crate::fakes::FakeMedicationRepository::new());
     let service = MarkDoseTakenService::new(Arc::new(FakeDoseRecordRepository::new()), med_repo);
-    let request = MarkDoseTakenRequest::new("not-a-uuid", make_datetime(8, 5));
+    let request = MarkDoseTakenRequest::new("not-a-uuid");
 
     let result = service.execute(request);
 
@@ -71,7 +71,7 @@ fn execute_on_already_taken_dose_returns_domain_error() {
     let service =
         MarkDoseTakenService::new(Arc::new(FakeDoseRecordRepository::with(record)), med_repo);
 
-    let result = service.execute(make_request(&record_id, 8, 10));
+    let result = service.execute(make_request(&record_id));
 
     assert!(matches!(
         result,
@@ -89,7 +89,7 @@ fn execute_when_find_by_id_fails_returns_storage_error() {
     );
     let id = bitpill::domain::value_objects::dose_record_id::DoseRecordId::generate();
 
-    let result = service.execute(make_request(&id, 8, 5));
+    let result = service.execute(make_request(&id));
 
     assert!(matches!(result, Err(ApplicationError::Storage(_))));
 }
@@ -105,7 +105,7 @@ fn execute_when_save_fails_after_mark_taken_returns_storage_error() {
         med_repo,
     );
 
-    let result = service.execute(make_request(&record_id, 8, 5));
+    let result = service.execute(make_request(&record_id));
 
     assert!(matches!(result, Err(ApplicationError::Storage(_))));
 }

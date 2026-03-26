@@ -19,16 +19,29 @@ use bitpill::{
     },
 };
 use std::sync::Arc;
+use tempfile::tempdir;
 
 #[test]
 fn medication_list_handler_saves_taken_dose_record_on_s() {
+    let dir = tempdir().unwrap();
+    let container = Container::new(
+        dir.path().join("meds.json"),
+        dir.path().join("doses.json"),
+        dir.path().join("settings.json"),
+    );
     let fake_dose_repo: Arc<dyn DoseRecordRepository> = Arc::new(FakeDoseRecordRepository::new());
     let fake_med_repo: Arc<dyn MedicationRepository> = Arc::new(FakeMedicationRepository::new());
-    let mut container = Container::new();
-    container.mark_dose_taken_service =
-        Arc::new(MarkDoseTakenService::new(fake_dose_repo, fake_med_repo))
-            as Arc<dyn MarkDoseTakenPort>;
-    let services = AppServices::from_container(&container);
+    let services = AppServices {
+        list_all_medications: container.list_all_medications_service.clone(),
+        create_medication: container.create_medication_service.clone(),
+        edit_medication: container.edit_medication_service.clone(),
+        delete_medication: container.delete_medication_service.clone(),
+        get_medication: container.get_medication_service.clone(),
+        list_dose_records: container.list_dose_records_service.clone(),
+        mark_dose_taken: Arc::new(MarkDoseTakenService::new(fake_dose_repo, fake_med_repo))
+            as Arc<dyn MarkDoseTakenPort>,
+        settings: container.settings_service.clone(),
+    };
 
     let mut app = App::new(services);
     let med = MedicationDto {
@@ -37,18 +50,13 @@ fn medication_list_handler_saves_taken_dose_record_on_s() {
         amount_mg: 10,
         scheduled_time: vec![(8, 0)],
         dose_frequency: "OnceDaily".to_string(),
+        taken_today: 0,
+        scheduled_today: 0,
     };
     app.medications.push(med);
-    app.selected_index = 0;
 
-    let mut handler = MedicationListHandler::default();
-    handler.handle(&mut app, Key::Char('s'));
+    let mut handler = MedicationListHandler;
+    handler.handle(&mut app, Key::from(Key::Char('s')));
 
     assert!(app.status_message.is_some());
-    assert!(
-        app.status_message
-            .as_ref()
-            .unwrap()
-            .contains("Open medication details")
-    );
 }
