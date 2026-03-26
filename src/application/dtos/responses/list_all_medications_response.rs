@@ -7,6 +7,10 @@ pub struct MedicationDto {
     pub scheduled_time: Vec<(u32, u32)>,
     /// Dose frequency as string (e.g. "OnceDaily", "TwiceDaily")
     pub dose_frequency: String,
+    /// Number of doses taken today
+    pub taken_today: usize,
+    /// Total scheduled doses for today
+    pub scheduled_today: usize,
 }
 
 pub struct ListAllMedicationsResponse {

@@ -3,7 +3,7 @@ use crate::application::dtos::requests::GetMedicationRequest;
 use crate::application::ports::inbound::get_medication_port::GetMedicationPort;
 use crate::presentation::tui::app::App;
 use crate::presentation::tui::handlers::medication_form_navigation::{
-    NavigationState, navigate_down, navigate_left, navigate_right, navigate_up, remove_custom_slot,
+    navigate_down, navigate_left, navigate_right, navigate_up, remove_custom_slot, NavigationState,
 };
 use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
 use crate::presentation::tui::handlers::time_slot_parser::{
@@ -600,7 +600,7 @@ mod tests {
 
     fn new_app_with_tempdir() -> (App, TempDir) {
         let dir = tempfile::tempdir().unwrap();
-        let container = crate::infrastructure::container::Container::new_with_paths(
+        let container = crate::infrastructure::container::Container::new(
             dir.path().join("meds.json"),
             dir.path().join("records.json"),
             dir.path().join("settings.json"),

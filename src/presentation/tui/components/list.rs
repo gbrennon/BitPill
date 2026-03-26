@@ -1,6 +1,6 @@
 use crate::application::dtos::responses::MedicationDto;
 use crate::presentation::tui::components::item::medication_item;
-use crate::presentation::tui::styles::{BORDER_COLOR, content_style};
+use crate::presentation::tui::styles::{content_style, BORDER_COLOR};
 use ratatui::widgets::{Block, Borders, List, ListItem};
 
 /// Dumb list component: accepts domain DTOs and builds styled list items
@@ -32,6 +32,8 @@ mod tests {
                 amount_mg: 500,
                 scheduled_time: vec![],
                 dose_frequency: "OnceDaily".to_string(),
+                taken_today: 0,
+                scheduled_today: 0,
             },
             MedicationDto {
                 id: "2".into(),
@@ -39,6 +41,8 @@ mod tests {
                 amount_mg: 200,
                 scheduled_time: vec![],
                 dose_frequency: "OnceDaily".to_string(),
+                taken_today: 0,
+                scheduled_today: 0,
             },
         ];
         let list = medication_list(&items);

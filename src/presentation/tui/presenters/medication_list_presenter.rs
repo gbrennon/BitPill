@@ -4,8 +4,8 @@ use crate::presentation::tui::components::table::medication_table;
 use crate::presentation::tui::templates::screen_template::ScreenTemplate;
 
 // External crates
-use ratatui::Frame;
 use ratatui::widgets::ListState;
+use ratatui::Frame;
 
 pub struct MedicationListPresenter;
 
@@ -47,7 +47,12 @@ impl MedicationListPresenter {
                 );
             } else {
                 f.render_widget(
-                    medication_table("", &["Name", "mg", "Actions"], medications, selected),
+                    medication_table(
+                        "",
+                        &["Name", "mg", "Taken", "Actions"],
+                        medications,
+                        selected,
+                    ),
                     area,
                 );
             }

@@ -12,7 +12,7 @@ fn container_new_with_paths_persists_medication_files() {
     let doses = dir.path().join("doses.json");
     let settings = dir.path().join("settings.json");
 
-    let container = Container::new_with_paths(meds.clone(), doses.clone(), settings.clone());
+    let container = Container::new(meds.clone(), doses.clone(), settings.clone());
     let req = CreateMedicationRequest::new("IntegrationMed", 42, vec![(8, 0)], "OnceDaily");
     let res = container
         .create_medication_service
@@ -20,7 +20,7 @@ fn container_new_with_paths_persists_medication_files() {
         .expect("create should succeed");
     let id = res.id;
 
-    let container2 = Container::new_with_paths(meds, doses, settings);
+    let container2 = Container::new(meds, doses, settings);
     let get_req = GetMedicationRequest { id: id.clone() };
     let got = container2
         .get_medication_service

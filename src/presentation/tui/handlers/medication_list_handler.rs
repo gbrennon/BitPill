@@ -186,6 +186,8 @@ mod tests {
             amount_mg: 100,
             dose_frequency: "OnceDaily".to_string(),
             scheduled_time: vec![(8, 0)],
+            taken_today: 0,
+            scheduled_today: 0,
         }
     }
 
@@ -214,12 +216,11 @@ mod tests {
         app.medications = vec![med("m1")];
         let mut h = MedicationListHandler::default();
         h.handle(&mut app, key(KeyCode::Char('s')));
-        assert!(
-            app.status_message
-                .as_deref()
-                .unwrap_or("")
-                .contains("Open medication details")
-        );
+        assert!(app
+            .status_message
+            .as_deref()
+            .unwrap_or("")
+            .contains("Open medication details"));
     }
 
     #[test]
