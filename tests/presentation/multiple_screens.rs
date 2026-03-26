@@ -1,6 +1,6 @@
-use ratatui::Terminal;
 use ratatui::backend::TestBackend;
 use ratatui::buffer::Buffer;
+use ratatui::Terminal;
 use std::sync::Arc;
 use tempfile::tempdir;
 
@@ -23,7 +23,7 @@ fn render_create_and_edit_and_settings_and_confirm_modals() {
     let meds = dir.path().join("meds.json");
     let doses = dir.path().join("doses.json");
     let settings = dir.path().join("settings.json");
-    let container = Arc::new(Container::new_with_paths(meds, doses, settings));
+    let container = Arc::new(Container::new(meds, doses, settings));
     let mut app =
         App::new(bitpill::presentation::tui::app_services::AppServices::from_container(&container));
 
@@ -73,11 +73,7 @@ fn render_medication_details_and_mark_dose_and_validation_error() {
     let meds = dir.path().join("meds.json");
     let doses = dir.path().join("doses.json");
     let settings = dir.path().join("settings.json");
-    let container = Arc::new(Container::new_with_paths(
-        meds.clone(),
-        doses.clone(),
-        settings,
-    ));
+    let container = Arc::new(Container::new(meds.clone(), doses.clone(), settings));
     let mut app =
         App::new(bitpill::presentation::tui::app_services::AppServices::from_container(&container));
 
@@ -88,6 +84,8 @@ fn render_medication_details_and_mark_dose_and_validation_error() {
         amount_mg: 10,
         scheduled_time: vec![(8, 0)],
         dose_frequency: "OnceDaily".to_string(),
+        taken_today: 0,
+        scheduled_today: 0,
     };
     app.medications.push(med);
 

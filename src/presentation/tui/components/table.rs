@@ -1,5 +1,5 @@
 use crate::application::dtos::responses::MedicationDto;
-use crate::presentation::tui::styles::{BORDER_COLOR, content_style, highlight_style, title_style};
+use crate::presentation::tui::styles::{content_style, highlight_style, title_style, BORDER_COLOR};
 use ratatui::layout::Constraint;
 use ratatui::widgets::{Block, Borders, Cell, Row, Table};
 
@@ -21,11 +21,19 @@ pub fn medication_table<'a>(
         .iter()
         .enumerate()
         .map(|(i, m)| {
-            // Build cells to match requested columns: Name, mg, optionally Actions
+            // Build cells to match requested columns: Name, mg, optionally Actions, optionally Taken
             let mut cells = vec![
                 Cell::from(m.name.clone()),
                 Cell::from(m.amount_mg.to_string()),
             ];
+            if columns.len() >= 4 {
+                let taken_str = if m.scheduled_today > 0 {
+                    format!("{}/{}", m.taken_today, m.scheduled_today)
+                } else {
+                    "-".to_string()
+                };
+                cells.push(Cell::from(taken_str));
+            }
             if columns.len() >= 3 {
                 cells.push(Cell::from("[e] Edit"));
             }
@@ -42,6 +50,15 @@ pub fn medication_table<'a>(
         2 => Table::new(
             rows,
             [Constraint::Percentage(70), Constraint::Percentage(30)],
+        ),
+        4 => Table::new(
+            rows,
+            [
+                Constraint::Percentage(40),
+                Constraint::Percentage(15),
+                Constraint::Percentage(15),
+                Constraint::Percentage(30),
+            ],
         ),
         _ => Table::new(
             rows,
@@ -66,9 +83,9 @@ pub fn medication_table<'a>(
 mod tests {
     use super::*;
     use crate::application::dtos::responses::MedicationDto;
-    use ratatui::Terminal;
     use ratatui::backend::TestBackend;
     use ratatui::layout::Rect;
+    use ratatui::Terminal;
 
     fn med(name: &str) -> MedicationDto {
         MedicationDto {
@@ -77,6 +94,8 @@ mod tests {
             amount_mg: 100,
             dose_frequency: "OnceDaily".to_string(),
             scheduled_time: vec![],
+            taken_today: 0,
+            scheduled_today: 0,
         }
     }
 
