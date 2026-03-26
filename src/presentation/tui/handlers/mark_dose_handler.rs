@@ -56,7 +56,10 @@ impl Handler for MarkDoseHandler {
                     if rec.id.starts_with("slot:") {
                         match crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort::execute(
                             &*app.services.mark_dose_taken,
-                            crate::application::dtos::requests::MarkDoseTakenRequest::new(rec.medication_id.clone(), rec.scheduled_at),
+                            crate::application::dtos::requests::MarkDoseTakenRequest::new_with_schedule(
+                                rec.medication_id.clone(),
+                                rec.scheduled_at,
+                            ),
                         ) {
                             Ok(_) => app.set_status("Marked scheduled slot as taken", 3000),
                             Err(e) => app.status_message = Some(format!("Error: {e}")),
@@ -66,16 +69,34 @@ impl Handler for MarkDoseHandler {
                             id: rec.medication_id.clone(),
                         };
                     } else {
-                        let req = MarkDoseTakenRequest::new(
-                            rec.id.clone(),
-                            chrono::Local::now().naive_local(),
-                        );
+                        let req = MarkDoseTakenRequest::new(rec.id.clone());
                         match crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort::execute(&*app.services.mark_dose_taken, req) {
-                            Ok(_) => app.set_status("Marked as taken", 3000),
+                            Ok(_) => {
+                                app.set_status("Marked as taken", 3000);
+                                app.load_medications();
+                                let new_records: Vec<crate::application::dtos::responses::DoseRecordDto> = match crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort::execute(
+                                    &*app.services.list_dose_records,
+                                    crate::application::dtos::requests::ListDoseRecordsRequest {
+                                        medication_id: med_id.clone(),
+                                    },
+                                ) {
+                                    Ok(resp) => {
+                                        let today = chrono::Local::now().date_naive();
+                                        resp.records.into_iter()
+                                            .filter(|r| r.scheduled_at.date() == today && r.taken_at.is_none())
+                                            .collect()
+                                    }
+                                    Err(_) => vec![],
+                                };
+                                let new_len = new_records.len();
+                                app.current_screen = Screen::MarkDose {
+                                    medication_id: med_id,
+                                    records: new_records,
+                                    selected_index: sel_idx.min(new_len.saturating_sub(1)),
+                                };
+                            }
                             Err(e) => app.status_message = Some(format!("Error: {e}")),
                         }
-                        app.current_screen = Screen::HomeScreen;
-                        app.load_medications();
                     }
                 }
             }
@@ -222,14 +243,14 @@ mod tests {
     }
 
     #[test]
-    fn enter_with_real_record_calls_mark_dose_taken_and_goes_home() {
+    fn enter_with_real_record_calls_mark_dose_taken_and_stays_on_mark_dose() {
         let mut app = app_with_mark_dose(vec![dto("real-id")]);
         let mut h = MarkDoseHandler;
 
         h.handle(&mut app, key(KeyCode::Enter));
 
-        // FakeMarkDoseTakenPort returns Ok → status message set, navigates home
-        assert!(matches!(app.current_screen, Screen::HomeScreen));
+        // FakeMarkDoseTakenPort returns Ok → status message set, stays on MarkDose with updated records
+        assert!(matches!(app.current_screen, Screen::MarkDose { .. }));
     }
 
     #[test]

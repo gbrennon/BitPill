@@ -27,6 +27,10 @@ impl JsonMedicationRepository {
         }
     }
 
+    pub fn path(&self) -> &PathBuf {
+        &self.path
+    }
+
     pub fn with_default_path() -> Self {
         let path = std::env::var("BITPILL_MEDICATIONS_FILE")
             .map(PathBuf::from)

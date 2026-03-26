@@ -2,14 +2,14 @@ use bitpill::infrastructure::container::Container;
 use bitpill::presentation::tui::app::App;
 use bitpill::presentation::tui::app_services::AppServices;
 use bitpill::presentation::tui::draw;
-use ratatui::Terminal;
 use ratatui::backend::TestBackend;
+use ratatui::Terminal;
 use tempfile::tempdir;
 
 #[test]
 fn medication_list_screen_renders_items_e2e() {
     let dir = tempdir().unwrap();
-    let container = Container::new_with_paths(
+    let container = Container::new(
         dir.path().join("medications.json"),
         dir.path().join("doses.json"),
         dir.path().join("settings.json"),
@@ -22,6 +22,8 @@ fn medication_list_screen_renders_items_e2e() {
             amount_mg: 500,
             scheduled_time: vec![],
             dose_frequency: "OnceDaily".to_string(),
+            taken_today: 0,
+            scheduled_today: 0,
         });
     app.medications
         .push(bitpill::application::dtos::responses::MedicationDto {
@@ -30,6 +32,8 @@ fn medication_list_screen_renders_items_e2e() {
             amount_mg: 200,
             scheduled_time: vec![],
             dose_frequency: "OnceDaily".to_string(),
+            taken_today: 0,
+            scheduled_today: 0,
         });
     app.selected_index = 0;
     let backend = TestBackend::new(80, 24);

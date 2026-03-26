@@ -1,6 +1,6 @@
-use ratatui::Terminal;
 use ratatui::backend::TestBackend;
 use ratatui::buffer::Buffer;
+use ratatui::Terminal;
 
 use std::sync::Arc;
 use tempfile::tempdir;
@@ -17,7 +17,7 @@ fn render_all_screens_does_not_panic_and_draws_something() {
     let meds = dir.path().join("meds.json");
     let doses = dir.path().join("doses.json");
     let settings = dir.path().join("settings.json");
-    let container = Arc::new(Container::new_with_paths(meds, doses, settings));
+    let container = Arc::new(Container::new(meds, doses, settings));
 
     // create a medication so lists/details have data
     {
