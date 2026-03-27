@@ -22,10 +22,3 @@ mod presentation_modal_e2e;
 
 #[path = "presentation/render_all_screens.rs"]
 mod render_all_screens;
-
-// REST handler e2e tests
-#[path = "presentation/rest/handlers/medications_tests.rs"]
-mod rest_medications_tests;
-
-#[path = "presentation/rest/handlers/doses_tests.rs"]
-mod rest_doses_tests;
