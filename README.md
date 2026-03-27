@@ -29,7 +29,7 @@ By building my own, I can tailor it exactly to my needs and ensure it works corr
 
 BitPill is designed to be simple to run locally without a lot of external dependencies.
 
-It uses JSON as the storage format and keeps data in memory for simplicity.
+It uses **JSON** as the storage format and keeps data in memory for simplicity.
 
 This means there are no database setup steps required.
 
@@ -53,6 +53,10 @@ just run-tui     # Terminal UI only
 ```
 
 ## Terminal UI (TUI)
+
+BitPill ships a TUI built with [ratatui](https://ratatui.rs).
+
+![Medication List](docs/screenshots/medication-list.png)
 
 This project was intended to be a terminal application from the start, so the TUI is the primary interface and the REST API is a secondary delivery adapter that still needs work.
 
@@ -200,28 +204,38 @@ src/
 
 ## Contributing
 
-### Before you start
+### Software structure
 
-1. Make sure `just` and a stable Rust toolchain are installed.
-2. Install dev tools: `just tools`
-3. Confirm everything passes before touching any code: `just`
+```
+src/application/
+├── dtos/
+│   ├── requests.rs    # All request DTOs (one file)
+│   └── responses.rs   # All response DTOs (one file)
+├── ports/
+│   ├── inbound/       # Port traits (one per file)
+│   ├── outbound/      # Repository/trait ports
+│   └── fakes/         # Test doubles
+└── services/          # Use-case implementations
+```
 
 ### Adding a new use case
 
-1. **Define the port** — create `src/application/ports/my_action_port.rs` with a `Request`, `Response`, and a `trait MyActionPort: Send + Sync`.
-2. **Implement the service** — create `src/application/services/my_action_service.rs`. Inject dependencies via `Arc<dyn SomePort>` in `new()`. No I/O allowed here.
-3. **Add a fake** — add `src/application/ports/fakes/fake_my_repo.rs` if the service needs a new repository port. Re-export it from `src/application/ports/fakes/mod.rs`.
-4. **Wire the container** — add the concrete adapter (if new) under `src/infrastructure/`, then add the service to `src/infrastructure/container.rs`.
-5. **Expose in presentation** — add a REST handler in `src/presentation/rest/handlers/` (WIP) and/or a TUI screen action.
+1. **Add DTOs** — add `Request` and `Response` structs to `dtos/requests.rs` and `dtos/responses.rs`.
+2. **Define the port** — create `src/application/ports/my_action_port.rs` with a trait.
+3. **Implement the service** — create `src/application/services/my_action_service.rs`. No I/O allowed.
+4. **Add a fake** — create test doubles in `src/application/ports/fakes/`.
+5. **Wire the container** — add concrete adapters in `src/infrastructure/`, then wire in `container.rs`.
+6. **Expose in presentation** — add a TUI handler (REST is WIP).
 
 ### Code conventions
 
-- **One primary type per file.** File name = type name in `snake_case`.
-- **Unit tests** go in a `#[cfg(test)]` block at the bottom of the file under test. Use fakes from `crate::application::ports::fakes`, never real I/O.
-- **Integration tests** go in `tests/` at the crate root and may use real infrastructure adapters.
-- **No magic numbers or strings** — use named constants.
-- **No `Box<dyn Error>`** in domain or application signatures — use typed error enums with `thiserror`.
-- **Domain stays pure** — no `chrono`, no `uuid`, no `async`, no I/O inside `src/domain/`.
+- **One primary type per file** — filename matches the type.
+- **DTOs in one file** — all requests in `requests.rs`, all responses in `responses.rs`.
+- **Imports grouped at file top** — use the `crate::application::{ ... }` pattern.
+- **Unit tests** — in `#[cfg(test)]` at bottom of source file.
+- **Integration tests** — in `tests/` at crate root.
+- **No magic numbers** — use named constants.
+- **Domain stays pure** — no `chrono`, `uuid`, `async`, or I/O in `src/domain/`.
 
 ### Running the full check suite
 
