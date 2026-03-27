@@ -3,14 +3,13 @@ use std::sync::Arc;
 use crate::infrastructure::container::Container;
 
 pub fn parse_mode(args: &mut impl Iterator<Item = String>) -> String {
-    args.nth(1).unwrap_or_else(|| "both".to_string())
+    args.nth(1).unwrap_or_else(|| "tui".to_string())
 }
 
 pub fn run_app(mode: &str, container: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     match mode {
-        "tui" => start_tui(container),
         "api" => start_api(container),
-        _ => start_both(container),
+        _ => start_tui(container),
     }
 }
 
@@ -24,7 +23,7 @@ fn start_tui(_: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[cfg(not(test))]
+#[cfg(all(not(test), feature = "rest-api"))]
 fn start_api(container: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     tokio::runtime::Runtime::new()
         .expect("failed to create tokio runtime")
@@ -36,31 +35,14 @@ fn start_api(container: Arc<Container>) -> Result<(), Box<dyn std::error::Error>
     Ok(())
 }
 
-#[cfg(test)]
+#[cfg(all(not(test), not(feature = "rest-api")))]
 fn start_api(_: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
+    eprintln!("REST API not enabled. Compile with --features rest-api to enable.");
     Ok(())
 }
 
-#[cfg(not(test))]
-fn start_both(container: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
-    let rest_container = container.clone();
-    std::thread::spawn(move || {
-        tokio::runtime::Runtime::new()
-            .expect("failed to create tokio runtime")
-            .block_on(async move {
-                crate::presentation::rest::RestServer::run_with_addr(
-                    rest_container,
-                    "0.0.0.0:8080",
-                )
-                .await
-                .expect("REST server error");
-            });
-    });
-    crate::presentation::tui::app::App::run(container)
-}
-
 #[cfg(test)]
-fn start_both(_: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
+fn start_api(_: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
@@ -91,9 +73,9 @@ mod tests {
     }
 
     #[test]
-    fn parse_mode_defaults_to_both_when_no_second_argument() {
+    fn parse_mode_defaults_to_tui_when_no_second_argument() {
         let args = vec!["binary".to_string()];
-        assert_eq!(parse_mode(&mut args.into_iter()), "both");
+        assert_eq!(parse_mode(&mut args.into_iter()), "tui");
     }
 
     #[test]
@@ -103,19 +85,20 @@ mod tests {
     }
 
     #[test]
-    fn run_app_with_api_mode_returns_ok() {
+    fn run_app_with_api_mode_returns_ok_when_feature_disabled() {
         let (container, _dir) = make_container();
-        run_app("api", container).unwrap();
+        let result = run_app("api", container);
+        assert!(result.is_ok());
     }
 
     #[test]
-    fn run_app_with_both_mode_returns_ok() {
+    fn run_app_with_default_mode_returns_tui() {
         let (container, _dir) = make_container();
-        run_app("both", container).unwrap();
+        run_app("default", container).unwrap();
     }
 
     #[test]
-    fn run_app_with_unknown_mode_falls_through_to_both() {
+    fn run_app_with_unknown_mode_falls_through_to_tui() {
         let (container, _dir) = make_container();
         run_app("unknown", container).unwrap();
     }
