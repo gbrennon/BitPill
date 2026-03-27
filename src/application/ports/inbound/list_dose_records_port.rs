@@ -1,6 +1,7 @@
-use crate::application::dtos::requests::ListDoseRecordsRequest;
-use crate::application::dtos::responses::ListDoseRecordsResponse;
-use crate::application::errors::ApplicationError;
+use crate::application::{
+    dtos::{requests::ListDoseRecordsRequest, responses::ListDoseRecordsResponse},
+    errors::ApplicationError,
+};
 
 pub trait ListDoseRecordsPort: Send + Sync {
     fn execute(
