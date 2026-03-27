@@ -44,7 +44,7 @@ commands for a human to run.
 | **Domain** | Business rules, invariants, entities, value objects |
 | **Application** | Use-case orchestration (no I/O). Owns port traits. |
 | **Infrastructure** | Concrete implementations: persistence, timers, notifications |
-| **Presentation** | Delivery adapter: CLI, TUI, REST, etc. |
+| **Presentation** | Delivery adapter: CLI, TUI (WIP: REST, CLI) |
 
 Dependencies always point **inward**:
 `Presentation → Application → Domain`
