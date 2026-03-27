@@ -60,8 +60,6 @@ BitPill ships a TUI built with [ratatui](https://ratatui.rs).
 
 This project was intended to be a terminal application from the start, so the TUI is the primary interface and the REST API is a secondary delivery adapter that still needs work.
 
-To launch it instead of the REST server, replace `main.rs` with:
-
 ### TUI keyboard shortcuts
 
 #### VIM Modes
