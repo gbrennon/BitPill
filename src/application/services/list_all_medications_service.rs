@@ -1,11 +1,19 @@
 use std::sync::Arc;
 
-use crate::application::dtos::requests::ListAllMedicationsRequest;
-use crate::application::dtos::responses::{ListAllMedicationsResponse, MedicationDto};
-use crate::application::errors::ApplicationError;
-use crate::application::ports::dose_record_repository_port::DoseRecordRepository;
-use crate::application::ports::list_all_medications_port::ListAllMedicationsPort;
-use crate::application::ports::medication_repository_port::MedicationRepository;
+use crate::application::{
+    dtos::{
+        requests::ListAllMedicationsRequest,
+        responses::{ListAllMedicationsResponse, MedicationDto},
+    },
+    errors::ApplicationError,
+    ports::{
+        list_all_medications_port::ListAllMedicationsPort,
+        outbound::{
+            dose_record_repository_port::DoseRecordRepository,
+            medication_repository_port::MedicationRepository,
+        },
+    },
+};
 
 pub struct ListAllMedicationsService {
     repository: Arc<dyn MedicationRepository>,

@@ -1,6 +1,7 @@
-use crate::application::dtos::requests::GetMedicationRequest;
-use crate::application::dtos::responses::GetMedicationResponse;
-use crate::application::errors::ApplicationError;
+use crate::application::{
+    dtos::{requests::GetMedicationRequest, responses::GetMedicationResponse},
+    errors::ApplicationError,
+};
 
 pub trait GetMedicationPort: Send + Sync {
     fn execute(

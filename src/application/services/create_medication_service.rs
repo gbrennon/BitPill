@@ -1,11 +1,14 @@
 use std::convert::TryFrom;
 use std::sync::Arc;
 
-use crate::application::dtos::requests::CreateMedicationRequest;
-use crate::application::dtos::responses::CreateMedicationResponse;
-use crate::application::errors::ApplicationError;
-use crate::application::ports::create_medication_port::CreateMedicationPort;
-use crate::application::ports::medication_repository_port::MedicationRepository;
+use crate::application::{
+    dtos::{requests::CreateMedicationRequest, responses::CreateMedicationResponse},
+    errors::ApplicationError,
+    ports::{
+        create_medication_port::CreateMedicationPort,
+        outbound::medication_repository_port::MedicationRepository,
+    },
+};
 use crate::domain::entities::medication::Medication;
 
 pub struct CreateMedicationService {
