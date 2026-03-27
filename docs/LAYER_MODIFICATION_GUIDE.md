@@ -10,7 +10,7 @@ Repository structure (high level)
   - domain/           — pure domain objects (entities, value objects, domain errors)
   - application/      — ports (traits) and use-case services that orchestrate domain
   - infrastructure/   — concrete adapters (persistence, clocks, notifications) and container.rs (composition root)
-  - presentation/     — UI adapters (TUI, REST, CLI). Keep presentation code thin; inject services and ports.
+  - presentation/     — UI adapters (TUI, WIP: REST, CLI). Keep presentation code thin; inject services and ports.
 - tests/              — integration and end-to-end tests for the whole application
 - docs/               — guides and other documentation
 

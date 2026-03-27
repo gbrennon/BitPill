@@ -99,7 +99,7 @@ Press `i` to enter insert mode when a form field is selected, and `Esc` to exit 
 
 ### REST API
 
-wip
+**Status: WIP** — The REST API is under development and not yet ready for production use.
 
 ---
 
@@ -144,7 +144,7 @@ BitPill follows **Hexagonal Architecture** (Ports & Adapters). Dependencies alwa
 ```
 ┌──────────────────────────────────────────┐
 │            Presentation Layer            │
-│            (TUI, REST API)               │
+│            (TUI)                         │
 ├──────────────────────────────────────────┤
 │          Infrastructure Layer            │
 │   (Persistence, Clock, Notifications)    │
@@ -165,7 +165,7 @@ BitPill follows **Hexagonal Architecture** (Ports & Adapters). Dependencies alwa
 | **Domain** | Core business rules — `Medication`, `DoseRecord`, `Dosage`, `ScheduledTime`, etc. Zero external dependencies; pure logic only. |
 | **Application** | Use-case services (`CreateMedicationService`, `MarkDoseTakenService`, `ScheduleDoseService`, `ListAllMedicationsService`). Defines port traits that infrastructure implements. |
 | **Infrastructure** | Concrete adapters: `InMemoryMedicationRepository`, `InMemoryDoseRecordRepository`, `SystemClock`, `ConsoleNotificationAdapter`. Wired together in `container.rs`. |
-| **Presentation** | Delivery adapters — `rest/` (actix-web HTTP API) and `tui/` (ratatui terminal UI). |
+| **Presentation** | Delivery adapters — `tui/` (ratatui terminal UI, **WIP**: `rest/` actix-web HTTP API) |
 
 ### Module layout
 
@@ -183,7 +183,7 @@ src/
 │   ├── persistence/       # InMemoryMedicationRepository, InMemoryDoseRecordRepository
 │   └── container.rs       # Composition root
 └── presentation/
-    ├── rest/              # actix-web server + handlers
+    ├── rest/              # actix-web server + handlers (WIP)
     └── tui/               # ratatui app + screens + event handling
 ```
 
@@ -212,7 +212,7 @@ src/
 2. **Implement the service** — create `src/application/services/my_action_service.rs`. Inject dependencies via `Arc<dyn SomePort>` in `new()`. No I/O allowed here.
 3. **Add a fake** — add `src/application/ports/fakes/fake_my_repo.rs` if the service needs a new repository port. Re-export it from `src/application/ports/fakes/mod.rs`.
 4. **Wire the container** — add the concrete adapter (if new) under `src/infrastructure/`, then add the service to `src/infrastructure/container.rs`.
-5. **Expose in presentation** — add a REST handler in `src/presentation/rest/handlers/` and/or a TUI screen action.
+5. **Expose in presentation** — add a REST handler in `src/presentation/rest/handlers/` (WIP) and/or a TUI screen action.
 
 ### Code conventions
 
