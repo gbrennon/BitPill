@@ -14,17 +14,17 @@ pub fn run_app(mode: &str, container: Arc<Container>) -> Result<(), Box<dyn std:
     }
 }
 
-#[cfg(not(any(test, feature = "test-helpers")))]
+#[cfg(not(test))]
 fn start_tui(container: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     crate::presentation::tui::app::App::run(container)
 }
 
-#[cfg(any(test, feature = "test-helpers"))]
+#[cfg(test)]
 fn start_tui(_: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[cfg(not(any(test, feature = "test-helpers")))]
+#[cfg(not(test))]
 fn start_api(container: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     tokio::runtime::Runtime::new()
         .expect("failed to create tokio runtime")
@@ -36,12 +36,12 @@ fn start_api(container: Arc<Container>) -> Result<(), Box<dyn std::error::Error>
     Ok(())
 }
 
-#[cfg(any(test, feature = "test-helpers"))]
+#[cfg(test)]
 fn start_api(_: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[cfg(not(any(test, feature = "test-helpers")))]
+#[cfg(not(test))]
 fn start_both(container: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     let rest_container = container.clone();
     std::thread::spawn(move || {
@@ -59,7 +59,7 @@ fn start_both(container: Arc<Container>) -> Result<(), Box<dyn std::error::Error
     crate::presentation::tui::app::App::run(container)
 }
 
-#[cfg(any(test, feature = "test-helpers"))]
+#[cfg(test)]
 fn start_both(_: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
