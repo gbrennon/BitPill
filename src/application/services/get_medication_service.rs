@@ -1,12 +1,20 @@
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::application::dtos::requests::GetMedicationRequest;
-use crate::application::dtos::responses::{GetMedicationResponse, MedicationDto};
-use crate::application::errors::{ApplicationError, NotFoundError};
-use crate::application::ports::inbound::get_medication_port::GetMedicationPort;
-use crate::application::ports::outbound::dose_record_repository_port::DoseRecordRepository;
-use crate::application::ports::outbound::medication_repository_port::MedicationRepository;
+use crate::application::{
+    dtos::{
+        requests::GetMedicationRequest,
+        responses::{GetMedicationResponse, MedicationDto},
+    },
+    errors::{ApplicationError, NotFoundError},
+    ports::{
+        inbound::get_medication_port::GetMedicationPort,
+        outbound::{
+            dose_record_repository_port::DoseRecordRepository,
+            medication_repository_port::MedicationRepository,
+        },
+    },
+};
 use crate::domain::value_objects::medication_id::MedicationId;
 
 pub struct GetMedicationService {
