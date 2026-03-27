@@ -1,6 +1,7 @@
-use crate::application::dtos::requests::SettingsRequest;
-use crate::application::dtos::responses::SettingsResponse;
-use crate::application::errors::ApplicationError;
+use crate::application::{
+    dtos::{requests::SettingsRequest, responses::SettingsResponse},
+    errors::ApplicationError,
+};
 
 /// Inbound application port for settings-related use-cases.
 /// Single execute method taking a Request DTO and returning a Response DTO.
