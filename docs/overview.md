@@ -1,13 +1,46 @@
 # BitPill — Product Overview
 
-BitPill is a medication management application. It lets users register medications
-they have in stock and receive reminders at each scheduled administration time.
+BitPill is a medication management TUI application. Users register medications
+and receive reminders at scheduled times.
 
-Note: authoritative agent/runtime instructions for Copilot and automated agents live in
-`.github/instructions/copilot-cli.instructions.md`. These instruction files are read at runtime by
-Copilot CLI and influence agent behavior for this repository. Agents are explicitly forbidden from
-performing any Git operations or inspecting the .git directory; any Git steps must be provided as
-commands for a human to run.
+> **Note:** Only the TUI is released. REST API is WIP.
+
+---
+
+## Project Structure
+
+```
+src/
+├── domain/                    # Pure business logic (no I/O)
+│   ├── entities/             # Medication, DoseRecord
+│   ├── value_objects/        # Dosage, MedicationId, ScheduledTime, etc.
+│   └── errors.rs             # Domain errors
+│
+├── application/              # Use-case orchestration
+│   ├── dtos/                 # Request/Response DTOs
+│   │   ├── requests.rs       # All request structs
+│   │   └── responses.rs      # All response structs
+│   ├── ports/                # Port traits
+│   │   ├── inbound/          # Use-case ports (CreateMedicationPort, etc.)
+│   │   ├── outbound/         # Repository/trait ports
+│   │   └── fakes/            # Test doubles
+│   ├── services/             # Use-case implementations
+│   └── errors.rs             # Application errors
+│
+├── infrastructure/           # Concrete implementations
+│   ├── clock/               # SystemClock
+│   ├── notifications/       # ConsoleNotificationAdapter
+│   ├── persistence/         # JSON repositories
+│   └── container.rs         # Composition root
+│
+└── presentation/
+    └── tui/                 # ratatui UI (this is what's released)
+        ├── app.rs           # App state, event loop
+        ├── presenters/      # Screen renderers
+        ├── handlers/        # Event handlers
+        ├── components/      # Reusable widgets
+        └── templates/       # Layout templates
+```
 
 ---
 
@@ -34,21 +67,6 @@ commands for a human to run.
 │  5. DoseRecord is updated: taken_at = now                       │
 └─────────────────────────────────────────────────────────────────┘
 ```
-
----
-
-## Layers
-
-| Layer | Responsibility |
-|---|---|
-| **Domain** | Business rules, invariants, entities, value objects |
-| **Application** | Use-case orchestration (no I/O). Owns port traits. |
-| **Infrastructure** | Concrete implementations: persistence, timers, notifications |
-| **Presentation** | Delivery adapter: CLI, TUI (WIP: REST, CLI) |
-
-Dependencies always point **inward**:
-`Presentation → Application → Domain`
-`Infrastructure → Application → Domain`
 
 ---
 
