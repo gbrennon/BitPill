@@ -1,10 +1,16 @@
 use std::sync::Arc;
 
-use crate::application::dtos::requests::{SettingsOperation, SettingsRequest};
-use crate::application::dtos::responses::SettingsResponse;
-use crate::application::errors::ApplicationError;
-use crate::application::ports::inbound::settings_port::SettingsPort;
-use crate::application::ports::settings_repository_port::SettingsRepositoryPort;
+use crate::application::{
+    dtos::{
+        requests::{SettingsOperation, SettingsRequest},
+        responses::SettingsResponse,
+    },
+    errors::ApplicationError,
+    ports::{
+        inbound::settings_port::SettingsPort,
+        outbound::settings_repository_port::SettingsRepositoryPort,
+    },
+};
 
 pub struct SettingsService {
     repository: Arc<dyn SettingsRepositoryPort>,

@@ -1,11 +1,14 @@
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::application::dtos::requests::DeleteMedicationRequest;
-use crate::application::dtos::responses::DeleteMedicationResponse;
-use crate::application::errors::ApplicationError;
-use crate::application::ports::inbound::delete_medication_port::DeleteMedicationPort;
-use crate::application::ports::outbound::medication_repository_port::MedicationRepository;
+use crate::application::{
+    dtos::{requests::DeleteMedicationRequest, responses::DeleteMedicationResponse},
+    errors::ApplicationError,
+    ports::{
+        inbound::delete_medication_port::DeleteMedicationPort,
+        outbound::medication_repository_port::MedicationRepository,
+    },
+};
 use crate::domain::value_objects::medication_id::MedicationId;
 
 pub struct DeleteMedicationService {
