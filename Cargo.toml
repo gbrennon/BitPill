@@ -1,7 +1,14 @@
 [package]
 name = "bitpill"
-version = "0.1.0"
+version = "0.3.2"
 edition = "2024"
+description = "A personal medication management TUI application built in Rust."
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/gbrennon/BitPill"
+homepage = "https://github.com/gbrennon/BitPill"
+keywords = ["medication", "health", "tui", "ratatui", "cli"]
+categories = ["command-line-utilities", "health", "terminals"]
 
 [features]
 default = ["test-helpers"]
