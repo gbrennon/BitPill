@@ -8,17 +8,9 @@ default: fmt-check lint test
 build:
     cargo build
 
-# Run the REST API server
-run-api:
-    cargo run --bin bitpill -- api
-
 # Run the terminal UI
-run-tui:
-    cargo run --bin bitpill -- tui
-
-# Run both the REST server (background) and the TUI (foreground)
 run:
-    cargo run --bin bitpill
+    cargo run --release
 
 # Run all tests with coverage
 test:
@@ -55,7 +47,7 @@ tools:
 
 # Validate workflow files statically (requires actionlint)
 lint-workflows:
-    actionlint .forgejo/workflows/*.yml
+    actionlint .github/workflows/*.yml
 
 # Remove build artifacts
 clean:
