@@ -3,11 +3,14 @@ use std::sync::Arc;
 
 use uuid::Uuid;
 
-use crate::application::dtos::requests::UpdateMedicationRequest;
-use crate::application::dtos::responses::UpdateMedicationResponse;
-use crate::application::errors::ApplicationError;
-use crate::application::ports::inbound::update_medication_port::UpdateMedicationPort;
-use crate::application::ports::outbound::medication_repository_port::MedicationRepository;
+use crate::application::{
+    dtos::{requests::UpdateMedicationRequest, responses::UpdateMedicationResponse},
+    errors::ApplicationError,
+    ports::{
+        inbound::update_medication_port::UpdateMedicationPort,
+        outbound::medication_repository_port::MedicationRepository,
+    },
+};
 use crate::domain::entities::medication::Medication;
 use crate::domain::value_objects::medication_id::MedicationId;
 

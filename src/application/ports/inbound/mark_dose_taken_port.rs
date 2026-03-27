@@ -1,6 +1,7 @@
-use crate::application::dtos::requests::MarkDoseTakenRequest;
-use crate::application::dtos::responses::MarkDoseTakenResponse;
-use crate::application::errors::ApplicationError;
+use crate::application::{
+    dtos::{requests::MarkDoseTakenRequest, responses::MarkDoseTakenResponse},
+    errors::ApplicationError,
+};
 
 pub trait MarkDoseTakenPort: Send + Sync {
     fn execute(

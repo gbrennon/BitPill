@@ -1,6 +1,7 @@
-use crate::application::dtos::requests::DeleteMedicationRequest;
-use crate::application::dtos::responses::DeleteMedicationResponse;
-use crate::application::errors::ApplicationError;
+use crate::application::{
+    dtos::{requests::DeleteMedicationRequest, responses::DeleteMedicationResponse},
+    errors::ApplicationError,
+};
 
 pub trait DeleteMedicationPort: Send + Sync {
     fn execute(
