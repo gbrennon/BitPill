@@ -1,9 +1,6 @@
 use crate::application::{
-    dtos::{
-        requests::ScheduleDoseRequest,
-        responses::ScheduleDoseResponse
-    },
-    errors::ApplicationError
+    dtos::{requests::ScheduleDoseRequest, responses::ScheduleDoseResponse},
+    errors::ApplicationError,
 };
 
 /// A scheduling tick port. The service uses its injected [`ClockPort`] to determine

@@ -9,20 +9,38 @@ set -euo pipefail
 # ========================================
 
 resolve_current_branch_name() {
-  if [ "$EVENT_NAME" = "pull_request" ]; then
-    echo "$HEAD_REF"
+  local event_name="${GITHUB_EVENT_NAME:-${GITEA_ACTOR:-}}"
+  local head_ref="${GITHUB_HEAD_REF:-${GITEA_PULL_REQUEST_HEAD_REF:-}}"
+  local github_ref="${GITHUB_REF:-${GITEA_REF:-}}"
+  if [ "$event_name" = "pull_request" ] || [ -n "$head_ref" ]; then
+    echo "$head_ref"
+  elif [ -n "$github_ref" ]; then
+    echo "${github_ref#refs/heads/}"
   else
-    echo "${GITHUB_REF_NAME:-${GITHUB_REF#refs/heads/}}"
+    git rev-parse --abbrev-ref HEAD 2>/dev/null || echo ""
   fi
 }
 
 resolve_commit_range() {
-  if [ "$EVENT_NAME" = "pull_request" ] && \
-     git rev-parse --verify "origin/${BASE_REF}" >/dev/null 2>&1 && \
-     git rev-parse --verify "origin/${HEAD_REF}" >/dev/null 2>&1; then
-    echo "origin/${BASE_REF}..origin/${HEAD_REF}"
+  local event_name="${GITHUB_EVENT_NAME:-}"
+  local base_ref="${GITHUB_BASE_REF:-${GITEA_PULL_REQUEST_BASE_REF:-}}"
+  local head_ref="${GITHUB_HEAD_REF:-${GITEA_PULL_REQUEST_HEAD_REF:-}}"
+  if [ "$event_name" = "pull_request" ] || [ -n "$head_ref" ]; then
+    if [ -n "$base_ref" ] && [ -n "$head_ref" ] && \
+       git rev-parse --verify "origin/${base_ref}" >/dev/null 2>&1 && \
+       git rev-parse --verify "origin/${head_ref}" >/dev/null 2>&1; then
+      echo "origin/${base_ref}..origin/${head_ref}"
+    else
+      echo ""
+    fi
   else
-    echo ""
+    local current_branch
+    current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+    if [ -n "$current_branch" ]; then
+      echo "HEAD~1..${current_branch}"
+    else
+      echo ""
+    fi
   fi
 }
 
@@ -67,7 +85,7 @@ install_rustup_if_missing() {
 
 source_cargo_env_if_present() {
   if [[ -f "$HOME/.cargo/env" ]]; then
-    # shellcheck disable=SC1090
+    # shellcheck disable=SC1091
     source "$HOME/.cargo/env" || true
   fi
 }
@@ -88,7 +106,7 @@ install_cargo_tool_if_missing() {
   local tool_name="$1"
   local install_cmd="$2"
   
-  if [[ -z "${CI:-}" ]] && command -v "$tool_name" >/dev/null 2>&1; then
+  if command -v "$tool_name" >/dev/null 2>&1; then
     return
   fi
   
@@ -131,23 +149,23 @@ extract_coverage_totals_from_json() {
   lines_percent=${lines_percent:-0}
   functions_percent=${functions_percent:-0}
   regions_percent=${regions_percent:-0}
+
+  export lines_count lines_covered lines_percent functions_percent regions_percent
 }
 
 normalize_path() {
   local path="$1"
-  # Strip any leading absolute or relative prefix up to the src/ directory
-  path=$(echo "$path" | sed 's|.*/src/|src/|')
-  # Remap bare layer paths that live under src/presentation/
-  # Covers: tui/, rest/, dtos/, application/, domain/, infrastructure/, presentation/
-  path=$(echo "$path" | sed \
-    -e 's|^tui/|src/presentation/tui/|' \
-    -e 's|^rest/|src/presentation/rest/|' \
-    -e 's|^dtos/|src/application/dtos/|' \
-    -e 's|^application/|src/application/|' \
-    -e 's|^domain/|src/domain/|' \
-    -e 's|^infrastructure/|src/infrastructure/|' \
-    -e 's|^presentation/|src/presentation/|' \
-  )
+  path="${path##*/src/}"
+  path="src/${path}"
+  case "$path" in
+    tui/*)      path="src/presentation/${path#tui/}" ;;
+    rest/*)     path="src/presentation/${path#rest/}" ;;
+    dtos/*)     path="src/application/${path#dtos/}" ;;
+    application/*) path="src/application/${path#application/}" ;;
+    domain/*)   path="src/domain/${path#domain/}" ;;
+    infrastructure/*) path="src/infrastructure/${path#infrastructure/}" ;;
+    presentation/*) path="src/presentation/${path#presentation/}" ;;
+  esac
   echo "$path"
 }
 
@@ -178,6 +196,8 @@ extract_missing_lines() {
 }
 
 print_coverage_table() {
+  extract_coverage_totals_from_json
+
   printf "\n"
 
   # Collect normalized rows into a temp file so we can measure column widths first
@@ -233,7 +253,7 @@ print_coverage_table() {
     if [ "$miss" -gt 0 ]; then
       missing_lines=$(extract_missing_lines "$raw_path")
       # Truncate very long missing line lists to prevent table breakage
-      if [ ${#missing_lines} -gt $max_missing_len ]; then
+      if [ "${#missing_lines}" -gt "$max_missing_len" ]; then
         missing_lines="${missing_lines:0:$((max_missing_len-4))} ..."
       fi
     fi
@@ -253,6 +273,7 @@ print_coverage_table() {
 }
 
 abort_if_line_coverage_is_below_threshold() {
+  extract_coverage_totals_from_json
   local threshold="$1"
   local passes
   passes=$(awk -v p="$lines_percent" -v t="$threshold" \

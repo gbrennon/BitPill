@@ -45,9 +45,9 @@ mod tests {
     use super::*;
     use crate::application::dtos::responses::MedicationDto;
     use chrono::NaiveDate;
+    use ratatui::Terminal;
     use ratatui::backend::TestBackend;
     use ratatui::layout::Rect;
-    use ratatui::Terminal;
 
     fn med(with_schedule: bool) -> MedicationDto {
         MedicationDto {

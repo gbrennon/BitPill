@@ -1,9 +1,7 @@
 use chrono::NaiveDateTime;
 
 use crate::domain::value_objects::{
-    dosage::Dosage,
-    medication_id::MedicationId,
-    medication_refill_id::MedicationRefillId,
+    dosage::Dosage, medication_id::MedicationId, medication_refill_id::MedicationRefillId,
 };
 
 /// Records a physical purchase of a medication package.
