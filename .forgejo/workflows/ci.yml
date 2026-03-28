@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: codeberg-small
     env:
       CARGO_TERM_COLOR: always
     steps:
@@ -61,7 +61,7 @@ jobs:
         run: bash scripts/show_coverage_report.sh
 
   lint:
-    runs-on: ubuntu-latest
+    runs-on: codeberg-small
     env:
       CARGO_TERM_COLOR: always
     steps:
@@ -99,7 +99,7 @@ jobs:
           just lint
 
   validate:
-    runs-on: ubuntu-latest
+    runs-on: codeberg-small
     steps:
       - uses: actions/checkout@v4
 
