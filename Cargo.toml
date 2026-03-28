@@ -13,6 +13,7 @@ categories = ["command-line-utilities", "health", "terminals"]
 [features]
 default = ["test-helpers"]
 test-helpers = []
+rest-api = ["dep:actix-web", "dep:tokio"]
 
 [dependencies]
 thiserror = "2"
@@ -20,11 +21,11 @@ uuid = { version = "1", features = ["v7", "std", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 ratatui = "0.29"
 crossterm = "0.28"
-actix-web = "4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tokio = { version = "1", features = ["full"] }
 dirs = "6"
+actix-web = { version = "4", optional = true }
+tokio = { version = "1", features = ["full"], optional = true }
 
 [dev-dependencies]
 tempfile = "3"

@@ -8,9 +8,9 @@ Repository structure (high level)
 
 - src/
   - domain/           — pure domain objects (entities, value objects, domain errors)
-  - application/      — ports (traits) and use-case services that orchestrate domain
+  - application/      — DTOs, ports (traits) and use-case services that orchestrate domain
   - infrastructure/   — concrete adapters (persistence, clocks, notifications) and container.rs (composition root)
-  - presentation/     — UI adapters (TUI, WIP: REST, CLI). Keep presentation code thin; inject services and ports.
+  - presentation/     — TUI adapters. REST API is WIP (not released).
 - tests/              — integration and end-to-end tests for the whole application
 - docs/               — guides and other documentation
 
@@ -65,8 +65,9 @@ When modifying infrastructure:
 4) Presentation (src/presentation)
 
 - Purpose: UI adapters that translate user events into application port calls. Keep presentation code thin and side-effect-light.
+- Current: Only TUI (ratatui) is released. REST API is WIP.
 - Structure: separate presenters, handlers, and dumb components. Handlers and presenters should be defined by ports (traits) so they are easily testable.
-- Styles and components: centralize styles (e.g., src/presentation/tui/tui_styles.rs) and make components dumb: accept data+handlers, do not call services directly.
+- Styles and components: centralize styles and make components dumb: accept data+handlers, do not call services directly.
 
 When modifying presentation:
 - Add/modify presenter: create a presenters/ submodule with a presenter_port.rs trait and concrete implementation that handles UI rendering logic.
