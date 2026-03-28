@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1091
 # Run tests matching a given filter.
 #
 # The FILTER argument is passed directly to `cargo test`, so it matches against
@@ -31,11 +32,10 @@ usage() {
 
 to_module_filter() {
   local input="$1"
-  # If it looks like a file path, convert src/a/b/c.rs -> a::b::c
   if [[ "$input" == *.rs ]] || [[ "$input" == src/* ]] || [[ "$input" == */* ]]; then
-    input="${input#src/}"          # strip leading src/
-    input="${input%.rs}"           # strip .rs extension
-    input=$(echo "$input" | sed 's|/|::|g')  # slashes -> ::
+    input="${input#src/}"
+    input="${input%.rs}"
+    input="${input//\//::}"
   fi
   echo "$input"
 }
