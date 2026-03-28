@@ -43,7 +43,7 @@ fmt-check:
 # Install required dev tools
 tools:
     rustup component add rustfmt clippy
-    cargo install cargo-llvm-cov --locked
+    cargo install cargo-llvm-cov --locked --force
 
 # Validate workflow files statically (requires actionlint)
 lint-workflows:
