@@ -597,7 +597,7 @@ pub fn update(&mut self, status: bool) { /* ... */ }
 
 // ✅ Speaks the domain language
 pub fn mark_taken(&mut self, at: NaiveDateTime) -> Result<(), DomainError> { /* ... */ }
-pub fn mark_missed(&mut self) -> Result<(), DomainError> { /* ... */ }
+// (future: mark_missed)
 ```
 
 Method names should read like sentences in the domain's vocabulary.
