@@ -1,6 +1,6 @@
 use crate::application::dtos::responses::MedicationDto;
 use crate::presentation::tui::components::item::medication_item;
-use crate::presentation::tui::styles::{content_style, BORDER_COLOR};
+use crate::presentation::tui::styles::{BORDER_COLOR, content_style};
 use ratatui::widgets::{Block, Borders, List, ListItem};
 
 /// Dumb list component: accepts domain DTOs and builds styled list items

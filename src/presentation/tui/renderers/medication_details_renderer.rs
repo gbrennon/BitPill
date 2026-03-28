@@ -46,8 +46,8 @@ mod tests {
     use crate::application::dtos::responses::MedicationDto;
     use crate::presentation::tui::app::App;
     use crate::presentation::tui::app_services::AppServices;
-    use ratatui::backend::TestBackend;
     use ratatui::Terminal;
+    use ratatui::backend::TestBackend;
 
     #[test]
     fn render_on_medication_details_screen_does_not_panic() {

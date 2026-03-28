@@ -4,8 +4,8 @@ use crate::presentation::tui::components::table::medication_table;
 use crate::presentation::tui::templates::screen_template::ScreenTemplate;
 
 // External crates
-use ratatui::widgets::ListState;
 use ratatui::Frame;
+use ratatui::widgets::ListState;
 
 pub struct MedicationListPresenter;
 

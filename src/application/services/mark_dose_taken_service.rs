@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use chrono::Local;
+use std::sync::Arc;
 
 use uuid::Uuid;
 
@@ -9,18 +9,12 @@ use crate::{
         errors::{ApplicationError, NotFoundError},
         ports::{
             inbound::mark_dose_taken_port::MarkDoseTakenPort,
-            outbound::{
-                DoseRecordRepository,
-                MedicationRepository
-            }
+            outbound::{DoseRecordRepository, MedicationRepository},
         },
     },
     domain::{
         entities::dose_record::DoseRecord,
-        value_objects::{
-            dose_record_id::DoseRecordId,
-            medication_id::MedicationId,
-        }
+        value_objects::{dose_record_id::DoseRecordId, medication_id::MedicationId},
     },
 };
 
@@ -103,19 +97,11 @@ impl MarkDoseTakenPort for MarkDoseTakenService {
 mod tests {
     use super::*;
     use crate::{
-        application::ports::fakes::{
-            FakeDoseRecordRepository,
-            FakeMedicationRepository
-        },
+        application::ports::fakes::{FakeDoseRecordRepository, FakeMedicationRepository},
         domain::{
             entities::medication::Medication,
-            value_objects::{
-                MedicationId,
-                MedicationName,
-                Dosage,
-                DoseFrequency
-            }
-        }
+            value_objects::{Dosage, DoseFrequency, MedicationId, MedicationName},
+        },
     };
     use chrono::NaiveDate;
     use uuid::Uuid;
@@ -151,10 +137,7 @@ mod tests {
     #[test]
     fn execute_when_record_exists_marks_and_saves() {
         let med_id = MedicationId::generate();
-        let record = DoseRecord::new(
-            med_id.clone(),
-            make_datetime(8, 0),
-        );
+        let record = DoseRecord::new(med_id.clone(), make_datetime(8, 0));
         let repo = Arc::new(FakeDoseRecordRepository::with(record.clone()));
         let med_repo = Arc::new(FakeMedicationRepository::new());
         let service = make_service(repo.clone(), med_repo);

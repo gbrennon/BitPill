@@ -80,16 +80,15 @@ impl Handler for EventHandler {
 
                             let today = Local::now().date_naive();
                             // fetch ALL dose records for this medication (not just today's)
-                            let all_records: Vec<DoseRecordDto> =
-                                match ListDoseRecordsPort::execute(
-                                    &*app.services.list_dose_records,
-                                    ListDoseRecordsRequest {
-                                        medication_id: m.id.clone(),
-                                    },
-                                ) {
-                                    Ok(resp) => resp.records,
-                                    Err(_) => Vec::new(),
-                                };
+                            let all_records: Vec<DoseRecordDto> = match ListDoseRecordsPort::execute(
+                                &*app.services.list_dose_records,
+                                ListDoseRecordsRequest {
+                                    medication_id: m.id.clone(),
+                                },
+                            ) {
+                                Ok(resp) => resp.records,
+                                Err(_) => Vec::new(),
+                            };
 
                             // Only include untaken records
                             let mut records: Vec<DoseRecordDto> = all_records

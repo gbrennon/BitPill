@@ -5,8 +5,8 @@ use crate::presentation::tui::templates::screen_template::ScreenTemplate;
 // External crates
 use crate::presentation::tui::styles::{content_style, highlight_style};
 use chrono::Datelike;
-use ratatui::text::{Line, Span};
 use ratatui::Frame;
+use ratatui::text::{Line, Span};
 
 pub struct MedicationDetailsInput<'a> {
     pub medication: Option<&'a MedicationDto>,
@@ -123,8 +123,8 @@ mod tests {
     use super::*;
     use crate::application::dtos::responses::MedicationDto;
     use chrono::NaiveDate;
-    use ratatui::backend::TestBackend;
     use ratatui::Terminal;
+    use ratatui::backend::TestBackend;
 
     fn make_terminal() -> Terminal<TestBackend> {
         Terminal::new(TestBackend::new(80, 24)).unwrap()
