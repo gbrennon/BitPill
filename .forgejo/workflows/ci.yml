@@ -113,7 +113,6 @@ jobs:
           mkdir -p ~/.local/bin
           curl -sL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash | bash
           mv actionlint ~/.local/bin/
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Lint shell scripts
         run: |
@@ -121,5 +120,6 @@ jobs:
 
       - name: Lint Forgejo Actions workflows
         run: |
+          PATH="$HOME/.local/bin:$PATH"
           shopt -s nullglob
-          actionlint .forgejo/workflows/*.yml
+          actionlint -config-file actionlint.yaml .forgejo/workflows/*.yml

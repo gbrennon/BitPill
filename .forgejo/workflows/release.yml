@@ -36,18 +36,18 @@ jobs:
           mkdir -p ~/.local/bin
           curl -sSL https://github.com/orhun/git-cliff/releases/latest/download/git-cliff-x86_64-unknown-linux-gnu.tar.gz \
             | tar -xz --strip-components=1 -C ~/.local/bin git-cliff-*/git-cliff
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Extract version
         id: version
         run: |
           VERSION=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[0].version')
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Generate changelog
         run: |
           git-cliff --config git-cliff.toml --output CHANGELOG.md
-          cat CHANGELOG.md >> $GITHUB_STEP_SUMMARY
+          cat CHANGELOG.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Commit changelog
         run: |
