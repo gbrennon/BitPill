@@ -41,16 +41,17 @@ If you have `Rust` and `just` installed you can install all dependency tools wit
 
 BitPill ships a TUI built with [ratatui](https://ratatui.rs).
 
-A REST API is in WIP state but it’s built with [actix-web](https://actix.rs/).
+Run with `just run-tui` or `cargo run --release`.
 
-By default `just run` starts it on **port 8080** and also launches the TUI in the foreground.
+### REST API (WIP)
 
-You can choose to run just one of them if you prefer:
+The REST API is under development and not yet released. To enable it locally:
 
 ```bash
-just run-api     # REST server only  (http://localhost:8080)
-just run-tui     # Terminal UI only
+cargo build --features rest-api
 ```
+
+---
 
 ## Terminal UI (TUI)
 
@@ -125,14 +126,12 @@ just
 
 ```bash
 just build       # cargo build
-just run         # REST server (http://localhost:8080)
-just run-tui     # Terminal UI
-just run-api     # REST server (background) + TUI (foreground)
+just run         # cargo run --release (TUI)
 just test        # tests + coverage report
 just lint        # cargo clippy -- -D warnings
 just fmt         # cargo fmt
 just fmt-check   # formatting check only
-just lint-workflows  # validate .forgejo/workflows/*.yml with actionlint
+just lint-workflows  # validate .github/workflows/*.yml with actionlint
 just clean       # cargo clean
 just tools       # install rustfmt, clippy, cargo-llvm-cov
 ```
@@ -177,15 +176,20 @@ src/
 │   ├── entities/          # Medication, DoseRecord
 │   └── value_objects/     # Dosage, MedicationId, ScheduledTime, TakenAt, …
 ├── application/
+│   ├── dtos/              # Request/response DTOs
+│   │   ├── requests.rs
+│   │   └── responses.rs
 │   ├── ports/             # Trait definitions + fakes/ (test doubles)
+│   │   ├── inbound/
+│   │   ├── outbound/
+│   │   └── fakes/
 │   └── services/          # Use-case implementations
 ├── infrastructure/
 │   ├── clock/             # SystemClock, SystemScheduledTimeSupplier
 │   ├── notifications/     # ConsoleNotificationAdapter
-│   ├── persistence/       # InMemoryMedicationRepository, InMemoryDoseRecordRepository
+│   ├── persistence/       # JSON repositories
 │   └── container.rs       # Composition root
 └── presentation/
-    ├── rest/              # actix-web server + handlers (WIP)
     └── tui/               # ratatui app + screens + event handling
 ```
 
