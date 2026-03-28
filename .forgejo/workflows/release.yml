@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   release:
-    runs-on: codeberg-small
+    runs-on: codeberg-medium
     steps:
       - uses: actions/checkout@v4
         with:
