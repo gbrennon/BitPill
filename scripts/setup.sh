@@ -10,7 +10,7 @@ install_os_dependencies() {
 }
 
 install_just_task_runner() {
-  install_cargo_tool_if_missing "just" "cargo install just --locked"
+  install_cargo_tool_if_missing "just" "cargo install just --locked --force"
 }
 
 install_cargo_llvm_cov_for_coverage() {

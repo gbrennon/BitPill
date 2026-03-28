@@ -106,7 +106,7 @@ install_cargo_tool_if_missing() {
   local tool_name="$1"
   local install_cmd="$2"
   
-  if [[ -z "${CI:-}" ]] && command -v "$tool_name" >/dev/null 2>&1; then
+  if command -v "$tool_name" >/dev/null 2>&1; then
     return
   fi
   
