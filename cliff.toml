@@ -1,0 +1,27 @@
+[changelog]
+header = """
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+"""
+body = """
+{% if version -%}
+## [{{ version }}] - {{ datetime() | date(format="%Y-%m-%d") }}
+{% else %}
+## [Unreleased]
+{% endif %}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | title }}
+{% for commit in commits %}
+- {{ commit.message }} ([{{ commit.id | truncate(length=7, end="") }}]({{ commit.id }}))
+{% endfor %}
+{% endfor %}
+"""
+footer = "### Compare"
+
+[git]
+conventional_commits = true
+
+[plugin.default]
+exclude = ["docs", "test", "chore"]
