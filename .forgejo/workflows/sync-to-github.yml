@@ -1,0 +1,19 @@
+name: sync-to-github
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["*"]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: push to github
+        run: |
+          git push https://${{ secrets.SOURCE_SYNC_USER }}:${{ secrets.SOURCE_SYNC_TOKEN }}@github.com/${{ secrets.SOURCE_SYNC_USER }}/${{ secrets.SOURCE_SYNC_REPO }}.git --all --force
+          git push https://${{ secrets.SOURCE_SYNC_USER }}:${{ secrets.SOURCE_SYNC_TOKEN }}@github.com/${{ secrets.SOURCE_SYNC_USER }}/${{ secrets.SOURCE_SYNC_REPO }}.git --tags --force
