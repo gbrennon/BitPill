@@ -142,7 +142,7 @@ impl<'a> FormTemplate<'a> {
                     let selected_idx = field.highlighted_line.unwrap_or(0);
                     // Ensure at least one line is allocated to the widget
                     let count = std::cmp::max(1, field.lines);
-                    let widget = schedule_time(count as usize, values, selected_idx, field.focused);
+                    let widget = schedule_time(count, values, selected_idx, field.focused);
                     f.render_widget(widget, chunks[i + 1]);
                 } else if field.lines > 1 {
                     // For multi-line fields without a backing values slice render each line separately so the active slot can be highlighted
