@@ -4,7 +4,9 @@ on: [push, pull_request]
 
 jobs:
   check-commits:
-    runs-on: ubuntu-latest
+    # "docker" targets a self-hosted Forgejo runner with the "docker" label.
+    # Switch to "ubuntu-latest" if using Codeberg's hosted runners instead.
+    runs-on: docker
     steps:
       - name: Checkout
         uses: actions/checkout@v4
