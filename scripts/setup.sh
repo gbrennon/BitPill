@@ -14,7 +14,7 @@ install_just_task_runner() {
 }
 
 install_cargo_llvm_cov_for_coverage() {
-  install_cargo_tool_if_missing "cargo-llvm-cov" "cargo install cargo-llvm-cov --locked"
+  install_cargo_tool_if_missing "cargo-llvm-cov" "cargo install cargo-llvm-cov --locked --force"
 }
 
 install_os_dependencies
