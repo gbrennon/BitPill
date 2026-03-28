@@ -7,7 +7,6 @@ use crate::application::dtos::requests::{MarkDoseTakenRequest, ScheduleDoseReque
 use crate::application::errors::{ApplicationError, NotFoundError};
 use crate::infrastructure::container::Container;
 
-
 #[derive(Deserialize)]
 pub struct MarkTakenBody {
     pub notes: Option<String>,
@@ -56,9 +55,9 @@ pub async fn mark_taken(
                 error: "dose record not found".into(),
             })
         }
-        Err(ApplicationError::InvalidInput(e)) => HttpResponse::BadRequest().json(ErrorBody {
-            error: e,
-        }),
+        Err(ApplicationError::InvalidInput(e)) => {
+            HttpResponse::BadRequest().json(ErrorBody { error: e })
+        }
         Err(ApplicationError::Domain(e)) => HttpResponse::BadRequest().json(ErrorBody {
             error: e.to_string(),
         }),

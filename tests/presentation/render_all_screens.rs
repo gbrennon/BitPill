@@ -1,6 +1,6 @@
+use ratatui::Terminal;
 use ratatui::backend::TestBackend;
 use ratatui::buffer::Buffer;
-use ratatui::Terminal;
 
 use std::sync::Arc;
 use tempfile::tempdir;
