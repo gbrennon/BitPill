@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1091
 set -euo pipefail
 
 # Source common functions
@@ -18,7 +19,7 @@ abort_if_any_commit_message_violates_conventional_commits() {
   local commits="$1"
   local types="feat|fix|docs|style|refactor|perf|test|chore|revert|ci|build"
   local merge="^Merge .+"
-  local pattern="^(${types})(\(.+\))?: .+"
+  local pattern="^(${types})(\(.+\))?: ?.+"
 
   echo "$commits" | while IFS= read -r msg; do
     if [ -z "$msg" ]; then
