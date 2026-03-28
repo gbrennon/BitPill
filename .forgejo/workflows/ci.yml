@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: codeberg-small
+    runs-on: codeberg-medium
     env:
       CARGO_TERM_COLOR: always
     steps:
@@ -61,7 +61,7 @@ jobs:
         run: bash scripts/show_coverage_report.sh
 
   lint:
-    runs-on: codeberg-small
+    runs-on: codeberg-medium
     env:
       CARGO_TERM_COLOR: always
     steps:
@@ -99,12 +99,12 @@ jobs:
           just lint
 
   validate:
-    runs-on: codeberg-small
+    runs-on: codeberg-medium
     steps:
       - uses: actions/checkout@v4
 
       - name: Install shellcheck
-        run: sudo apt-get install -y shellcheck
+        run: sudo dnf install -y ShellCheck
 
       - name: Install actionlint
         run: |
