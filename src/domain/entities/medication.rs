@@ -70,7 +70,13 @@ impl Medication {
         scheduled_time: Vec<ScheduledTime>,
         dose_frequency: DoseFrequency,
     ) -> Self {
-        Self { id, name, dosage, scheduled_time, dose_frequency }
+        Self {
+            id,
+            name,
+            dosage,
+            scheduled_time,
+            dose_frequency,
+        }
     }
 
     /// Reconstitutes a `Medication` from a known `id` (e.g. loaded from storage).
@@ -81,7 +87,13 @@ impl Medication {
         scheduled_time: Vec<ScheduledTime>,
         dose_frequency: DoseFrequency,
     ) -> Self {
-        Self { id, name, dosage, scheduled_time, dose_frequency }
+        Self {
+            id,
+            name,
+            dosage,
+            scheduled_time,
+            dose_frequency,
+        }
     }
 
     pub fn id(&self) -> &MedicationId {

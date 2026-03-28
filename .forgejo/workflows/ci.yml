@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: codeberg-medium
     env:
       CARGO_TERM_COLOR: always
     steps:
@@ -61,7 +61,7 @@ jobs:
         run: bash scripts/show_coverage_report.sh
 
   lint:
-    runs-on: ubuntu-latest
+    runs-on: codeberg-medium
     env:
       CARGO_TERM_COLOR: always
     steps:
@@ -99,15 +99,18 @@ jobs:
           just lint
 
   validate:
-    runs-on: ubuntu-latest
+    runs-on: codeberg-medium
     steps:
       - uses: actions/checkout@v4
 
       - name: Install shellcheck
-        run: sudo apt-get install -y shellcheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y shellcheck
 
       - name: Install actionlint
         run: |
+          mkdir -p ~/.local/bin
           curl -sL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash | bash
           mv actionlint ~/.local/bin/
 
@@ -115,7 +118,8 @@ jobs:
         run: |
           find scripts/ -name "*.sh" -print0 | xargs -0 shellcheck --external-sources
 
-      - name: Lint Forgejo Actions
+      - name: Lint Forgejo Actions workflows
         run: |
+          PATH="$HOME/.local/bin:$PATH"
           shopt -s nullglob
-          actionlint .forgejo/workflows/*.yml
+          actionlint -config-file actionlint.yaml .forgejo/workflows/*.yml

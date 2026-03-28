@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1091
 set -euo pipefail
 
 # Source common functions
@@ -9,11 +10,11 @@ install_os_dependencies() {
 }
 
 install_just_task_runner() {
-  install_cargo_tool_if_missing "just" "cargo install just --locked"
+  install_cargo_tool_if_missing "just" "cargo install just --locked --force"
 }
 
 install_cargo_llvm_cov_for_coverage() {
-  install_cargo_tool_if_missing "cargo-llvm-cov" "cargo install cargo-llvm-cov --locked"
+  install_cargo_tool_if_missing "cargo-llvm-cov" "cargo install cargo-llvm-cov --locked --force"
 }
 
 install_os_dependencies

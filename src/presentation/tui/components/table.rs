@@ -1,5 +1,5 @@
 use crate::application::dtos::responses::MedicationDto;
-use crate::presentation::tui::styles::{content_style, highlight_style, title_style, BORDER_COLOR};
+use crate::presentation::tui::styles::{BORDER_COLOR, content_style, highlight_style, title_style};
 use ratatui::layout::Constraint;
 use ratatui::widgets::{Block, Borders, Cell, Row, Table};
 
@@ -83,9 +83,9 @@ pub fn medication_table<'a>(
 mod tests {
     use super::*;
     use crate::application::dtos::responses::MedicationDto;
+    use ratatui::Terminal;
     use ratatui::backend::TestBackend;
     use ratatui::layout::Rect;
-    use ratatui::Terminal;
 
     fn med(name: &str) -> MedicationDto {
         MedicationDto {

@@ -3,7 +3,7 @@ use crate::application::dtos::requests::GetMedicationRequest;
 use crate::application::ports::inbound::get_medication_port::GetMedicationPort;
 use crate::presentation::tui::app::App;
 use crate::presentation::tui::handlers::medication_form_navigation::{
-    navigate_down, navigate_left, navigate_right, navigate_up, remove_custom_slot, NavigationState,
+    NavigationState, navigate_down, navigate_left, navigate_right, navigate_up, remove_custom_slot,
 };
 use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
 use crate::presentation::tui::handlers::time_slot_parser::{
