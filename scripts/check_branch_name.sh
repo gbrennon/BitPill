@@ -5,9 +5,10 @@ set -euo pipefail
 source "$(dirname "$0")/lib/common.sh"
 
 abort_if_branch_name_violates_naming_convention() {
+  readonly VALID_BRANCH_PATTERN='^(main|master|develop|feature/.+|feat/.+|bugfix/.+|fix/.+|hotfix/.+|release/.+|chore/.+)$'
   local branch="$1"
-  if [[ ! "$branch" =~ ^(main|develop|feature/.+|fix/.+|hotfix/.+)$ ]]; then
-    echo "Branch name '$branch' does not match allowed patterns" >&2
+
+  if [[ ! "$branch" =~ $VALID_BRANCH_PATTERN ]]; then    echo "Branch name '$branch' does not match allowed patterns" >&2
     exit 1
   fi
 }
