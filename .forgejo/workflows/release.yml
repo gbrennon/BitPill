@@ -19,7 +19,9 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: https://github.com/dtolnay/rust-toolchain@stable
+        uses: wackbyte/rust-toolchain@trunk
+        with:
+          toolchain: stable
 
       - name: Cache cargo registry and git
         uses: actions/cache@v4
