@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/gbrennon/BitPill"
 homepage = "https://github.com/gbrennon/BitPill"
 keywords = ["medication", "health", "tui", "ratatui", "cli"]
-categories = ["command-line-utilities", "health", "terminals"]
+categories = ["accessibility", "command-line-utilities", "filesystem"]
 
 [features]
 default = ["test-helpers"]
