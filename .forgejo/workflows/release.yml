@@ -1,9 +1,10 @@
 name: Release
 
 on:
-  push:
+  pull_request:
     branches:
-      - release/**
+      - main
+    types: [closed]
     paths-ignore:
       - 'docs/**'
 
@@ -12,6 +13,7 @@ permissions:
 
 jobs:
   release:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
     runs-on: codeberg-medium
     steps:
       - uses: actions/checkout@v4
@@ -66,7 +68,7 @@ jobs:
       - name: Create Forgejo release
         run: |
           CHANGELOG=$(cat CHANGELOG.md)
-          curl -s -X POST \
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             -H "Authorization: token ${{ secrets.FORGEJO_TOKEN }}" \
             -H "Content-Type: application/json" \
             "${{ secrets.FORGEJO_API_URL }}/repos/${{ secrets.FORGEJO_OWNER }}/${{ secrets.FORGEJO_REPO }}/releases" \
@@ -75,7 +77,9 @@ jobs:
               \"name\": \"v${{ steps.version.outputs.VERSION }}\",
               \"body\": $(echo "$CHANGELOG" | jq -Rs .),
               \"draft\": true
-            }"
+            }")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          [ "$HTTP_CODE" = "201" ] || { echo "Forgejo release failed: $HTTP_CODE"; exit 1; }
 
       - name: Publish to crates.io
         env:
