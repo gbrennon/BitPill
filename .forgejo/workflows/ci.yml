@@ -122,4 +122,4 @@ jobs:
         run: |
           PATH="$HOME/.local/bin:$PATH"
           shopt -s nullglob
-          actionlint -config-file actionlint.yaml .forgejo/workflows/*.yml
+          actionlint -config-file .github/actionlint.yaml .forgejo/workflows/*.yml
