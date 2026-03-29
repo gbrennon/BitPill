@@ -77,17 +77,36 @@ When you first open the app, you start in Normal mode. Press `i` to enter Insert
 | Screen | Key | Action |
 |--------|-----|--------|
 | Medication list | `c` | Open the create-medication form |
-| Medication list | `j` / `↓` | Move selection down |
-| Medication list | `k` / `↑` | Move selection up |
+| Medication list | `j` / `↓` / `l` | Move selection down |
+| Medication list | `k` / `↑` / `h` | Move selection up |
+| Medication list | `v` | Open medication details |
+| Medication list | `Enter` | Open medication details |
+| Medication list | `e` | Edit selected medication |
+| Medication list | `d` | Delete selected medication |
+| Medication list | `t` | Open mark-dose screen |
+| Medication list | `s` | Show instruction (use `v` to open details first) |
+| Medication list | `g` | Open settings |
 | Medication list | `q` | Quit |
-| Medication list | `Enter` or `v` | Open medication details for selected item |
 | Medication details | `s` | Open Mark-as-taken selection for today's slots/records |
-| Create form | `Tab` | Cycle between fields (Name → Amount → Times) |
-| Create form | `Enter` | Submit the form |
-| Create form | `Esc` | Cancel and go back |
+| Medication details | `e` | Edit medication |
+| Medication details | `Esc` | Go back to list |
+| Confirm delete | `y` | Confirm delete |
+| Confirm delete | `n` / `Esc` | Cancel and go back |
+| Confirm quit | `y` | Confirm quit |
+| Confirm quit | `n` / `Esc` | Cancel and go back |
+| Create/Edit form | `Tab` / `→` / `l` | Next field |
+| Create/Edit form | `j` / `↓` | Next field |
+| Create/Edit form | `←` / `h` | Previous field |
+| Create/Edit form | `k` / `↑` | Previous field |
+| Create/Edit form | `i` | Enter insert mode |
+| Create/Edit form | `Enter` | Submit the form |
+| Create/Edit form | `Esc` | Exit insert mode / Cancel and go back |
+| Create/Edit form | `d` | Delete custom time slot (when on times field with Custom frequency) |
+| Mark dose | `j` / `↓` | Move selection down |
+| Mark dose | `k` / `↑` | Move selection up |
+| Mark dose | `Enter` | Confirm mark as taken |
+| Mark dose | `Esc` | Cancel and go back |
 | Schedule result | any key | Dismiss and go back |
-
-Pressing use `h`, `j`, `k` or `l`, to navigate between fields, and `Enter` will submit the form.
 
 ##### Insert mode
 
