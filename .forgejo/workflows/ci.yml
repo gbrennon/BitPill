@@ -112,7 +112,7 @@ jobs:
         run: |
           mkdir -p ~/.local/bin
           curl -sL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash | bash
-          mv actionlint ~/.local/bin/
+          mv .github/actionlint ~/.local/bin/
 
       - name: Lint shell scripts
         run: |
