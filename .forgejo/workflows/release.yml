@@ -1,9 +1,10 @@
 name: Release
 
 on:
-  push:
+  pull_request:
     branches:
-      - release/**
+      - main
+    types: [closed]
     paths-ignore:
       - 'docs/**'
 
@@ -12,6 +13,7 @@ permissions:
 
 jobs:
   release:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
     runs-on: codeberg-medium
     steps:
       - uses: actions/checkout@v4
@@ -35,7 +37,7 @@ jobs:
       - name: Install git-cliff
         run: |
           mkdir -p ~/.local/bin
-          curl -sSL https://github.com/orhun/git-cliff/releases/latest/download/git-cliff-x86_64-unknown-linux-gnu.tar.gz \
+          curl -sSL https://github.com/orhun/git-cliff/releases/download/v2.4.0/git-cliff-x86_64-unknown-linux-gnu.tar.gz \
             | tar -xz --strip-components=1 -C ~/.local/bin git-cliff-*/git-cliff
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
@@ -60,13 +62,13 @@ jobs:
 
       - name: Create tag
         run: |
-          git tag "v${{ steps.version.outputs.VERSION }}"
-          git push origin "v${{ steps.version.outputs.VERSION }}"
+          git tag "v${{ steps.version.outputs.VERSION }}" 2>/dev/null || echo "Tag already exists, skipping"
+          git push origin "v${{ steps.version.outputs.VERSION }}" || echo "Tag already on remote, skipping"
 
       - name: Create Forgejo release
         run: |
           CHANGELOG=$(cat CHANGELOG.md)
-          curl -s -X POST \
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             -H "Authorization: token ${{ secrets.FORGEJO_TOKEN }}" \
             -H "Content-Type: application/json" \
             "${{ secrets.FORGEJO_API_URL }}/repos/${{ secrets.FORGEJO_OWNER }}/${{ secrets.FORGEJO_REPO }}/releases" \
@@ -75,7 +77,9 @@ jobs:
               \"name\": \"v${{ steps.version.outputs.VERSION }}\",
               \"body\": $(echo "$CHANGELOG" | jq -Rs .),
               \"draft\": true
-            }"
+            }")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          [ "$HTTP_CODE" = "201" ] || [ "$HTTP_CODE" = "422" ] || { echo "Forgejo release failed: $HTTP_CODE"; exit 1; }
 
       - name: Publish to crates.io
         env:
