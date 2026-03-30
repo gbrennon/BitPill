@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
 collect_commits_since_last_release() {
