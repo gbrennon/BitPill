@@ -9,13 +9,22 @@ set -euo pipefail
 # ========================================
 
 resolve_current_branch_name() {
-  local event_name="${GITHUB_EVENT_NAME:-${GITEA_ACTOR:-}}"
-  local head_ref="${GITHUB_HEAD_REF:-${GITEA_PULL_REQUEST_HEAD_REF:-}}"
-  local github_ref="${GITHUB_REF:-${GITEA_REF:-}}"
+  local event_name="${GITHUB_EVENT_NAME:-}"
+  local head_ref="${GITHUB_HEAD_REF:-}"
+  local github_ref="${GITHUB_REF:-}"
+
   if [ "$event_name" = "pull_request" ] || [ -n "$head_ref" ]; then
+    # head_ref is the real branch name on PR events — use it directly
     echo "$head_ref"
   elif [ -n "$github_ref" ]; then
-    echo "${github_ref#refs/heads/}"
+    case "$github_ref" in
+      refs/heads/*)
+        echo "${github_ref#refs/heads/}" ;;
+      refs/pull/*)
+        echo "" ;;
+      *)
+        echo "$github_ref" ;;
+    esac
   else
     git rev-parse --abbrev-ref HEAD 2>/dev/null || echo ""
   fi
@@ -23,8 +32,8 @@ resolve_current_branch_name() {
 
 resolve_commit_range() {
   local event_name="${GITHUB_EVENT_NAME:-}"
-  local base_ref="${GITHUB_BASE_REF:-${GITEA_PULL_REQUEST_BASE_REF:-}}"
-  local head_ref="${GITHUB_HEAD_REF:-${GITEA_PULL_REQUEST_HEAD_REF:-}}"
+  local base_ref="${GITHUB_BASE_REF:-}"
+  local head_ref="${GITHUB_HEAD_REF:-}"
   if [ "$event_name" = "pull_request" ] || [ -n "$head_ref" ]; then
     if [ -n "$base_ref" ] && [ -n "$head_ref" ] && \
        git rev-parse --verify "origin/${base_ref}" >/dev/null 2>&1 && \
@@ -105,11 +114,11 @@ configure_rust_stable_toolchain_with_dev_components() {
 install_cargo_tool_if_missing() {
   local tool_name="$1"
   local install_cmd="$2"
-  
+
   if command -v "$tool_name" >/dev/null 2>&1; then
     return
   fi
-  
+
   echo "Installing $tool_name..."
   eval "$install_cmd" || {
     echo "Failed to install $tool_name" >&2
@@ -234,9 +243,7 @@ print_coverage_table() {
       [ "$mlen" -gt "$max_missing_len" ] && max_missing_len=$mlen
     fi
   done < "$tmp_rows"
-  
-  # Limit max_missing_len to prevent excessive width, but ensure it's at least 7
-  # If missing lines are too long, they will wrap but the table structure remains
+
   if [ "$max_missing_len" -gt 80 ]; then
     max_missing_len=80
   fi
@@ -252,7 +259,6 @@ print_coverage_table() {
     local missing_lines=""
     if [ "$miss" -gt 0 ]; then
       missing_lines=$(extract_missing_lines "$raw_path")
-      # Truncate very long missing line lists to prevent table breakage
       if [ "${#missing_lines}" -gt "$max_missing_len" ]; then
         missing_lines="${missing_lines:0:$((max_missing_len-4))} ..."
       fi
