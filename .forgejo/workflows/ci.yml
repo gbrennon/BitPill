@@ -19,9 +19,11 @@ jobs:
     env:
       CARGO_TERM_COLOR: always
     steps:
-      - uses: ./.forgejo/actions/setup-rust
+      - uses: https://data.forgejo.org/actions/checkout@v4
         with:
           fetch-depth: '0'
+
+      - uses: ./.forgejo/actions/setup-rust
 
       - name: Cache cargo target
         uses: https://data.forgejo.org/actions/cache@v4
@@ -49,13 +51,20 @@ jobs:
 
       - name: Show coverage report
         if: always()
-        run: bash scripts/show_coverage_report.sh
+        run: |
+          if [ -f scripts/show_coverage_report.sh ]; then
+            bash scripts/show_coverage_report.sh
+          else
+            echo "Coverage report script not found, skipping"
+          fi
 
   lint:
     runs-on: codeberg-medium
     env:
       CARGO_TERM_COLOR: always
     steps:
+      - uses: https://data.forgejo.org/actions/checkout@v4
+
       - uses: ./.forgejo/actions/setup-rust
 
       - name: Cache cargo bin
