@@ -1,0 +1,25 @@
+name: Create tag
+description: Create release tag
+
+inputs:
+  version:
+    required: true
+
+outputs:
+  tag:
+    value: ${{ steps.tag.outputs.tag }}
+
+runs:
+  using: composite
+  steps:
+    - id: tag
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        TAG="v${{ inputs.version }}"
+
+        git tag "$TAG"
+        git push origin "$TAG"
+
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"

@@ -9,56 +9,48 @@ jobs:
   sync:
     runs-on: codeberg-medium
     steps:
-      - uses: actions/checkout@v4
+      - uses: https://data.forgejo.org/actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: push to github
+      - name: Push to GitHub
         env:
           GITHUB_URL: https://${{ secrets.SOURCE_SYNC_USER }}:${{ secrets.SOURCE_SYNC_TOKEN }}@github.com/${{ secrets.SOURCE_SYNC_USER }}/${{ secrets.SOURCE_SYNC_REPO }}.git
         run: |
-          git push "$GITHUB_URL" --all --force
-          git push "$GITHUB_URL" --tags --force
+          set -euo pipefail
+          git push "$GITHUB_URL" --mirror
 
   create-github-release:
     runs-on: codeberg-medium
     needs: sync
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
-      - uses: actions/checkout@v4
+      - uses: https://data.forgejo.org/actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install git-cliff
-        run: |
-          mkdir -p ~/.local/bin
-          curl -sSL https://github.com/orhun/git-cliff/releases/download/v2.4.0/git-cliff-x86_64-unknown-linux-gnu.tar.gz \
-            | tar -xz --strip-components=1 -C ~/.local/bin git-cliff-*/git-cliff
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - uses: ./.forgejo/actions/install-git-cliff
 
       - name: Generate release notes
         run: |
+          set -euo pipefail
+          git fetch --tags --force
           git-cliff --config cliff.toml --current --strip header > /tmp/release-notes.md
 
-      - name: create github release
+      - name: Create GitHub release
         env:
-          TAG: ${{ github.ref_name }}
-          GH_USER: ${{ secrets.SOURCE_SYNC_USER }}
           GH_TOKEN: ${{ secrets.SOURCE_SYNC_TOKEN }}
-          GH_REPO: ${{ secrets.SOURCE_SYNC_REPO }}
+          GH_REPO: ${{ secrets.SOURCE_SYNC_USER }}/${{ secrets.SOURCE_SYNC_REPO }}
+          TAG: ${{ github.ref_name }}
         run: |
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            -H "Authorization: token $GH_TOKEN" \
-            -H "Content-Type: application/json" \
-            "https://api.github.com/repos/$GH_USER/$GH_REPO/releases" \
-            -d "{
-              \"tag_name\": \"$TAG\",
-              \"name\": \"$TAG\",
-              \"body\": $(jq -Rs . < /tmp/release-notes.md),
-              \"draft\": false
-            }")
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          BODY=$(echo "$RESPONSE" | head -n1)
-          echo "HTTP: $HTTP_CODE"
-          echo "Body: $BODY"
-          [ "$HTTP_CODE" = "201" ] || { echo "GitHub release failed: $HTTP_CODE"; exit 1; }
+          set -euo pipefail
+
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            echo "Release already exists, skipping"
+            exit 0
+          fi
+
+          gh release create "$TAG" \
+            --repo "$GH_REPO" \
+            --title "$TAG" \
+            --notes-file /tmp/release-notes.md
