@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: wackbyte/rust-toolchain@trunk
+        uses: https://codeberg.org/wackbyte/rust-toolchain@trunk
         with:
           toolchain: stable
 
