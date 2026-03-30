@@ -11,6 +11,6 @@ jobs:
 
       - name: Check branch name
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          HEAD_REF: ${{ github.head_ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
         run: bash scripts/check_branch_name.sh
