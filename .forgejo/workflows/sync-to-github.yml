@@ -29,6 +29,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install git-cliff
+        run: |
+          mkdir -p ~/.local/bin
+          curl -sSL https://github.com/orhun/git-cliff/releases/download/v2.4.0/git-cliff-x86_64-unknown-linux-gnu.tar.gz \
+            | tar -xz --strip-components=1 -C ~/.local/bin git-cliff-*/git-cliff
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Generate release notes
+        run: |
+          git-cliff --config cliff.toml --current --strip header > /tmp/release-notes.md
+
       - name: create github release
         env:
           TAG: ${{ github.ref_name }}
@@ -36,8 +47,6 @@ jobs:
           GH_TOKEN: ${{ secrets.SOURCE_SYNC_TOKEN }}
           GH_REPO: ${{ secrets.SOURCE_SYNC_REPO }}
         run: |
-          CHANGELOG=$(git cliff --config cliff.toml --current 2>/dev/null || cat CHANGELOG.md)
-
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             -H "Authorization: token $GH_TOKEN" \
             -H "Content-Type: application/json" \
@@ -45,9 +54,11 @@ jobs:
             -d "{
               \"tag_name\": \"$TAG\",
               \"name\": \"$TAG\",
-              \"body\": $(echo "$CHANGELOG" | jq -Rs .),
+              \"body\": $(jq -Rs . < /tmp/release-notes.md),
               \"draft\": false
             }")
-
           HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n1)
+          echo "HTTP: $HTTP_CODE"
+          echo "Body: $BODY"
           [ "$HTTP_CODE" = "201" ] || { echo "GitHub release failed: $HTTP_CODE"; exit 1; }

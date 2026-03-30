@@ -65,9 +65,14 @@ jobs:
           git tag "v${{ steps.version.outputs.VERSION }}" 2>/dev/null || echo "Tag already exists, skipping"
           git push origin "v${{ steps.version.outputs.VERSION }}" || echo "Tag already on remote, skipping"
 
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          git-cliff --config cliff.toml --current --strip header > /tmp/release-notes.md
+          echo "NOTES_FILE=/tmp/release-notes.md" >> "$GITHUB_OUTPUT"
+
       - name: Create Forgejo release
         run: |
-          CHANGELOG=$(cat CHANGELOG.md)
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             -H "Authorization: token ${{ secrets.FORGEJO_TOKEN }}" \
             -H "Content-Type: application/json" \
@@ -75,11 +80,14 @@ jobs:
             -d "{
               \"tag_name\": \"v${{ steps.version.outputs.VERSION }}\",
               \"name\": \"v${{ steps.version.outputs.VERSION }}\",
-              \"body\": $(echo "$CHANGELOG" | jq -Rs .),
-              \"draft\": true
+              \"body\": $(jq -Rs . < /tmp/release-notes.md),
+              \"draft\": false
             }")
           HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          [ "$HTTP_CODE" = "201" ] || [ "$HTTP_CODE" = "422" ] || { echo "Forgejo release failed: $HTTP_CODE"; exit 1; }
+          BODY=$(echo "$RESPONSE" | head -n1)
+          echo "HTTP: $HTTP_CODE"
+          echo "Body: $BODY"
+          [ "$HTTP_CODE" = "201" ] || { echo "Forgejo release failed: $HTTP_CODE"; exit 1; }
 
       - name: Publish to crates.io
         env:
