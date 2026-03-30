@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DRY_RUN=false
-BUMP_TYPE=""
-PRE_RELEASE=""
+export DRY_RUN=false
+export BUMP_TYPE="$1"
+export PRE_RELEASE="$2"
 
 parse_cli_arguments() {
   while [[ $# -gt 0 ]]; do
