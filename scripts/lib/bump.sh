@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
 determine_bump_from_commits() {

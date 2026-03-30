@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
 open_pull_request_if_possible() {
