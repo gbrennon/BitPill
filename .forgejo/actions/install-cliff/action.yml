@@ -1,0 +1,20 @@
+name: Install git-cliff
+description: Download and install git-cliff into ~/.local/bin.
+
+inputs:
+  version:
+    description: git-cliff version to install.
+    default: '2.4.0'
+
+runs:
+  using: composite
+  steps:
+    - name: Download and install git-cliff
+      shell: bash
+      env:
+        GIT_CLIFF_VERSION: ${{ inputs.version }}
+      run: |
+        mkdir -p ~/.local/bin
+        curl -sSL "https://github.com/orhun/git-cliff/releases/download/v${GIT_CLIFF_VERSION}/git-cliff-x86_64-unknown-linux-gnu.tar.gz" \
+          | tar -xz --strip-components=1 -C ~/.local/bin git-cliff-*/git-cliff
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
