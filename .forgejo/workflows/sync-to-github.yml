@@ -31,11 +31,7 @@ jobs:
 
       - uses: ./.forgejo/actions/install-git-cliff
 
-      - name: Generate release notes
-        run: |
-          set -euo pipefail
-          git fetch --tags --force
-          git-cliff --config cliff.toml --current --strip header > /tmp/release-notes.md
+      - uses: ./.forgejo/actions/generate-release-notes
 
       - name: Create GitHub release
         env:
