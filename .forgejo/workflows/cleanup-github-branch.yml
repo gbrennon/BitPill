@@ -9,16 +9,14 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: codeberg-medium
     steps:
-      - name: delete branch on github
+      - name: Delete branch on GitHub
         env:
           GITHUB_URL: https://${{ secrets.SOURCE_SYNC_USER }}:${{ secrets.SOURCE_SYNC_TOKEN }}@github.com/${{ secrets.SOURCE_SYNC_USER }}/${{ secrets.SOURCE_SYNC_REPO }}.git
           BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
-          # Skip protected branches
           if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ] || [ "$BRANCH" = "develop" ]; then
             echo "Skipping protected branch: $BRANCH"
             exit 0
           fi
-
           echo "Deleting branch on GitHub: $BRANCH"
           git push "$GITHUB_URL" --delete "$BRANCH" || echo "Branch may not exist on GitHub, skipping"
