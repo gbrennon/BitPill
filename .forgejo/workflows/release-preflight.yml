@@ -8,7 +8,7 @@ on:
 
 jobs:
   preflight:
-    if: startsWith(github.head_ref, 'release/')
+    if: startsWith(forgejo.head_ref, 'release/')
     runs-on: codeberg-medium
 
     steps:
@@ -23,7 +23,7 @@ jobs:
 
       - name: Validate branch name matches version
         env:
-          BRANCH: ${{ github.head_ref }}
+          BRANCH: ${{ forgejo.head_ref }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
