@@ -9,21 +9,24 @@ set -euo pipefail
 # ========================================
 
 resolve_current_branch_name() {
-  local event_name="${GITHUB_EVENT_NAME:-}"
-  local head_ref="${GITHUB_HEAD_REF:-}"
-  local github_ref="${GITHUB_REF:-}"
+  local event_name="${CI_EVENT_NAME:-}"
+  local head_ref="${CI_HEAD_REF:-}"
+  local ci_ref="${CI_REF:-${GITHUB_REF:-}}"
 
   if [ "$event_name" = "pull_request" ] || [ -n "$head_ref" ]; then
-    # head_ref is the real branch name on PR events — use it directly
     echo "$head_ref"
-  elif [ -n "$github_ref" ]; then
-    case "$github_ref" in
+  elif [ -n "$ci_ref" ]; then
+    case "$ci_ref" in
       refs/heads/*)
-        echo "${github_ref#refs/heads/}" ;;
+        echo "${ci_ref#refs/heads/}" ;;
       refs/pull/*)
-        echo "" ;;
+        # Forgejo sets GITHUB_REF to refs/pull/:prNumber/head on PR events.
+        # CI_HEAD_REF should always be set in that case — reaching here means
+        # the workflow forgot to pass it, so fail loudly rather than silently.
+        echo "ERROR: PR ref detected but CI_HEAD_REF is unset. Check workflow env vars." >&2
+        exit 1 ;;
       *)
-        echo "$github_ref" ;;
+        echo "$ci_ref" ;;
     esac
   else
     git rev-parse --abbrev-ref HEAD 2>/dev/null || echo ""
@@ -31,9 +34,9 @@ resolve_current_branch_name() {
 }
 
 resolve_commit_range() {
-  local event_name="${GITHUB_EVENT_NAME:-}"
-  local base_ref="${GITHUB_BASE_REF:-}"
-  local head_ref="${GITHUB_HEAD_REF:-}"
+  local event_name="${CI_EVENT_NAME:-}"
+  local base_ref="${CI_BASE_REF:-}"
+  local head_ref="${CI_HEAD_REF:-}"
   if [ "$event_name" = "pull_request" ] || [ -n "$head_ref" ]; then
     if [ -n "$base_ref" ] && [ -n "$head_ref" ] && \
        git rev-parse --verify "origin/${base_ref}" >/dev/null 2>&1 && \
