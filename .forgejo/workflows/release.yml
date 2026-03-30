@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: https://code.forgejo.org/msrd0/rust-toolchain@stable
+        uses: wackbyte/rust-toolchain@stable
         with:
           toolchain: stable
 
