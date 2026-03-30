@@ -1,0 +1,84 @@
+name: Release Preflight
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+env:
+  GIT_CLIFF_VERSION: "2.4.0"
+
+jobs:
+  preflight:
+    if: startsWith(github.head_ref, 'release/')
+    runs-on: codeberg-medium
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust
+        uses: wackbyte/rust-toolchain@trunk
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry and git
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-registry-
+
+      - name: Install git-cliff
+        run: |
+          mkdir -p ~/.local/bin
+          curl -sSL https://github.com/orhun/git-cliff/releases/download/v${{ env.GIT_CLIFF_VERSION }}/git-cliff-x86_64-unknown-linux-gnu.tar.gz \
+            | tar -xz --strip-components=1 -C ~/.local/bin git-cliff-*/git-cliff
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Extract and validate version
+        id: version
+        run: |
+          VERSION=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[0].version')
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "Could not extract version from Cargo.toml"
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing version: $VERSION"
+
+      - name: Validate branch name matches version
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          EXPECTED="release/$VERSION"
+          if [ "$BRANCH" != "$EXPECTED" ]; then
+            echo "Branch name '$BRANCH' does not match expected '$EXPECTED'"
+            exit 1
+          fi
+
+      - name: Check version is not already published on crates.io
+        run: |
+          PACKAGE=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[0].name')
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://crates.io/api/v1/crates/$PACKAGE/$VERSION")
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "Version $VERSION of $PACKAGE is already published on crates.io"
+            exit 1
+          fi
+          echo "Version $VERSION is not yet published — OK"
+
+      - name: Validate cliff.toml and changelog generation
+        run: |
+          git-cliff --config cliff.toml --output /tmp/CHANGELOG_CHECK.md
+          if [ ! -s /tmp/CHANGELOG_CHECK.md ]; then
+            echo "git-cliff produced an empty changelog — check cliff.toml"
+            exit 1
+          fi
+
+      - name: Dry-run publish to crates.io
+        run: cargo publish --dry-run
