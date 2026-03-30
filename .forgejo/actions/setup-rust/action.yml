@@ -1,10 +1,7 @@
 name: Setup Rust
-description: Checkout repository, install Rust toolchain and restore cargo cache.
+description: Install Rust toolchain and restore cargo cache.
 
 inputs:
-  fetch-depth:
-    description: Number of commits to fetch. 0 = full history.
-    default: '1'
   toolchain:
     description: Rust toolchain to install.
     default: stable
@@ -12,11 +9,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout
-      uses: https://data.forgejo.org/actions/checkout@v4
-      with:
-        fetch-depth: ${{ inputs.fetch-depth }}
-
     - name: Install Rust toolchain
       uses: https://codeberg.org/wackbyte/rust-toolchain@trunk
       with:
