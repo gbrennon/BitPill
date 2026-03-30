@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   release:
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
+    if: forgejo.event.pull_request.merged == true && startsWith(forgejo.event.pull_request.head_ref, 'release/')
     runs-on: codeberg-medium
 
     steps:
