@@ -43,4 +43,7 @@ pub enum DomainError {
     /// logged as taken in the future.
     #[error("taken-at time cannot be in the future")]
     TakenAtInFuture,
+
+    #[error("invalid navigation mode")]
+    InvalidNavigationMode,
 }
