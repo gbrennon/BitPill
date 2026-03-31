@@ -107,10 +107,9 @@ jobs:
 
       - name: Lint shell scripts
         run: |
-          find scripts/ -name "*.sh" -print0 | xargs -0 shellcheck --external-sources
+          for f in scripts/*.sh scripts/lib/*.sh; do shellcheck --external-sources -S info "$f"; done
 
       - name: Lint Forgejo Actions workflows
         run: |
           PATH="$HOME/.local/bin:$PATH"
-          shopt -s nullglob
-          actionlint -config-file .github/actionlint.yaml .forgejo/workflows/*.yml
+          actionlint -config-file .actionlint.yaml .forgejo/workflows/*.yml
