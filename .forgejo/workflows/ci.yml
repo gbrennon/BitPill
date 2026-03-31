@@ -19,7 +19,7 @@ jobs:
     env:
       CARGO_TERM_COLOR: always
     steps:
-      - uses: https://data.forgejo.org/actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: '0'
 
@@ -63,12 +63,12 @@ jobs:
     env:
       CARGO_TERM_COLOR: always
     steps:
-      - uses: https://data.forgejo.org/actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - uses: ./.forgejo/actions/setup-rust
 
       - name: Cache cargo bin
-        uses: https://data.forgejo.org/actions/cache@v4
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/scripts/setup.sh') }}
@@ -92,7 +92,7 @@ jobs:
   validate:
     runs-on: codeberg-medium
     steps:
-      - uses: https://data.forgejo.org/actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install shellcheck
         run: |

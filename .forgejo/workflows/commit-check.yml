@@ -6,9 +6,7 @@ jobs:
   check-commits:
     runs-on: codeberg-medium
     steps:
-      - uses: https://data.forgejo.org/actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
       - name: Ensure full history
         run: bash scripts/ensure_full_history.sh
