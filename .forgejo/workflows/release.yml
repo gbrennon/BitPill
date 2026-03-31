@@ -11,81 +11,41 @@ permissions:
 
 jobs:
   release:
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
+    if: forgejo.event.pull_request.merged == true && startsWith(forgejo.event.pull_request.head_ref, 'release/')
     runs-on: codeberg-medium
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: ./.forgejo/actions/setup-rust
         with:
-          fetch-depth: 0
+          fetch-depth: '0'
 
-      - name: Install Rust
-        uses: wackbyte/rust-toolchain@trunk
-        with:
-          toolchain: stable
+      - uses: ./.forgejo/actions/install-git-cliff
 
-      - name: Cache cargo registry and git
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-registry-
-
-      - name: Install git-cliff
-        run: |
-          mkdir -p ~/.local/bin
-          curl -sSL https://github.com/orhun/git-cliff/releases/download/v2.4.0/git-cliff-x86_64-unknown-linux-gnu.tar.gz \
-            | tar -xz --strip-components=1 -C ~/.local/bin git-cliff-*/git-cliff
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
-      - name: Extract version
+      - uses: ./.forgejo/actions/extract-version
         id: version
-        run: |
-          VERSION=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[0].version')
-          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Generate changelog
-        run: |
-          git-cliff --config cliff.toml --output CHANGELOG.md
-          cat CHANGELOG.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: ./.forgejo/actions/validate-release
+        with:
+          version: ${{ steps.version.outputs.version }}
 
-      - name: Commit changelog
-        run: |
-          git config --local user.email "forgejo-actions[bot]@noreply.codeberg.org"
-          git config --local user.name "forgejo-actions[bot]"
-          git add CHANGELOG.md
-          git diff --staged --quiet || git commit -m "docs: update changelog"
-          git push
+      - uses: ./.forgejo/actions/generate-release-notes
+        id: notes
 
-      - name: Create tag
-        run: |
-          git tag "v${{ steps.version.outputs.VERSION }}" 2>/dev/null || echo "Tag already exists, skipping"
-          git push origin "v${{ steps.version.outputs.VERSION }}" || echo "Tag already on remote, skipping"
-
-      - name: Generate release notes
-        run: |
-          git-cliff --config cliff.toml --current --strip header > /tmp/release-notes.md
+      - uses: ./.forgejo/actions/create-tag
+        id: tag
+        with:
+          version: ${{ steps.version.outputs.version }}
 
       - name: Create Forgejo release
-        run: |
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            -H "Authorization: token ${{ secrets.FORGEJO_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            "${{ secrets.FORGEJO_API_URL }}/repos/${{ secrets.FORGEJO_OWNER }}/${{ secrets.FORGEJO_REPO }}/releases" \
-            -d "{
-              \"tag_name\": \"v${{ steps.version.outputs.VERSION }}\",
-              \"name\": \"v${{ steps.version.outputs.VERSION }}\",
-              \"body\": $(jq -Rs . < /tmp/release-notes.md),
-              \"draft\": false
-            }")
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          BODY=$(echo "$RESPONSE" | head -n1)
-          echo "HTTP: $HTTP_CODE"
-          echo "Body: $BODY"
-          [ "$HTTP_CODE" = "201" ] || { echo "Forgejo release failed: $HTTP_CODE"; exit 1; }
+        uses: https://code.forgejo.org/actions/forgejo-release@v2
+        with:
+          direction: upload
+          url: ${{ secrets.FORGEJO_API_URL }}
+          repo: ${{ secrets.FORGEJO_OWNER }}/${{ secrets.FORGEJO_REPO }}
+          token: ${{ secrets.FORGEJO_TOKEN }}
+          tag: ${{ steps.tag.outputs.tag }}
+          release-notes-file: ${{ steps.notes.outputs.file }}
 
-      - name: Publish to crates.io
+      - uses: ./.forgejo/actions/publish-crate
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
-        run: cargo publish

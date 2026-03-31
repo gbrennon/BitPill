@@ -1,0 +1,9 @@
+name: Install Rust
+description: Action to install Rust.
+
+runs:
+  using: composite
+  steps:
+    - uses: kenji-miyake/rust-toolchain@stable
+      with:
+        toolchain: stable

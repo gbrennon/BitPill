@@ -1,0 +1,20 @@
+name: Generate release notes
+description: Changelog will be generated using git-cliff
+
+outputs:
+  file:
+    value: /tmp/release-notes.md
+
+runs:
+  using: composite
+  steps:
+    - name: Generate release notes
+      shell: bash
+      run: |
+        set -euo pipefail
+        git fetch --tags --force
+        git-cliff \
+          --config cliff.toml \
+          --current \
+          --strip header \
+          > /tmp/release-notes.md
