@@ -9,34 +9,22 @@ set -euo pipefail
 # ========================================
 
 resolve_current_branch_name() {
-  local event_name="${CI_EVENT_NAME:-}"
-  local head_ref="${CI_HEAD_REF:-}"
-  local ci_ref="${CI_REF:-${GITHUB_REF:-}}"
-
+  local event_name="${CI_EVENT_NAME:-${GITEA_ACTOR:-}}"
+  local head_ref="${CI_HEAD_REF:-${GITEA_PULL_REQUEST_HEAD_REF:-}}"
+  local github_ref="${CI_REF:-${GITEA_REF:-}}"
   if [ "$event_name" = "pull_request" ] || [ -n "$head_ref" ]; then
     echo "$head_ref"
-  elif [ -n "$ci_ref" ]; then
-    case "$ci_ref" in
-      refs/heads/*)
-        echo "${ci_ref#refs/heads/}" ;;
-      refs/pull/*)
-        # Forgejo sets GITHUB_REF to refs/pull/:prNumber/head on PR events.
-        # CI_HEAD_REF should always be set in that case — reaching here means
-        # the workflow forgot to pass it, so fail loudly rather than silently.
-        echo "ERROR: PR ref detected but CI_HEAD_REF is unset. Check workflow env vars." >&2
-        exit 1 ;;
-      *)
-        echo "$ci_ref" ;;
-    esac
+  elif [ -n "$github_ref" ]; then
+    echo "${github_ref#refs/heads/}"
   else
     git rev-parse --abbrev-ref HEAD 2>/dev/null || echo ""
   fi
 }
 
 resolve_commit_range() {
-  local event_name="${CI_EVENT_NAME:-}"
-  local base_ref="${CI_BASE_REF:-}"
-  local head_ref="${CI_HEAD_REF:-}"
+  local event_name="${GITHUB_EVENT_NAME:-}"
+  local base_ref="${GITHUB_BASE_REF:-${GITEA_PULL_REQUEST_BASE_REF:-}}"
+  local head_ref="${GITHUB_HEAD_REF:-${GITEA_PULL_REQUEST_HEAD_REF:-}}"
   if [ "$event_name" = "pull_request" ] || [ -n "$head_ref" ]; then
     if [ -n "$base_ref" ] && [ -n "$head_ref" ] && \
        git rev-parse --verify "origin/${base_ref}" >/dev/null 2>&1 && \
@@ -247,6 +235,8 @@ print_coverage_table() {
     fi
   done < "$tmp_rows"
 
+  # Limit max_missing_len to prevent excessive width, but ensure it's at least 7
+  # If missing lines are too long, they will wrap but the table structure remains
   if [ "$max_missing_len" -gt 80 ]; then
     max_missing_len=80
   fi
@@ -262,6 +252,7 @@ print_coverage_table() {
     local missing_lines=""
     if [ "$miss" -gt 0 ]; then
       missing_lines=$(extract_missing_lines "$raw_path")
+      # Truncate very long missing line lists to prevent table breakage
       if [ "${#missing_lines}" -gt "$max_missing_len" ]; then
         missing_lines="${missing_lines:0:$((max_missing_len-4))} ..."
       fi
