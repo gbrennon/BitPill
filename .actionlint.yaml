@@ -7,5 +7,6 @@ self-hosted-runner:
 paths:
   ".forgejo/workflows/*.yml":
     ignore:
-      - 'specifying action "https://data'
-      - 'specifying action "https://code'
+      - 'specifying action "https://'
+      - 'label "codeberg-medium"'
+      - 'undefined variable "forgejo"'
