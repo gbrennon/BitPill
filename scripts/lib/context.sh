@@ -2,11 +2,11 @@
 set -euo pipefail
 
 # shellcheck disable=SC2034
-DRY_RUN=false
-BUMP_TYPE="$1"
-PRE_RELEASE="$2"
-
 parse_cli_arguments() {
+  DRY_RUN=false
+  BUMP_TYPE="${1:-}"
+  PRE_RELEASE="${2:-}"
+
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --dry-run)

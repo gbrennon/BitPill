@@ -17,6 +17,8 @@ ensure_on_branch() {
 
 ensure_working_tree_clean() {
   if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "Uncommitted changes detected:" >&2
+    git status --short >&2
     abort_with_error "working tree is not clean"
   fi
 }
