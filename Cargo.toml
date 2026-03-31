@@ -14,6 +14,7 @@ categories = ["accessibility", "command-line-utilities", "filesystem"]
 default = ["test-helpers"]
 test-helpers = []
 rest-api = ["dep:actix-web", "dep:tokio"]
+serde = []
 
 [dependencies]
 thiserror = "2"
