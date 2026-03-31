@@ -10,7 +10,7 @@ jobs:
 
       - name: Check branch name
         env:
-          CI_EVENT_NAME: ${{ forgejo.event_name }}
-          CI_HEAD_REF: ${{ forgejo.head_ref }}
-          CI_REF: ${{ forgejo.ref }}
+          CI_EVENT_NAME: ${{ github.event_name }}
+          CI_HEAD_REF: ${{ github.head_ref }}
+          CI_REF: ${{ github.ref }}
         run: bash scripts/check_branch_name.sh

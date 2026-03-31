@@ -15,7 +15,7 @@ jobs:
 
       - name: Check commit messages
         env:
-          CI_EVENT_NAME: ${{ forgejo.event_name }}
-          CI_BASE_REF: ${{ forgejo.event.pull_request.base_ref }}
-          CI_HEAD_REF: ${{ forgejo.event.pull_request.head_ref }}
+          CI_EVENT_NAME: ${{ github.event_name }}
+          CI_BASE_REF: ${{ github.event.pull_request.base_ref }}
+          CI_HEAD_REF: ${{ github.event.pull_request.head_ref }}
         run: bash scripts/check_commit_messages.sh
