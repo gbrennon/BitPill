@@ -47,7 +47,7 @@ tools:
 
 # Validate workflow files statically (requires actionlint)
 lint-workflows:
-    actionlint .github/workflows/*.yml
+    actionlint -config-file .actionlint.yaml .forgejo/workflows/*.yml
 
 # Remove build artifacts
 clean:
@@ -56,3 +56,20 @@ clean:
 # Install the CLI tool globally
 install:
     cargo install --path . --locked
+
+set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
+
+release *args:
+    ./scripts/release.sh {{args}}
+
+release-dry *args:
+    ./scripts/release.sh --dry-run {{args}}
+
+release-alpha *args:
+    ./scripts/release.sh --pre-release alpha {{args}}
+
+release-beta *args:
+    ./scripts/release.sh --pre-release beta {{args}}
+
+release-rc *args:
+    ./scripts/release.sh --pre-release rc {{args}}

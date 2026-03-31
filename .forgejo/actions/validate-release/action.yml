@@ -1,0 +1,54 @@
+name: Validate release
+
+inputs:
+  version:
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Ensure repository is up to date
+      shell: bash
+      run: |
+        set -euo pipefail
+        git fetch --tags --force
+
+    - name: Ensure tag does not already exist
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        TAG="v${{ inputs.version }}"
+
+        if git rev-parse "$TAG" >/dev/null 2>&1; then
+          echo "Tag $TAG already exists"
+          exit 1
+        fi
+
+    - name: Check version is not already published on crates.io
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        PACKAGE=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[0].name')
+        VERSION="${{ inputs.version }}"
+
+        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+          "https://crates.io/api/v1/crates/$PACKAGE/$VERSION")
+
+        if [ "$HTTP_CODE" = "200" ]; then
+          echo "Version $VERSION of $PACKAGE is already published on crates.io"
+          exit 1
+        fi
+
+    - name: Validate changelog generation
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        git-cliff --config cliff.toml --output /tmp/CHANGELOG_CHECK.md
+
+        if [ ! -s /tmp/CHANGELOG_CHECK.md ]; then
+          echo "git-cliff produced an empty changelog"
+          exit 1
+        fi

@@ -9,9 +9,9 @@ set -euo pipefail
 # ========================================
 
 resolve_current_branch_name() {
-  local event_name="${GITHUB_EVENT_NAME:-${GITEA_ACTOR:-}}"
-  local head_ref="${GITHUB_HEAD_REF:-${GITEA_PULL_REQUEST_HEAD_REF:-}}"
-  local github_ref="${GITHUB_REF:-${GITEA_REF:-}}"
+  local event_name="${CI_EVENT_NAME:-${GITEA_ACTOR:-}}"
+  local head_ref="${CI_HEAD_REF:-${GITEA_PULL_REQUEST_HEAD_REF:-}}"
+  local github_ref="${CI_REF:-${GITEA_REF:-}}"
   if [ "$event_name" = "pull_request" ] || [ -n "$head_ref" ]; then
     echo "$head_ref"
   elif [ -n "$github_ref" ]; then
@@ -105,11 +105,11 @@ configure_rust_stable_toolchain_with_dev_components() {
 install_cargo_tool_if_missing() {
   local tool_name="$1"
   local install_cmd="$2"
-  
+
   if command -v "$tool_name" >/dev/null 2>&1; then
     return
   fi
-  
+
   echo "Installing $tool_name..."
   eval "$install_cmd" || {
     echo "Failed to install $tool_name" >&2
@@ -234,7 +234,7 @@ print_coverage_table() {
       [ "$mlen" -gt "$max_missing_len" ] && max_missing_len=$mlen
     fi
   done < "$tmp_rows"
-  
+
   # Limit max_missing_len to prevent excessive width, but ensure it's at least 7
   # If missing lines are too long, they will wrap but the table structure remains
   if [ "$max_missing_len" -gt 80 ]; then
