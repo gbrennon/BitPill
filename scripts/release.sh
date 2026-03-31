@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1091
 set -euo pipefail
 
 source "$(dirname "$0")/lib/common.sh"
 source "$(dirname "$0")/lib/context.sh"
-source "$(dirname "$0")/lib/exec.sh"
 source "$(dirname "$0")/lib/git.sh"
 source "$(dirname "$0")/lib/version.sh"
 source "$(dirname "$0")/lib/bump.sh"
