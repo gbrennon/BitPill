@@ -7,6 +7,9 @@ jobs:
     runs-on: codeberg-medium
     steps:
       - uses: https://data.forgejo.org/actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
 
       - name: Check branch name
         env:
