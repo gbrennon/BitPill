@@ -28,13 +28,13 @@ test-path filter:
 lint:
     cargo clippy -- -D warnings
 
-# Lint fixes (automatically apply suggestions)
-lint-fix:
-    cargo clippy --fix --allow-dirty --allow-staged
+# Lint fixes (optionally specify files)
+lint-fix +files='':
+    cargo clippy --fix --allow-dirty --allow-staged {{files}}
 
-# Format all source files
-fmt:
-    cargo fmt
+# Format source files (optionally specify files)
+fmt +files='':
+    cargo fmt {{files}}
 
 # Check formatting without modifying files
 fmt-check:

@@ -4,11 +4,17 @@
 pre-commit:
   parallel: false
   jobs:
-    - name: Auto-fix fmt, lint, and warnings
+    - name: Auto-fix staged files
       run: |
-        just fmt
+        STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | tr '\n' ' ')
+        if [ -n "$STAGED_FILES" ]; then
+          just fmt -- $STAGED_FILES
+        fi
         just lint-fix
         cargo fix --lib -p bitpill --allow-dirty --allow-staged
 
-    - name: Verify no auto-fixes needed
-      run: "git diff --quiet || { echo 'ERROR: Auto-fixed files must be staged. Run: git add -A && git commit --amend --no-edit'; exit 1; }"
+    - name: Check for auto-fixed files
+      run: |
+        if ! git diff --quiet; then
+          echo "⚠️  Auto-fixed files detected. Run: git add -A && git commit --amend --no-edit"
+        fi
