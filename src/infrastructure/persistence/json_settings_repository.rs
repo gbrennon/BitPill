@@ -1,13 +1,13 @@
 use crate::application::errors::StorageError;
 use crate::application::ports::settings_repository_port::SettingsRepositoryPort;
-use serde_json::Value;
+use crate::domain::entities::app_settings::AppSettings;
+use crate::domain::value_objects::navigation_mode::NavigationMode;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
 pub struct JsonSettingsRepository {
     path: PathBuf,
-    // reuse same Mutex pattern as other json repos for thread-safety
     inner_lock: Mutex<()>,
 }
 
@@ -25,21 +25,43 @@ impl JsonSettingsRepository {
 }
 
 impl SettingsRepositoryPort for JsonSettingsRepository {
-    fn load(&self) -> Result<Value, StorageError> {
+    fn load(&self) -> Result<Option<AppSettings>, StorageError> {
         let _guard = self
             .inner_lock
             .lock()
             .map_err(|e| StorageError(format!("lock error: {e}")))?;
+
+        if !self.path.exists() {
+            return Ok(None);
+        }
+
         let data =
             fs::read_to_string(&self.path).map_err(|e| StorageError(format!("read error: {e}")))?;
-        let v: Value =
+
+        if data.trim().is_empty() {
+            return Ok(None);
+        }
+
+        let v: serde_json::Value =
             serde_json::from_str(&data).map_err(|e| StorageError(format!("parse error: {e}")))?;
-        Ok(v)
+
+        let navigation_mode = match v.get("navigation_mode").and_then(|v| v.as_str()) {
+            Some(mode_str) => NavigationMode::try_from(mode_str)
+                .map_err(|e| StorageError(format!("invalid navigation mode: {e}")))?,
+            None => NavigationMode::new(
+                crate::domain::value_objects::navigation_mode::NavigationModeVariant::Vi,
+            )
+            .map_err(|e| StorageError(format!("default navigation mode error: {e}")))?,
+        };
+
+        Ok(Some(AppSettings::new(navigation_mode)))
     }
 
-    fn save(&self, settings: &Value) -> Result<(), StorageError> {
-        // Serialize while holding lock, write file outside lock to avoid blocking others
-        let serialized = serde_json::to_string_pretty(settings)
+    fn save(&self, settings: &AppSettings) -> Result<(), StorageError> {
+        let v = serde_json::json!({
+            "navigation_mode": settings.navigation_mode().as_str()
+        });
+        let serialized = serde_json::to_string_pretty(&v)
             .map_err(|e| StorageError(format!("serialize error: {e}")))?;
         drop(
             self.inner_lock
@@ -54,7 +76,7 @@ impl SettingsRepositoryPort for JsonSettingsRepository {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
+    use crate::domain::value_objects::navigation_mode::NavigationModeVariant;
     use tempfile::tempdir;
 
     #[test]
@@ -62,29 +84,31 @@ mod tests {
         let dir = tempdir().unwrap();
         let path = dir.path().join("settings.json");
         let repo = JsonSettingsRepository::new(path.clone());
-        let val = json!({"key":"value"});
-        repo.save(&val).expect("save should work");
+        let settings = AppSettings::new(NavigationMode::new(NavigationModeVariant::Vi).unwrap());
+        repo.save(&settings).expect("save should work");
         let loaded = repo.load().expect("load should work");
-        assert_eq!(loaded["key"], "value");
+        assert!(loaded.is_some());
+        assert_eq!(loaded.unwrap().navigation_mode().as_str(), "vi");
     }
 
     #[test]
-    fn load_returns_error_when_file_does_not_exist() {
+    fn load_returns_none_when_file_does_not_exist() {
         let dir = tempdir().unwrap();
         let path = dir.path().join("nonexistent.json");
         let repo = JsonSettingsRepository::new(path);
 
         let result = repo.load();
 
-        assert!(result.is_err());
+        assert!(matches!(result, Ok(None)));
     }
 
     #[test]
     fn save_returns_error_when_path_is_a_directory() {
         let dir = tempdir().unwrap();
         let repo = JsonSettingsRepository::new(dir.path().to_path_buf());
+        let settings = AppSettings::new(NavigationMode::new(NavigationModeVariant::Vi).unwrap());
 
-        let result = repo.save(&json!({"key": "value"}));
+        let result = repo.save(&settings);
 
         assert!(result.is_err());
     }
@@ -106,7 +130,7 @@ mod tests {
         use std::sync::Arc;
         let dir = tempdir().unwrap();
         let path = dir.path().join("settings_poison_load.json");
-        std::fs::write(&path, r#"{"k":"v"}"#).unwrap();
+        std::fs::write(&path, r#"{"navigation_mode":"vi"}"#).unwrap();
         let repo = Arc::new(JsonSettingsRepository::new(path));
         let clone = Arc::clone(&repo);
 
@@ -126,6 +150,7 @@ mod tests {
         let path = dir.path().join("settings_poison_save.json");
         let repo = Arc::new(JsonSettingsRepository::new(path));
         let clone = Arc::clone(&repo);
+        let settings = AppSettings::new(NavigationMode::new(NavigationModeVariant::Vi).unwrap());
 
         let _ = std::thread::spawn(move || {
             let _guard = clone.inner_lock.lock().unwrap();
@@ -133,6 +158,6 @@ mod tests {
         })
         .join();
 
-        assert!(repo.save(&json!({"k": "v"})).is_err());
+        assert!(repo.save(&settings).is_err());
     }
 }

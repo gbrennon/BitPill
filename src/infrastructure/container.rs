@@ -7,22 +7,21 @@ use crate::{
             create_dose_record_port::CreateDoseRecordPort,
             create_medication_port::CreateMedicationPort,
             delete_medication_port::DeleteMedicationPort, edit_medication_port::EditMedicationPort,
-            get_medication_port::GetMedicationPort,
+            get_medication_port::GetMedicationPort, get_settings_port::GetSettingsPort,
             list_all_medications_port::ListAllMedicationsPort,
             list_dose_records_port::ListDoseRecordsPort, mark_dose_taken_port::MarkDoseTakenPort,
-            schedule_dose_port::ScheduleDosePort, settings_port::SettingsPort,
-            update_medication_port::UpdateMedicationPort,
+            schedule_dose_port::ScheduleDosePort, update_medication_port::UpdateMedicationPort,
         },
         services::{
             create_dose_record_service::CreateDoseRecordService,
             create_medication_service::CreateMedicationService,
             delete_medication_service::DeleteMedicationService,
             edit_medication_service::EditMedicationService,
-            get_medication_service::GetMedicationService,
+            get_medication_service::GetMedicationService, get_settings_service::GetSettingsService,
             list_all_medications_service::ListAllMedicationsService,
             list_dose_records_service::ListDoseRecordsService,
             mark_dose_taken_service::MarkDoseTakenService,
-            schedule_dose_service::ScheduleDoseService, settings_service::SettingsService,
+            schedule_dose_service::ScheduleDoseService,
             update_medication_service::UpdateMedicationService,
         },
     },
@@ -52,7 +51,7 @@ pub struct Container {
     pub update_medication_service: Arc<dyn UpdateMedicationPort>,
     pub edit_medication_service: Arc<dyn EditMedicationPort>,
     pub delete_medication_service: Arc<dyn DeleteMedicationPort>,
-    pub settings_service: Arc<dyn SettingsPort>,
+    pub settings_service: Arc<dyn GetSettingsPort>,
 }
 
 impl Container {
@@ -116,7 +115,7 @@ impl Container {
             delete_medication_service: Arc::new(DeleteMedicationService::new(
                 medication_repo.clone(),
             )),
-            settings_service: Arc::new(SettingsService::new(settings_repo.clone())),
+            settings_service: Arc::new(GetSettingsService::new(settings_repo.clone())),
         }
     }
 }

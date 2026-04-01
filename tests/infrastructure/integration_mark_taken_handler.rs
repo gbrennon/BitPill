@@ -40,7 +40,7 @@ fn medication_list_handler_saves_taken_dose_record_on_s() {
         list_dose_records: container.list_dose_records_service.clone(),
         mark_dose_taken: Arc::new(MarkDoseTakenService::new(fake_dose_repo, fake_med_repo))
             as Arc<dyn MarkDoseTakenPort>,
-        settings: container.settings_service.clone(),
+        get_settings: container.settings_service.clone(),
     };
 
     let mut app = App::new(services);

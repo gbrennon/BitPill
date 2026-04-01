@@ -4,11 +4,11 @@
 pre-commit:
   parallel: false
   jobs:
-    - name: Check formatting
-      run: just fmt-check
+    - name: Auto-fix fmt, lint, and warnings
+      run: |
+        just fmt
+        just lint-fix
+        cargo fix --lib -p bitpill --allow-dirty --allow-staged
 
-    - name: Auto-fix warnings
-      run: cargo fix --lib -p bitpill --allow-dirty --allow-staged
-
-    - name: Run clippy
-      run: just lint
+    - name: Verify no auto-fixes needed
+      run: "git diff --quiet || { echo 'ERROR: Auto-fixed files must be staged. Run: git add -A && git commit --amend --no-edit'; exit 1; }"

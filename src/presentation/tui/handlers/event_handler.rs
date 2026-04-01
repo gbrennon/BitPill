@@ -1,3 +1,5 @@
+use crate::domain::entities::app_settings::AppSettings;
+use crate::domain::value_objects::navigation_mode::{NavigationMode, NavigationModeVariant};
 use crate::presentation::tui::input::Key;
 
 use crate::presentation::tui::app::App;
@@ -150,25 +152,19 @@ impl Handler for EventHandler {
                         };
                     }
                     Key::Char('s') => {
-                        // persist settings: read current state value and update
                         let value = if let Screen::Settings { vim_enabled } = &app.current_screen {
                             *vim_enabled
                         } else {
                             *vim_enabled
                         };
-                        let new = serde_json::json!({ "vim_navigation": value });
-                        match app.services.settings.execute(
-                            crate::application::dtos::requests::SettingsRequest {
-                                op: crate::application::dtos::requests::SettingsOperation::Update {
-                                    settings: new.clone(),
-                                },
-                            },
-                        ) {
-                            Ok(_) => app.set_status("Settings saved", 2000),
-                            Err(e) => {
-                                app.status_message = Some(format!("Settings save error: {e}"))
-                            }
-                        }
+                        let mode = if value {
+                            NavigationModeVariant::Vi
+                        } else {
+                            NavigationModeVariant::Emacs
+                        };
+                        let new_settings = AppSettings::new(NavigationMode::new(mode).unwrap());
+                        let _ = new_settings;
+                        app.set_status("Settings (read-only for now)", 2000);
                         app.current_screen = Screen::HomeScreen;
                     }
                     Key::Esc => {

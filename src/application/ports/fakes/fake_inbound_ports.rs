@@ -1,21 +1,21 @@
 use crate::application::dtos::requests::{
     CreateMedicationRequest, DeleteMedicationRequest, EditMedicationRequest, GetMedicationRequest,
-    ListAllMedicationsRequest, ListDoseRecordsRequest, MarkDoseTakenRequest, SettingsRequest,
+    GetSettingsRequest, ListAllMedicationsRequest, ListDoseRecordsRequest, MarkDoseTakenRequest,
 };
 use crate::application::dtos::responses::{
     CreateMedicationResponse, DeleteMedicationResponse, EditMedicationResponse,
-    GetMedicationResponse, ListAllMedicationsResponse, ListDoseRecordsResponse,
-    MarkDoseTakenResponse, MedicationDto, SettingsResponse,
+    GetMedicationResponse, GetSettingsResponse, ListAllMedicationsResponse,
+    ListDoseRecordsResponse, MarkDoseTakenResponse, MedicationDto,
 };
 use crate::application::errors::ApplicationError;
 use crate::application::ports::inbound::create_medication_port::CreateMedicationPort;
 use crate::application::ports::inbound::delete_medication_port::DeleteMedicationPort;
 use crate::application::ports::inbound::edit_medication_port::EditMedicationPort;
 use crate::application::ports::inbound::get_medication_port::GetMedicationPort;
+use crate::application::ports::inbound::get_settings_port::GetSettingsPort;
 use crate::application::ports::inbound::list_all_medications_port::ListAllMedicationsPort;
 use crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort;
 use crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort;
-use crate::application::ports::inbound::settings_port::SettingsPort;
 
 pub struct FakeListAllMedicationsPort;
 impl ListAllMedicationsPort for FakeListAllMedicationsPort {
@@ -63,7 +63,6 @@ impl DeleteMedicationPort for FakeDeleteMedicationPort {
     }
 }
 
-/// Returns a `NotFound` error so handlers can handle the "not found" branch.
 pub struct FakeGetMedicationPort;
 impl GetMedicationPort for FakeGetMedicationPort {
     fn execute(
@@ -76,7 +75,6 @@ impl GetMedicationPort for FakeGetMedicationPort {
     }
 }
 
-/// Variant that always returns a successful response with a single medication.
 pub struct FakeGetMedicationPortOk {
     pub medication: MedicationDto,
 }
@@ -119,11 +117,14 @@ impl MarkDoseTakenPort for FakeMarkDoseTakenPort {
     }
 }
 
-pub struct FakeSettingsPort;
-impl SettingsPort for FakeSettingsPort {
-    fn execute(&self, _req: SettingsRequest) -> Result<SettingsResponse, ApplicationError> {
-        Ok(SettingsResponse {
-            settings: serde_json::json!({}),
+pub struct FakeGetSettingsPort;
+impl GetSettingsPort for FakeGetSettingsPort {
+    fn execute(
+        &self,
+        _request: GetSettingsRequest,
+    ) -> Result<GetSettingsResponse, ApplicationError> {
+        Ok(GetSettingsResponse {
+            navigation_mode: "vi".to_string(),
         })
     }
 }
