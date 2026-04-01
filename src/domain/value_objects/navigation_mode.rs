@@ -3,6 +3,7 @@ use crate::domain::errors::DomainError;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum NavigationModeVariant {
+    Emacs,
     Vi,
 }
 
@@ -10,6 +11,7 @@ impl NavigationModeVariant {
     pub fn as_str(&self) -> &'static str {
         match self {
             NavigationModeVariant::Vi => "vi",
+            NavigationModeVariant::Emacs => "emacs",
         }
     }
 }
@@ -38,6 +40,7 @@ impl TryFrom<&str> for NavigationMode {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
             "vi" => Ok(Self(NavigationModeVariant::Vi)),
+            "emacs" => Ok(Self(NavigationModeVariant::Emacs)),
             _other => Err(DomainError::InvalidNavigationMode),
         }
     }
@@ -72,15 +75,23 @@ mod tests {
     }
 
     #[test]
-    fn try_from_valid_str_returns_ok() {
+    fn try_from_vi_str_returns_ok() {
         let result = NavigationMode::try_from("vi");
         assert!(result.is_ok());
         assert_eq!(result.unwrap().as_str(), "vi");
     }
 
     #[test]
-    fn try_from_invalid_str_returns_err() {
+    fn try_from_emacs_str_returns_ok() {
         let result = NavigationMode::try_from("emacs");
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().as_str(), "emacs");
+    }
+
+    #[test]
+    fn try_from_invalid_str_returns_err() {
+        let result = NavigationMode::try_from("invalid");
         assert!(result.is_err());
     }
 
