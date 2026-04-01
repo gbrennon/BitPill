@@ -148,3 +148,5 @@ impl UpdateMedicationRequest {
 }
 
 pub struct GetSettingsRequest {}
+
+pub struct SaveSettingsRequest {}
