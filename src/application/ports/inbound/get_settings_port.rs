@@ -5,5 +5,5 @@ use crate::application::{
 
 pub trait GetSettingsPort: Send + Sync {
     fn execute(&self, request: GetSettingsRequest)
-        -> Result<GetSettingsResponse, ApplicationError>;
+    -> Result<GetSettingsResponse, ApplicationError>;
 }
