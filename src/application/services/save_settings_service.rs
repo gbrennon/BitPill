@@ -11,7 +11,7 @@ use crate::{
     domain::{entities::app_settings::AppSettings, value_objects::navigation_mode::NavigationMode},
 };
 
-struct SaveSettingsService {
+pub struct SaveSettingsService {
     repository: Arc<dyn SettingsRepositoryPort>,
 }
 
