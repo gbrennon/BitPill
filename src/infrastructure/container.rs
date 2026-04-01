@@ -54,6 +54,9 @@ pub struct Container {
     pub settings_service: Arc<dyn GetSettingsPort>,
 }
 
+unsafe impl Send for Container {}
+unsafe impl Sync for Container {}
+
 impl Container {
     /// Constructs a container with explicit paths for all persistence.
     ///
