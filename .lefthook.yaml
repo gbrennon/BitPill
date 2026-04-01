@@ -1,0 +1,14 @@
+# BitPill lefthook configuration
+# Install: pipx install lefthook && lefthook install
+
+pre-commit:
+  parallel: false
+  jobs:
+    - name: Check formatting
+      run: just fmt-check
+
+    - name: Auto-fix warnings
+      run: cargo fix --lib -p bitpill --allow-dirty --allow-staged
+
+    - name: Run clippy
+      run: just lint

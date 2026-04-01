@@ -45,6 +45,11 @@ tools:
     rustup component add rustfmt clippy
     cargo install cargo-llvm-cov --locked --force
 
+# Install lefthook for pre-commit hooks
+install-hooks:
+    pipx install lefthook
+    lefthook install
+
 # Validate workflow files statically (requires actionlint)
 lint-workflows:
     actionlint -config-file .actionlint.yaml .forgejo/workflows/*.yml
