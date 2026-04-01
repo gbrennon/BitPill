@@ -113,3 +113,8 @@ pub struct SettingsResponse {
 pub struct UpdateMedicationResponse {
     pub id: String,
 }
+
+#[allow(dead_code)]
+pub struct GetSettingsResponse {
+    navigation_mode: String,
+}
