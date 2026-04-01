@@ -1,7 +1,4 @@
-use crate::domain::{
-    errors::DomainError,
-    value_objects::navigation_mode::NavigationMode
-};
+use crate::domain::{errors::DomainError, value_objects::navigation_mode::NavigationMode};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct AppSettings {
