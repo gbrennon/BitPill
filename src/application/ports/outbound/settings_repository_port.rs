@@ -1,10 +1,7 @@
 use crate::application::errors::StorageError;
-use serde_json::Value;
+use crate::domain::entities::app_settings::AppSettings;
 
 pub trait SettingsRepositoryPort: Send + Sync {
-    fn load(&self) -> Result<Value, StorageError>;
-    fn save(&self, settings: &Value) -> Result<(), StorageError>;
+    fn load(&self) -> Result<Option<AppSettings>, StorageError>;
+    fn save(&self, settings: &AppSettings) -> Result<(), StorageError>;
 }
-
-// Boxed trait alias for simpler wiring in the container
-pub type SettingsRepositoryPortBox = dyn SettingsRepositoryPort + Send + Sync;
