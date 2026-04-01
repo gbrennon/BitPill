@@ -113,3 +113,7 @@ pub struct SettingsResponse {
 pub struct UpdateMedicationResponse {
     pub id: String,
 }
+
+pub struct GetSettingsResponse {
+    pub navigation_mode: String,
+}

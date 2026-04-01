@@ -613,7 +613,7 @@ mod tests {
             get_medication: container.get_medication_service.clone(),
             list_dose_records: container.list_dose_records_service.clone(),
             mark_dose_taken: container.mark_dose_taken_service.clone(),
-            settings: container.settings_service.clone(),
+            get_settings: container.settings_service.clone(),
         };
         (App::new(services), dir)
     }

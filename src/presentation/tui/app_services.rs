@@ -4,10 +4,10 @@ use crate::application::ports::inbound::create_medication_port::CreateMedication
 use crate::application::ports::inbound::delete_medication_port::DeleteMedicationPort;
 use crate::application::ports::inbound::edit_medication_port::EditMedicationPort;
 use crate::application::ports::inbound::get_medication_port::GetMedicationPort;
+use crate::application::ports::inbound::get_settings_port::GetSettingsPort;
 use crate::application::ports::inbound::list_all_medications_port::ListAllMedicationsPort;
 use crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort;
 use crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort;
-use crate::application::ports::inbound::settings_port::SettingsPort;
 use crate::infrastructure::container::Container;
 
 /// Holds `Arc<dyn Port>` for every inbound application port the TUI needs.
@@ -20,7 +20,7 @@ pub struct AppServices {
     pub get_medication: Arc<dyn GetMedicationPort>,
     pub list_dose_records: Arc<dyn ListDoseRecordsPort>,
     pub mark_dose_taken: Arc<dyn MarkDoseTakenPort>,
-    pub settings: Arc<dyn SettingsPort>,
+    pub get_settings: Arc<dyn GetSettingsPort>,
 }
 
 impl AppServices {
@@ -35,7 +35,7 @@ impl AppServices {
             get_medication: container.get_medication_service.clone(),
             list_dose_records: container.list_dose_records_service.clone(),
             mark_dose_taken: container.mark_dose_taken_service.clone(),
-            settings: container.settings_service.clone(),
+            get_settings: container.settings_service.clone(),
         }
     }
 }
@@ -47,8 +47,8 @@ impl AppServices {
     pub fn fake() -> Self {
         use crate::application::ports::fakes::{
             FakeCreateMedicationPort, FakeDeleteMedicationPort, FakeEditMedicationPort,
-            FakeGetMedicationPort, FakeListAllMedicationsPort, FakeListDoseRecordsPort,
-            FakeMarkDoseTakenPort, FakeSettingsPort,
+            FakeGetMedicationPort, FakeGetSettingsPort, FakeListAllMedicationsPort,
+            FakeListDoseRecordsPort, FakeMarkDoseTakenPort,
         };
         Self {
             list_all_medications: Arc::new(FakeListAllMedicationsPort),
@@ -58,7 +58,7 @@ impl AppServices {
             get_medication: Arc::new(FakeGetMedicationPort),
             list_dose_records: Arc::new(FakeListDoseRecordsPort),
             mark_dose_taken: Arc::new(FakeMarkDoseTakenPort),
-            settings: Arc::new(FakeSettingsPort),
+            get_settings: Arc::new(FakeGetSettingsPort),
         }
     }
 }
@@ -70,7 +70,6 @@ mod tests {
     #[test]
     fn fake_constructs_all_services() {
         let services = AppServices::fake();
-        // Verify that each port is accessible (not panics)
         let _ = &services.list_all_medications;
         let _ = &services.create_medication;
         let _ = &services.edit_medication;
@@ -78,6 +77,6 @@ mod tests {
         let _ = &services.get_medication;
         let _ = &services.list_dose_records;
         let _ = &services.mark_dose_taken;
-        let _ = &services.settings;
+        let _ = &services.get_settings;
     }
 }

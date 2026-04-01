@@ -2,7 +2,6 @@ use crate::presentation::tui::app::App;
 use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
 use crate::presentation::tui::input::Key;
 use crate::presentation::tui::screen::Screen;
-use serde_json::Value;
 
 pub struct MedicationListHandler;
 
@@ -14,17 +13,12 @@ impl Default for MedicationListHandler {
 
 impl Handler for MedicationListHandler {
     fn handle(&mut self, app: &mut App, key: Key) -> HandlerResult {
-        // Query application Settings service (inbound port) instead of reading repository directly
-        let _vim_enabled = match app.services.settings.execute(
-            crate::application::dtos::requests::SettingsRequest {
-                op: crate::application::dtos::requests::SettingsOperation::Get,
-            },
-        ) {
-            Ok(resp) => resp
-                .settings
-                .get("vim_navigation")
-                .and_then(|v: &Value| v.as_bool())
-                .unwrap_or(false),
+        let _vim_enabled = match app
+            .services
+            .get_settings
+            .execute(crate::application::dtos::requests::GetSettingsRequest {})
+        {
+            Ok(settings) => settings.navigation_mode == "vi",
             Err(_) => false,
         };
         match key {
@@ -58,7 +52,6 @@ impl Handler for MedicationListHandler {
                 };
             }
             Key::Char('s') => {
-                // Mark-as-taken is only available from the Medication Details screen.
                 app.set_status("Open medication details (v) to mark doses as taken", 3000);
             }
             Key::Char('v') => {
@@ -68,17 +61,12 @@ impl Handler for MedicationListHandler {
                 }
             }
             Key::Char('g') => {
-                // open settings
-                let vim_enabled = match app.services.settings.execute(
-                    crate::application::dtos::requests::SettingsRequest {
-                        op: crate::application::dtos::requests::SettingsOperation::Get,
-                    },
-                ) {
-                    Ok(resp) => resp
-                        .settings
-                        .get("vim_navigation")
-                        .and_then(|v| v.as_bool())
-                        .unwrap_or(false),
+                let vim_enabled = match app
+                    .services
+                    .get_settings
+                    .execute(crate::application::dtos::requests::GetSettingsRequest {})
+                {
+                    Ok(settings) => settings.navigation_mode == "vi",
                     Err(_) => false,
                 };
                 app.current_screen = Screen::Settings { vim_enabled };
