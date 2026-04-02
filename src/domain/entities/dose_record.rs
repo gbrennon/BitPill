@@ -132,8 +132,9 @@ impl DoseRecord {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use chrono::NaiveDate;
+
+    use super::*;
 
     fn make_datetime(h: u32, m: u32) -> NaiveDateTime {
         NaiveDate::from_ymd_opt(2025, 1, 1)
