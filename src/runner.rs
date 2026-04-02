@@ -52,9 +52,8 @@ mod tests {
 
     use tempfile::tempdir;
 
-    use crate::infrastructure::container::Container;
-
     use super::*;
+    use crate::infrastructure::container::Container;
 
     fn make_container() -> (Arc<Container>, tempfile::TempDir) {
         let dir = tempdir().unwrap();
