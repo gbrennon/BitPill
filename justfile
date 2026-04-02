@@ -33,12 +33,12 @@ lint-fix +files='':
     cargo clippy --fix --allow-dirty --allow-staged {{files}}
 
 # Format source files (optionally specify files)
-fmt +files='':
-    cargo fmt {{files}}
+fmt *files:
+    cargo +nightly fmt {{ files }}
 
 # Check formatting without modifying files
 fmt-check:
-    cargo fmt --check
+    cargo +nightly fmt --check
 
 # Install required dev tools
 tools:
