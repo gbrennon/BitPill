@@ -1,5 +1,7 @@
-use crate::application::errors::StorageError;
-use crate::domain::{entities::medication::Medication, value_objects::medication_id::MedicationId};
+use crate::{
+    application::errors::StorageError,
+    domain::{entities::medication::Medication, value_objects::medication_id::MedicationId},
+};
 
 pub trait MedicationRepository: Send + Sync {
     fn save(&self, medication: &Medication) -> Result<(), StorageError>;

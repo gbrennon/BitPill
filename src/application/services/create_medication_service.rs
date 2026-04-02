@@ -1,15 +1,16 @@
-use std::convert::TryFrom;
-use std::sync::Arc;
+use std::{convert::TryFrom, sync::Arc};
 
-use crate::application::{
-    dtos::{requests::CreateMedicationRequest, responses::CreateMedicationResponse},
-    errors::ApplicationError,
-    ports::{
-        create_medication_port::CreateMedicationPort,
-        outbound::medication_repository_port::MedicationRepository,
+use crate::{
+    application::{
+        dtos::{requests::CreateMedicationRequest, responses::CreateMedicationResponse},
+        errors::ApplicationError,
+        ports::{
+            create_medication_port::CreateMedicationPort,
+            outbound::medication_repository_port::MedicationRepository,
+        },
     },
+    domain::entities::medication::Medication,
 };
-use crate::domain::entities::medication::Medication;
 
 pub struct CreateMedicationService {
     repository: Arc<dyn MedicationRepository>,

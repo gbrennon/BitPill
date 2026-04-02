@@ -1,21 +1,24 @@
 use std::sync::Arc;
+
 use uuid::Uuid;
 
-use crate::application::{
-    dtos::{
-        requests::GetMedicationRequest,
-        responses::{GetMedicationResponse, MedicationDto},
-    },
-    errors::{ApplicationError, NotFoundError},
-    ports::{
-        inbound::get_medication_port::GetMedicationPort,
-        outbound::{
-            dose_record_repository_port::DoseRecordRepository,
-            medication_repository_port::MedicationRepository,
+use crate::{
+    application::{
+        dtos::{
+            requests::GetMedicationRequest,
+            responses::{GetMedicationResponse, MedicationDto},
+        },
+        errors::{ApplicationError, NotFoundError},
+        ports::{
+            inbound::get_medication_port::GetMedicationPort,
+            outbound::{
+                dose_record_repository_port::DoseRecordRepository,
+                medication_repository_port::MedicationRepository,
+            },
         },
     },
+    domain::value_objects::medication_id::MedicationId,
 };
-use crate::domain::value_objects::medication_id::MedicationId;
 
 pub struct GetMedicationService {
     repository: Arc<dyn MedicationRepository>,
@@ -85,11 +88,15 @@ impl GetMedicationPort for GetMedicationService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::application::ports::fakes::{FakeDoseRecordRepository, FakeMedicationRepository};
-    use crate::domain::entities::medication::Medication;
-    use crate::domain::value_objects::{
-        dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
-        medication_name::MedicationName, scheduled_time::ScheduledTime,
+    use crate::{
+        application::ports::fakes::{FakeDoseRecordRepository, FakeMedicationRepository},
+        domain::{
+            entities::medication::Medication,
+            value_objects::{
+                dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+                medication_name::MedicationName, scheduled_time::ScheduledTime,
+            },
+        },
     };
 
     fn make_service(

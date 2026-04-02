@@ -1,10 +1,11 @@
 use std::sync::Mutex;
 
-use crate::application::errors::StorageError;
-use crate::application::ports::dose_record_repository_port::DoseRecordRepository;
-use crate::domain::{
-    entities::dose_record::DoseRecord,
-    value_objects::{dose_record_id::DoseRecordId, medication_id::MedicationId},
+use crate::{
+    application::{errors::StorageError, ports::dose_record_repository_port::DoseRecordRepository},
+    domain::{
+        entities::dose_record::DoseRecord,
+        value_objects::{dose_record_id::DoseRecordId, medication_id::MedicationId},
+    },
 };
 
 pub struct FakeDoseRecordRepository {
