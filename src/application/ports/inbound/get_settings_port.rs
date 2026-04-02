@@ -3,7 +3,7 @@ use crate::application::{
     errors::ApplicationError,
 };
 
-pub trait GetSettingsPort: Send + Sync {
+pub trait GetSettingsPort {
     fn execute(&self, request: GetSettingsRequest)
     -> Result<GetSettingsResponse, ApplicationError>;
 }

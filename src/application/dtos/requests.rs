@@ -148,3 +148,15 @@ impl UpdateMedicationRequest {
 }
 
 pub struct GetSettingsRequest {}
+
+pub struct SaveSettingsRequest {
+    pub navigation_mode: String,
+}
+
+impl SaveSettingsRequest {
+    pub fn new(navigation_mode: impl Into<String>) -> Self {
+        Self {
+            navigation_mode: navigation_mode.into(),
+        }
+    }
+}
