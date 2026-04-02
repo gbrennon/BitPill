@@ -1,10 +1,13 @@
-use bitpill::application::dtos::responses::MedicationDto;
-use bitpill::infrastructure::container::Container;
-use bitpill::presentation::tui::app::App;
-use bitpill::presentation::tui::app_services::AppServices;
-use bitpill::presentation::tui::handlers::medication_list_handler::MedicationListHandler;
-use bitpill::presentation::tui::handlers::port::Handler;
-use bitpill::presentation::tui::input::Key;
+use bitpill::{
+    application::dtos::responses::MedicationDto,
+    infrastructure::container::Container,
+    presentation::tui::{
+        app::App,
+        app_services::AppServices,
+        handlers::{medication_list_handler::MedicationListHandler, port::Handler},
+        input::Key,
+    },
+};
 use tempfile::tempdir;
 
 #[test]

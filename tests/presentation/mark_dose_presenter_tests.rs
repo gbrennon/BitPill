@@ -1,6 +1,9 @@
-use bitpill::application::dtos::responses::DoseRecordDto;
-use bitpill::presentation::tui::presenters::mark_dose_presenter::build_mark_dose_lines;
-use bitpill::presentation::tui::styles::highlight_style;
+use bitpill::{
+    application::dtos::responses::DoseRecordDto,
+    presentation::tui::{
+        presenters::mark_dose_presenter::build_mark_dose_lines, styles::highlight_style,
+    },
+};
 use chrono::{NaiveDate, NaiveDateTime};
 use ratatui::text::{Line, Span};
 

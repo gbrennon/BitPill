@@ -1,6 +1,6 @@
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::renderers;
 use ratatui::Frame;
+
+use crate::presentation::tui::{app::App, renderers};
 
 pub fn draw(f: &mut Frame, app: &App) {
     renderers::render(f, app);
@@ -8,11 +8,10 @@ pub fn draw(f: &mut Frame, app: &App) {
 
 #[cfg(test)]
 mod tests {
+    use ratatui::{Terminal, backend::TestBackend};
+
     use super::*;
-    use crate::presentation::tui::app::App;
-    use crate::presentation::tui::app_services::AppServices;
-    use ratatui::Terminal;
-    use ratatui::backend::TestBackend;
+    use crate::presentation::tui::{app::App, app_services::AppServices};
 
     #[test]
     fn draw_home_screen_does_not_panic() {

@@ -1,14 +1,12 @@
-use ratatui::Terminal;
-use ratatui::backend::TestBackend;
-use ratatui::buffer::Buffer;
 use std::sync::Arc;
-use tempfile::tempdir;
 
-use bitpill::application::dtos::responses::MedicationDto;
-use bitpill::infrastructure::container::Container;
-use bitpill::presentation::tui::app::App;
-use bitpill::presentation::tui::draw;
-use bitpill::presentation::tui::screen::Screen;
+use bitpill::{
+    application::dtos::responses::MedicationDto,
+    infrastructure::container::Container,
+    presentation::tui::{app::App, draw, screen::Screen},
+};
+use ratatui::{Terminal, backend::TestBackend, buffer::Buffer};
+use tempfile::tempdir;
 
 fn draw_with_app(app: &App) -> Buffer {
     let backend = TestBackend::new(80, 24);

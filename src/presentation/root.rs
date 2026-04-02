@@ -1,8 +1,10 @@
 // Composition root for the presentation layer
-use crate::infrastructure::container::Container;
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::app_services::AppServices;
 use std::sync::Arc;
+
+use crate::{
+    infrastructure::container::Container,
+    presentation::tui::{app::App, app_services::AppServices},
+};
 
 pub struct PresentationRoot {
     pub tui_app: App,
@@ -18,9 +20,10 @@ impl PresentationRoot {
 
 #[cfg(test)]
 mod tests {
+    use tempfile::tempdir;
+
     use super::*;
     use crate::presentation::tui::screen::Screen;
-    use tempfile::tempdir;
 
     #[test]
     fn new_creates_presentation_root_with_home_screen() {

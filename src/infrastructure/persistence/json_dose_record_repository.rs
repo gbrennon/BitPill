@@ -1,13 +1,16 @@
-use std::fs::{File, OpenOptions};
-use std::io::{Read, Write};
-use std::path::PathBuf;
-use std::sync::Mutex;
+use std::{
+    fs::{File, OpenOptions},
+    io::{Read, Write},
+    path::PathBuf,
+    sync::Mutex,
+};
 
-use crate::application::errors::StorageError;
-use crate::application::ports::dose_record_repository_port::DoseRecordRepository;
-use crate::domain::{
-    entities::dose_record::DoseRecord,
-    value_objects::{dose_record_id::DoseRecordId, medication_id::MedicationId},
+use crate::{
+    application::{errors::StorageError, ports::dose_record_repository_port::DoseRecordRepository},
+    domain::{
+        entities::dose_record::DoseRecord,
+        value_objects::{dose_record_id::DoseRecordId, medication_id::MedicationId},
+    },
 };
 
 pub struct JsonDoseRecordRepository {
@@ -107,13 +110,14 @@ impl DoseRecordRepository for JsonDoseRecordRepository {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::application::ports::dose_record_repository_port::DoseRecordRepository;
-    use crate::domain::{
-        entities::dose_record::DoseRecord, value_objects::medication_id::MedicationId,
-    };
     use chrono::NaiveDate;
     use tempfile::tempdir;
+
+    use super::*;
+    use crate::{
+        application::ports::dose_record_repository_port::DoseRecordRepository,
+        domain::{entities::dose_record::DoseRecord, value_objects::medication_id::MedicationId},
+    };
 
     fn make_med_id() -> MedicationId {
         MedicationId::from(uuid::Uuid::nil())

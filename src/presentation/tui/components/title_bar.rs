@@ -1,8 +1,10 @@
-use ratatui::Frame;
-use ratatui::layout::{Constraint, Direction, Layout, Rect};
-use ratatui::prelude::Alignment;
-use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Paragraph};
+use ratatui::{
+    Frame,
+    layout::{Constraint, Direction, Layout, Rect},
+    prelude::Alignment,
+    text::{Line, Span},
+    widgets::{Block, Paragraph},
+};
 
 use crate::presentation::tui::styles::bar_style;
 

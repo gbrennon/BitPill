@@ -1,7 +1,12 @@
-use crate::application::dtos::responses::MedicationDto;
-use crate::presentation::tui::styles::{BORDER_COLOR, content_style, highlight_style, title_style};
-use ratatui::layout::Constraint;
-use ratatui::widgets::{Block, Borders, Cell, Row, Table};
+use ratatui::{
+    layout::Constraint,
+    widgets::{Block, Borders, Cell, Row, Table},
+};
+
+use crate::{
+    application::dtos::responses::MedicationDto,
+    presentation::tui::styles::{BORDER_COLOR, content_style, highlight_style, title_style},
+};
 
 /// Simple table component specialized for medications. Title and column names are injected.
 /// Selected row (if any) will be styled using highlight_style().
@@ -81,11 +86,10 @@ pub fn medication_table<'a>(
 
 #[cfg(test)]
 mod tests {
+    use ratatui::{Terminal, backend::TestBackend, layout::Rect};
+
     use super::*;
     use crate::application::dtos::responses::MedicationDto;
-    use ratatui::Terminal;
-    use ratatui::backend::TestBackend;
-    use ratatui::layout::Rect;
 
     fn med(name: &str) -> MedicationDto {
         MedicationDto {

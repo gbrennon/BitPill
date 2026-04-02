@@ -1,12 +1,19 @@
-use crate::application::dtos::requests::ListDoseRecordsRequest;
-use crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort;
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::presenters::medication_details_presenter::{
-    MedicationDetailsInput, MedicationDetailsPresenter,
-};
-use crate::presentation::tui::renderers::ScreenRenderer;
-use crate::presentation::tui::screen::Screen;
 use ratatui::Frame;
+
+use crate::{
+    application::{
+        dtos::requests::ListDoseRecordsRequest,
+        ports::inbound::list_dose_records_port::ListDoseRecordsPort,
+    },
+    presentation::tui::{
+        app::App,
+        presenters::medication_details_presenter::{
+            MedicationDetailsInput, MedicationDetailsPresenter,
+        },
+        renderers::ScreenRenderer,
+        screen::Screen,
+    },
+};
 
 pub struct MedicationDetailsRenderer;
 
@@ -42,12 +49,13 @@ impl ScreenRenderer for MedicationDetailsRenderer {
 
 #[cfg(test)]
 mod tests {
+    use ratatui::{Terminal, backend::TestBackend};
+
     use super::*;
-    use crate::application::dtos::responses::MedicationDto;
-    use crate::presentation::tui::app::App;
-    use crate::presentation::tui::app_services::AppServices;
-    use ratatui::Terminal;
-    use ratatui::backend::TestBackend;
+    use crate::{
+        application::dtos::responses::MedicationDto,
+        presentation::tui::{app::App, app_services::AppServices},
+    };
 
     #[test]
     fn render_on_medication_details_screen_does_not_panic() {

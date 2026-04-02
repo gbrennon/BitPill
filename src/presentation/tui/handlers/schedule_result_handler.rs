@@ -1,6 +1,8 @@
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
-use crate::presentation::tui::screen::Screen;
+use crate::presentation::tui::{
+    app::App,
+    handlers::port::{Handler, HandlerResult},
+    screen::Screen,
+};
 
 pub struct ScheduleResultHandler;
 
@@ -24,10 +26,10 @@ impl Handler for ScheduleResultHandler {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::presentation::tui::app::App;
-    use crate::presentation::tui::app_services::AppServices;
     use crossterm::event::KeyCode;
+
+    use super::*;
+    use crate::presentation::tui::{app::App, app_services::AppServices};
 
     #[test]
     fn handle_enter_sets_screen_to_home() {

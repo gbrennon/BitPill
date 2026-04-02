@@ -1,6 +1,8 @@
-use ratatui::Frame;
-use ratatui::layout::Rect;
-use ratatui::widgets::{Block, Borders, Clear, Paragraph};
+use ratatui::{
+    Frame,
+    layout::Rect,
+    widgets::{Block, Borders, Clear, Paragraph},
+};
 
 use crate::presentation::tui::styles::{bar_style, content_style};
 

@@ -1,7 +1,6 @@
-use crate::domain::value_objects::medication_frequency::DoseFrequency;
 use crate::domain::value_objects::{
-    dosage::Dosage, medication_id::MedicationId, medication_name::MedicationName,
-    scheduled_time::ScheduledTime,
+    dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+    medication_name::MedicationName, scheduled_time::ScheduledTime,
 };
 
 /// An aggregate root representing a medication prescribed to a patient.

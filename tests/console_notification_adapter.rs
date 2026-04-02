@@ -1,12 +1,14 @@
-use bitpill::application::ports::notification_port::NotificationPort;
-use bitpill::domain::{
-    entities::{dose_record::DoseRecord, medication::Medication},
-    value_objects::{
-        dosage::Dosage, medication_id::MedicationId, medication_name::MedicationName,
-        scheduled_time::ScheduledTime,
+use bitpill::{
+    application::ports::notification_port::NotificationPort,
+    domain::{
+        entities::{dose_record::DoseRecord, medication::Medication},
+        value_objects::{
+            dosage::Dosage, medication_id::MedicationId, medication_name::MedicationName,
+            scheduled_time::ScheduledTime,
+        },
     },
+    infrastructure::notifications::console_notification_adapter::ConsoleNotificationAdapter,
 };
-use bitpill::infrastructure::notifications::console_notification_adapter::ConsoleNotificationAdapter;
 use chrono::NaiveDate;
 
 fn make_medication() -> Medication {

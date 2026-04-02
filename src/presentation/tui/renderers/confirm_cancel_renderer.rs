@@ -1,7 +1,8 @@
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::components::modal::render_modal;
-use crate::presentation::tui::renderers::ScreenRenderer;
 use ratatui::Frame;
+
+use crate::presentation::tui::{
+    app::App, components::modal::render_modal, renderers::ScreenRenderer,
+};
 
 pub struct ConfirmCancelRenderer;
 
@@ -19,11 +20,10 @@ impl ScreenRenderer for ConfirmCancelRenderer {
 
 #[cfg(test)]
 mod tests {
+    use ratatui::{Terminal, backend::TestBackend};
+
     use super::*;
-    use crate::presentation::tui::app::App;
-    use crate::presentation::tui::app_services::AppServices;
-    use ratatui::Terminal;
-    use ratatui::backend::TestBackend;
+    use crate::presentation::tui::{app::App, app_services::AppServices};
 
     #[test]
     fn render_does_not_panic() {

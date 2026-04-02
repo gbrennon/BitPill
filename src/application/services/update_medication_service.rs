@@ -1,18 +1,18 @@
-use std::convert::TryFrom;
-use std::sync::Arc;
+use std::{convert::TryFrom, sync::Arc};
 
 use uuid::Uuid;
 
-use crate::application::{
-    dtos::{requests::UpdateMedicationRequest, responses::UpdateMedicationResponse},
-    errors::ApplicationError,
-    ports::{
-        inbound::update_medication_port::UpdateMedicationPort,
-        outbound::medication_repository_port::MedicationRepository,
+use crate::{
+    application::{
+        dtos::{requests::UpdateMedicationRequest, responses::UpdateMedicationResponse},
+        errors::ApplicationError,
+        ports::{
+            inbound::update_medication_port::UpdateMedicationPort,
+            outbound::medication_repository_port::MedicationRepository,
+        },
     },
+    domain::{entities::medication::Medication, value_objects::medication_id::MedicationId},
 };
-use crate::domain::entities::medication::Medication;
-use crate::domain::value_objects::medication_id::MedicationId;
 
 pub struct UpdateMedicationService {
     repository: Arc<dyn MedicationRepository>,

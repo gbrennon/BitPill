@@ -1,7 +1,9 @@
 use chrono::{Local, Timelike};
 
-use crate::application::ports::scheduled_time_supplier_port::ScheduledTimeSupplier;
-use crate::domain::value_objects::scheduled_time::ScheduledTime;
+use crate::{
+    application::ports::scheduled_time_supplier_port::ScheduledTimeSupplier,
+    domain::value_objects::scheduled_time::ScheduledTime,
+};
 
 /// Derives the current [`ScheduledTime`] from the system clock via [`chrono::Local`].
 pub struct SystemScheduledTimeSupplier;
