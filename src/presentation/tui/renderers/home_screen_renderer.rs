@@ -1,7 +1,9 @@
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::presenters::medication_list_presenter::MedicationListPresenter;
-use crate::presentation::tui::renderers::ScreenRenderer;
 use ratatui::Frame;
+
+use crate::presentation::tui::{
+    app::App, presenters::medication_list_presenter::MedicationListPresenter,
+    renderers::ScreenRenderer,
+};
 
 pub struct HomeScreenRenderer;
 

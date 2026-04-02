@@ -1,7 +1,7 @@
-use crate::presentation::tui::components::medication_form::render_medication_form;
-
 // External crates
 use ratatui::Frame;
+
+use crate::presentation::tui::components::medication_form::render_medication_form;
 
 pub struct CreateMedicationPresenter;
 

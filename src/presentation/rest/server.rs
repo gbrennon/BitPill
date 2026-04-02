@@ -1,10 +1,11 @@
-use std::future::Future;
-use std::sync::Arc;
+use std::{future::Future, sync::Arc};
 
 use actix_web::{App, HttpServer, web};
 
-use crate::infrastructure::container::Container;
-use crate::presentation::rest::handlers::{doses, medications};
+use crate::{
+    infrastructure::container::Container,
+    presentation::rest::handlers::{doses, medications},
+};
 
 pub struct RestServer;
 
@@ -43,10 +44,11 @@ impl RestServer {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::sync::Arc;
+
     use tempfile::tempdir;
 
+    use super::*;
     use crate::infrastructure::container::Container;
 
     fn make_container() -> (Arc<Container>, tempfile::TempDir) {

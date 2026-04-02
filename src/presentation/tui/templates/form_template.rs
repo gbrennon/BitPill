@@ -1,13 +1,17 @@
-use ratatui::Frame;
-use ratatui::layout::{Constraint, Direction, Layout};
-use ratatui::style::Modifier;
-use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Borders, Paragraph};
+use ratatui::{
+    Frame,
+    layout::{Constraint, Direction, Layout},
+    style::Modifier,
+    text::{Line, Span},
+    widgets::{Block, Borders, Paragraph},
+};
 
-use crate::presentation::tui::components::bottom_bar::bottom_bar;
-use crate::presentation::tui::components::schedule_time::schedule_time;
-use crate::presentation::tui::components::title_bar::render_title_bar;
-use crate::presentation::tui::styles::{BORDER_COLOR, COPY_COLOR, TOP_BAR_HEIGHT, content_style};
+use crate::presentation::tui::{
+    components::{
+        bottom_bar::bottom_bar, schedule_time::schedule_time, title_bar::render_title_bar,
+    },
+    styles::{BORDER_COLOR, COPY_COLOR, TOP_BAR_HEIGHT, content_style},
+};
 
 /// A single editable field rendered inside a [`FormTemplate`].
 pub struct FormField<'a> {

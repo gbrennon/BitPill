@@ -1,8 +1,10 @@
-use crate::presentation::tui::styles::content_style;
-use crate::presentation::tui::templates::screen_template::ScreenTemplate;
-use ratatui::Frame;
-use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Paragraph};
+use ratatui::{
+    Frame,
+    text::{Line, Span},
+    widgets::{Block, Paragraph},
+};
+
+use crate::presentation::tui::{styles::content_style, templates::screen_template::ScreenTemplate};
 
 pub struct SettingsPresenter;
 

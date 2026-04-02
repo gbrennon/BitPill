@@ -1,6 +1,8 @@
-use ratatui::prelude::Alignment;
-use ratatui::text::{Line, Span};
-use ratatui::widgets::Paragraph;
+use ratatui::{
+    prelude::Alignment,
+    text::{Line, Span},
+    widgets::Paragraph,
+};
 
 use crate::presentation::tui::styles::bar_style;
 

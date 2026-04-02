@@ -1,11 +1,13 @@
 // Internal imports first
-use crate::application::dtos::responses::MedicationDto;
-use crate::presentation::tui::components::table::medication_table;
-use crate::presentation::tui::templates::screen_template::ScreenTemplate;
-
 // External crates
-use ratatui::Frame;
-use ratatui::widgets::ListState;
+use ratatui::{Frame, widgets::ListState};
+
+use crate::{
+    application::dtos::responses::MedicationDto,
+    presentation::tui::{
+        components::table::medication_table, templates::screen_template::ScreenTemplate,
+    },
+};
 
 pub struct MedicationListPresenter;
 
