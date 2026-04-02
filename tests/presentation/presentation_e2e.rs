@@ -1,9 +1,8 @@
-use bitpill::infrastructure::container::Container;
-use bitpill::presentation::tui::app::App;
-use bitpill::presentation::tui::app_services::AppServices;
-use bitpill::presentation::tui::draw;
-use ratatui::Terminal;
-use ratatui::backend::TestBackend;
+use bitpill::{
+    infrastructure::container::Container,
+    presentation::tui::{app::App, app_services::AppServices, draw},
+};
+use ratatui::{Terminal, backend::TestBackend};
 use tempfile::tempdir;
 
 #[test]

@@ -1,14 +1,12 @@
-use ratatui::Terminal;
-use ratatui::backend::TestBackend;
-use ratatui::buffer::Buffer;
-
 use std::sync::Arc;
-use tempfile::tempdir;
 
-use bitpill::application::dtos::requests::CreateMedicationRequest;
-use bitpill::infrastructure::container::Container;
-use bitpill::presentation::tui::app::App;
-use bitpill::presentation::tui::draw;
+use bitpill::{
+    application::dtos::requests::CreateMedicationRequest,
+    infrastructure::container::Container,
+    presentation::tui::{app::App, draw},
+};
+use ratatui::{Terminal, backend::TestBackend, buffer::Buffer};
+use tempfile::tempdir;
 
 #[test]
 fn render_all_screens_does_not_panic_and_draws_something() {

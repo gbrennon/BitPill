@@ -1,10 +1,12 @@
-use chrono::Timelike;
-
-use bitpill::application::ports::clock_port::ClockPort;
-use bitpill::application::ports::scheduled_time_supplier_port::ScheduledTimeSupplier;
-use bitpill::infrastructure::clock::{
-    system_clock::SystemClock, system_scheduled_time_supplier::SystemScheduledTimeSupplier,
+use bitpill::{
+    application::ports::{
+        clock_port::ClockPort, scheduled_time_supplier_port::ScheduledTimeSupplier,
+    },
+    infrastructure::clock::{
+        system_clock::SystemClock, system_scheduled_time_supplier::SystemScheduledTimeSupplier,
+    },
 };
+use chrono::Timelike;
 
 #[test]
 fn system_clock_now_returns_datetime_with_zero_seconds() {
