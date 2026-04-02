@@ -1,10 +1,14 @@
-use crate::application::dtos::requests::UpdateMedicationRequest;
-use crate::domain::entities::medication::Medication;
-use crate::domain::errors::DomainError;
-use crate::domain::ports::mapper::Mapper;
-use crate::domain::value_objects::{
-    dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
-    medication_name::MedicationName, scheduled_time::ScheduledTime,
+use crate::{
+    application::dtos::requests::UpdateMedicationRequest,
+    domain::{
+        entities::medication::Medication,
+        errors::DomainError,
+        ports::mapper::Mapper,
+        value_objects::{
+            dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+            medication_name::MedicationName, scheduled_time::ScheduledTime,
+        },
+    },
 };
 
 /// Mapper that produces a `Medication` from an `(UpdateMedicationRequest, MedicationId)` tuple.
@@ -37,8 +41,9 @@ impl Mapper<Medication> for UpdateMedicationMapper {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use uuid::Uuid;
+
+    use super::*;
 
     fn make_request(name: &str, amount_mg: u32, freq: &str) -> UpdateMedicationRequest {
         UpdateMedicationRequest::new(Uuid::nil().to_string(), name, amount_mg, vec![(8, 0)], freq)

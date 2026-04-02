@@ -1,6 +1,6 @@
-use chrono::Local;
 use std::sync::Arc;
 
+use chrono::Local;
 use uuid::Uuid;
 
 use crate::{
@@ -95,6 +95,9 @@ impl MarkDoseTakenPort for MarkDoseTakenService {
 
 #[cfg(test)]
 mod tests {
+    use chrono::NaiveDate;
+    use uuid::Uuid;
+
     use super::*;
     use crate::{
         application::ports::fakes::{FakeDoseRecordRepository, FakeMedicationRepository},
@@ -103,8 +106,6 @@ mod tests {
             value_objects::{Dosage, DoseFrequency, MedicationId, MedicationName},
         },
     };
-    use chrono::NaiveDate;
-    use uuid::Uuid;
 
     fn make_datetime(h: u32, m: u32) -> chrono::NaiveDateTime {
         NaiveDate::from_ymd_opt(2025, 1, 1)

@@ -1,10 +1,14 @@
-use crate::application::dtos::requests::CreateMedicationRequest;
-use crate::domain::entities::medication::Medication;
-use crate::domain::errors::DomainError;
-use crate::domain::ports::mapper::Mapper;
-use crate::domain::value_objects::{
-    dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
-    medication_name::MedicationName, scheduled_time::ScheduledTime,
+use crate::{
+    application::dtos::requests::CreateMedicationRequest,
+    domain::{
+        entities::medication::Medication,
+        errors::DomainError,
+        ports::mapper::Mapper,
+        value_objects::{
+            dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+            medication_name::MedicationName, scheduled_time::ScheduledTime,
+        },
+    },
 };
 
 /// Mapper that produces a `Medication` from a `CreateMedicationRequest`.

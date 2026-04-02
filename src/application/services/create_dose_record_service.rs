@@ -44,9 +44,10 @@ impl CreateDoseRecordPort for CreateDoseRecordService {
 
 #[cfg(test)]
 mod tests {
+    use chrono::NaiveDate;
+
     use super::*;
     use crate::application::ports::fakes::FakeDoseRecordRepository;
-    use chrono::NaiveDate;
 
     fn make_service(repo: std::sync::Arc<FakeDoseRecordRepository>) -> CreateDoseRecordService {
         CreateDoseRecordService::new(repo)
