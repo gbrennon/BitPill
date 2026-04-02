@@ -1,9 +1,12 @@
-use crate::presentation::tui::input::Key;
-
-use crate::application::dtos::requests::MarkDoseTakenRequest;
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
-use crate::presentation::tui::screen::Screen;
+use crate::{
+    application::dtos::requests::MarkDoseTakenRequest,
+    presentation::tui::{
+        app::App,
+        handlers::port::{Handler, HandlerResult},
+        input::Key,
+        screen::Screen,
+    },
+};
 
 pub struct MarkDoseHandler;
 
@@ -108,13 +111,14 @@ impl Handler for MarkDoseHandler {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::application::dtos::responses::DoseRecordDto;
-    use crate::presentation::tui::app::App;
-    use crate::presentation::tui::app_services::AppServices;
-    use crate::presentation::tui::screen::Screen;
     use chrono::NaiveDate;
     use crossterm::event::KeyCode;
+
+    use super::*;
+    use crate::{
+        application::dtos::responses::DoseRecordDto,
+        presentation::tui::{app::App, app_services::AppServices, screen::Screen},
+    };
 
     fn app_with_mark_dose(records: Vec<DoseRecordDto>) -> App {
         let mut app = App::new(AppServices::fake());

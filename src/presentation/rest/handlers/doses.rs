@@ -3,9 +3,13 @@ use std::sync::Arc;
 use actix_web::{HttpResponse, web};
 use serde::{Deserialize, Serialize};
 
-use crate::application::dtos::requests::{MarkDoseTakenRequest, ScheduleDoseRequest};
-use crate::application::errors::{ApplicationError, NotFoundError};
-use crate::infrastructure::container::Container;
+use crate::{
+    application::{
+        dtos::requests::{MarkDoseTakenRequest, ScheduleDoseRequest},
+        errors::{ApplicationError, NotFoundError},
+    },
+    infrastructure::container::Container,
+};
 
 #[derive(Deserialize)]
 pub struct MarkTakenBody {

@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
-use crate::application::ports::inbound::create_medication_port::CreateMedicationPort;
-use crate::application::ports::inbound::delete_medication_port::DeleteMedicationPort;
-use crate::application::ports::inbound::edit_medication_port::EditMedicationPort;
-use crate::application::ports::inbound::get_medication_port::GetMedicationPort;
-use crate::application::ports::inbound::get_settings_port::GetSettingsPort;
-use crate::application::ports::inbound::list_all_medications_port::ListAllMedicationsPort;
-use crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort;
-use crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort;
-use crate::infrastructure::container::Container;
+use crate::{
+    application::ports::inbound::{
+        create_medication_port::CreateMedicationPort, delete_medication_port::DeleteMedicationPort,
+        edit_medication_port::EditMedicationPort, get_medication_port::GetMedicationPort,
+        get_settings_port::GetSettingsPort, list_all_medications_port::ListAllMedicationsPort,
+        list_dose_records_port::ListDoseRecordsPort, mark_dose_taken_port::MarkDoseTakenPort,
+    },
+    infrastructure::container::Container,
+};
 
 /// Holds `Arc<dyn Port>` for every inbound application port the TUI needs.
 /// The TUI depends only on these abstractions — never on concrete infrastructure.

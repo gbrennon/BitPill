@@ -1,10 +1,13 @@
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::presenters::create_medication_presenter::{
-    CreateMedicationPresenter, CreateMedicationPresenterDto,
-};
-use crate::presentation::tui::renderers::ScreenRenderer;
-use crate::presentation::tui::screen::Screen;
 use ratatui::Frame;
+
+use crate::presentation::tui::{
+    app::App,
+    presenters::create_medication_presenter::{
+        CreateMedicationPresenter, CreateMedicationPresenterDto,
+    },
+    renderers::ScreenRenderer,
+    screen::Screen,
+};
 
 const FREQUENCY_OPTIONS: &[&str] = &["Once Daily", "Twice Daily", "Thrice Daily", "Custom"];
 

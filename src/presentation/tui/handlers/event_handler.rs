@@ -1,14 +1,22 @@
-use crate::domain::entities::app_settings::AppSettings;
-use crate::domain::value_objects::navigation_mode::{NavigationMode, NavigationModeVariant};
-use crate::presentation::tui::input::Key;
-
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::handlers::create_medication_handler::CreateMedicationHandler;
-use crate::presentation::tui::handlers::mark_dose_handler::MarkDoseHandler;
-use crate::presentation::tui::handlers::medication_list_handler::MedicationListHandler;
-use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
-use crate::presentation::tui::screen::Screen;
 use chrono::Datelike;
+
+use crate::{
+    domain::{
+        entities::app_settings::AppSettings,
+        value_objects::navigation_mode::{NavigationMode, NavigationModeVariant},
+    },
+    presentation::tui::{
+        app::App,
+        handlers::{
+            create_medication_handler::CreateMedicationHandler,
+            mark_dose_handler::MarkDoseHandler,
+            medication_list_handler::MedicationListHandler,
+            port::{Handler, HandlerResult},
+        },
+        input::Key,
+        screen::Screen,
+    },
+};
 
 #[derive(Default)]
 pub struct EventHandler {
@@ -75,10 +83,14 @@ impl Handler for EventHandler {
                         if let Screen::MedicationDetails { id } = &app.current_screen
                             && let Some(m) = app.medications.iter().find(|m| m.id == *id)
                         {
-                            use crate::application::dtos::requests::ListDoseRecordsRequest;
-                            use crate::application::dtos::responses::DoseRecordDto;
-                            use crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort;
                             use chrono::Local;
+
+                            use crate::application::{
+                                dtos::{
+                                    requests::ListDoseRecordsRequest, responses::DoseRecordDto,
+                                },
+                                ports::inbound::list_dose_records_port::ListDoseRecordsPort,
+                            };
 
                             let today = Local::now().date_naive();
                             // fetch ALL dose records for this medication (not just today's)
@@ -239,12 +251,12 @@ impl Handler for EventHandler {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::presentation::tui::app::App;
-    use crate::presentation::tui::app_services::AppServices;
-    use crate::presentation::tui::input::Key;
-    use crate::presentation::tui::screen::Screen;
     use crossterm::event::KeyCode;
+
+    use super::*;
+    use crate::presentation::tui::{
+        app::App, app_services::AppServices, input::Key, screen::Screen,
+    };
 
     fn app() -> App {
         App::new(AppServices::fake())

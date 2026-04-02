@@ -1,9 +1,12 @@
-use ratatui::Frame;
-use ratatui::layout::{Constraint, Direction, Layout, Rect};
+use ratatui::{
+    Frame,
+    layout::{Constraint, Direction, Layout, Rect},
+};
 
-use crate::presentation::tui::components::bottom_bar::bottom_bar;
-use crate::presentation::tui::components::title_bar::render_title_bar;
-use crate::presentation::tui::styles::TOP_BAR_HEIGHT;
+use crate::presentation::tui::{
+    components::{bottom_bar::bottom_bar, title_bar::render_title_bar},
+    styles::TOP_BAR_HEIGHT,
+};
 
 /// Base screen template — the equivalent of a web base layout.
 ///
@@ -75,9 +78,9 @@ impl<'a> ScreenTemplate<'a> {
 
 #[cfg(test)]
 mod tests {
+    use ratatui::{Terminal, backend::TestBackend};
+
     use super::*;
-    use ratatui::Terminal;
-    use ratatui::backend::TestBackend;
 
     #[test]
     fn render_normal_height_no_panic() {
