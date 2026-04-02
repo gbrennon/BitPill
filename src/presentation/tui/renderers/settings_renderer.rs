@@ -1,8 +1,9 @@
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::presenters::settings_presenter::SettingsPresenter;
-use crate::presentation::tui::renderers::ScreenRenderer;
-use crate::presentation::tui::screen::Screen;
 use ratatui::Frame;
+
+use crate::presentation::tui::{
+    app::App, presenters::settings_presenter::SettingsPresenter, renderers::ScreenRenderer,
+    screen::Screen,
+};
 
 pub struct SettingsRenderer;
 

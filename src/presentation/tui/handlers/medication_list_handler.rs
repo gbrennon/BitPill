@@ -1,7 +1,9 @@
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
-use crate::presentation::tui::input::Key;
-use crate::presentation::tui::screen::Screen;
+use crate::presentation::tui::{
+    app::App,
+    handlers::port::{Handler, HandlerResult},
+    input::Key,
+    screen::Screen,
+};
 
 pub struct MedicationListHandler;
 
@@ -152,12 +154,13 @@ impl Handler for MedicationListHandler {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::application::dtos::responses::MedicationDto;
-    use crate::presentation::tui::app::App;
-    use crate::presentation::tui::app_services::AppServices;
-    use crate::presentation::tui::input::Key;
     use crossterm::event::KeyCode;
+
+    use super::*;
+    use crate::{
+        application::dtos::responses::MedicationDto,
+        presentation::tui::{app::App, app_services::AppServices, input::Key},
+    };
 
     fn new_app() -> App {
         App::new(AppServices::fake())

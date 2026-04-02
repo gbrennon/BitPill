@@ -1,10 +1,17 @@
-use crate::application::dtos::responses::DoseRecordDto;
-use crate::presentation::tui::styles::{content_style, highlight_style};
-use crate::presentation::tui::templates::screen_template::ScreenTemplate;
 use chrono::Timelike;
-use ratatui::Frame;
-use ratatui::text::{Line, Span};
-use ratatui::widgets::Paragraph;
+use ratatui::{
+    Frame,
+    text::{Line, Span},
+    widgets::Paragraph,
+};
+
+use crate::{
+    application::dtos::responses::DoseRecordDto,
+    presentation::tui::{
+        styles::{content_style, highlight_style},
+        templates::screen_template::ScreenTemplate,
+    },
+};
 
 pub struct MarkDoseInput<'a> {
     pub medication_id: &'a str,
@@ -75,11 +82,13 @@ pub fn build_mark_dose_lines(records: &[DoseRecordDto], selected_index: usize) -
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::application::dtos::responses::DoseRecordDto;
-    use crate::presentation::tui::styles::highlight_style;
     use chrono::{NaiveDate, NaiveDateTime};
     use ratatui::text::{Line, Span};
+
+    use super::*;
+    use crate::{
+        application::dtos::responses::DoseRecordDto, presentation::tui::styles::highlight_style,
+    };
 
     fn make_dt(h: u32, m: u32) -> NaiveDateTime {
         NaiveDate::from_ymd_opt(2025, 1, 1)

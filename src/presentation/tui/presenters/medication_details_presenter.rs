@@ -1,12 +1,16 @@
 // Internal imports first
-use crate::application::dtos::responses::{DoseRecordDto, MedicationDto};
-use crate::presentation::tui::templates::screen_template::ScreenTemplate;
+use chrono::Datelike;
+use ratatui::{
+    Frame,
+    text::{Line, Span},
+};
 
 // External crates
 use crate::presentation::tui::styles::{content_style, highlight_style};
-use chrono::Datelike;
-use ratatui::Frame;
-use ratatui::text::{Line, Span};
+use crate::{
+    application::dtos::responses::{DoseRecordDto, MedicationDto},
+    presentation::tui::templates::screen_template::ScreenTemplate,
+};
 
 pub struct MedicationDetailsInput<'a> {
     pub medication: Option<&'a MedicationDto>,
@@ -120,11 +124,11 @@ impl MedicationDetailsPresenter {
 
 #[cfg(test)]
 mod tests {
+    use chrono::NaiveDate;
+    use ratatui::{Terminal, backend::TestBackend};
+
     use super::*;
     use crate::application::dtos::responses::MedicationDto;
-    use chrono::NaiveDate;
-    use ratatui::Terminal;
-    use ratatui::backend::TestBackend;
 
     fn make_terminal() -> Terminal<TestBackend> {
         Terminal::new(TestBackend::new(80, 24)).unwrap()

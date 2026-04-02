@@ -1,6 +1,7 @@
-use crate::application::errors::DeliveryError;
-use crate::application::ports::notification_port::NotificationPort;
-use crate::domain::entities::{dose_record::DoseRecord, medication::Medication};
+use crate::{
+    application::{errors::DeliveryError, ports::notification_port::NotificationPort},
+    domain::entities::{dose_record::DoseRecord, medication::Medication},
+};
 
 /// Delivers dose-due notifications by printing to stdout.
 pub struct ConsoleNotificationAdapter;
@@ -24,10 +25,12 @@ impl NotificationPort for ConsoleNotificationAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::entities::{dose_record::DoseRecord, medication::Medication};
-    use crate::domain::value_objects::{
-        dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
-        medication_name::MedicationName, scheduled_time::ScheduledTime,
+    use crate::domain::{
+        entities::{dose_record::DoseRecord, medication::Medication},
+        value_objects::{
+            dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+            medication_name::MedicationName, scheduled_time::ScheduledTime,
+        },
     };
 
     #[test]

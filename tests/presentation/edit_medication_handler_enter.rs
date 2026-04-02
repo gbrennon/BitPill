@@ -1,11 +1,14 @@
-use bitpill::application::dtos::requests::CreateMedicationRequest;
-use bitpill::infrastructure::container::Container;
-use bitpill::presentation::tui::app::App;
-use bitpill::presentation::tui::app_services::AppServices;
-use bitpill::presentation::tui::handlers::edit_medication_handler::EditMedicationHandler;
-use bitpill::presentation::tui::handlers::port::Handler;
-use bitpill::presentation::tui::input::Key;
-use bitpill::presentation::tui::screen::Screen;
+use bitpill::{
+    application::dtos::requests::CreateMedicationRequest,
+    infrastructure::container::Container,
+    presentation::tui::{
+        app::App,
+        app_services::AppServices,
+        handlers::{edit_medication_handler::EditMedicationHandler, port::Handler},
+        input::Key,
+        screen::Screen,
+    },
+};
 use tempfile::tempdir;
 
 #[test]

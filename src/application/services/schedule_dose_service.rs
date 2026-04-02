@@ -2,19 +2,21 @@ use std::sync::Arc;
 
 use chrono::Timelike;
 
-use crate::application::{
-    dtos::{
-        requests::ScheduleDoseRequest,
-        responses::{ScheduleDoseResponse, ScheduledDoseRecordDto},
+use crate::{
+    application::{
+        dtos::{
+            requests::ScheduleDoseRequest,
+            responses::{ScheduleDoseResponse, ScheduledDoseRecordDto},
+        },
+        errors::ApplicationError,
+        ports::{
+            clock_port::ClockPort, dose_record_repository_port::DoseRecordRepository,
+            medication_repository_port::MedicationRepository, notification_port::NotificationPort,
+            schedule_dose_port::ScheduleDosePort,
+        },
     },
-    errors::ApplicationError,
-    ports::{
-        clock_port::ClockPort, dose_record_repository_port::DoseRecordRepository,
-        medication_repository_port::MedicationRepository, notification_port::NotificationPort,
-        schedule_dose_port::ScheduleDosePort,
-    },
+    domain::entities::dose_record::DoseRecord,
 };
-use crate::domain::entities::dose_record::DoseRecord;
 
 /// Checks every registered medication against the current time and, for each
 /// one whose [`ScheduledTime`] matches, creates a [`DoseRecord`] and fires a
@@ -101,13 +103,17 @@ impl ScheduleDosePort for ScheduleDoseService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::application::ports::fakes::{
-        FakeClock, FakeDoseRecordRepository, FakeMedicationRepository, FakeNotificationPort,
-    };
-    use crate::domain::entities::medication::Medication;
-    use crate::domain::value_objects::{
-        dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
-        medication_name::MedicationName, scheduled_time::ScheduledTime,
+    use crate::{
+        application::ports::fakes::{
+            FakeClock, FakeDoseRecordRepository, FakeMedicationRepository, FakeNotificationPort,
+        },
+        domain::{
+            entities::medication::Medication,
+            value_objects::{
+                dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+                medication_name::MedicationName, scheduled_time::ScheduledTime,
+            },
+        },
     };
 
     fn make_service(

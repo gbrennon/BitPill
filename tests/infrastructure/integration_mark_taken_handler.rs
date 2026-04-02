@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use bitpill::{
     application::{
         dtos::responses::MedicationDto,
@@ -13,12 +15,12 @@ use bitpill::{
     },
     infrastructure::container::Container,
     presentation::tui::{
-        app::App, app_services::AppServices,
-        handlers::medication_list_handler::MedicationListHandler, handlers::port::Handler,
+        app::App,
+        app_services::AppServices,
+        handlers::{medication_list_handler::MedicationListHandler, port::Handler},
         input::Key,
     },
 };
-use std::sync::Arc;
 use tempfile::tempdir;
 
 #[test]

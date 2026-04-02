@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
-use bitpill::infrastructure::config::app_paths::AppPaths;
-use bitpill::infrastructure::container::Container;
-use bitpill::presentation::root::PresentationRoot;
+use bitpill::{
+    infrastructure::{config::app_paths::AppPaths, container::Container},
+    presentation::root::PresentationRoot,
+};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let paths = AppPaths::resolve();

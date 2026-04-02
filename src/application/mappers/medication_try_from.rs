@@ -1,12 +1,19 @@
 use std::convert::TryFrom;
 
-use crate::application::dtos::requests::{CreateMedicationRequest, UpdateMedicationRequest};
-use crate::application::errors::ApplicationError;
-use crate::application::mappers::create_medication_mapper::CreateMedicationMapper;
-use crate::application::mappers::update_medication_mapper::UpdateMedicationMapper;
-use crate::domain::entities::medication::Medication;
-use crate::domain::ports::mapper::Mapper;
-use crate::domain::value_objects::medication_id::MedicationId;
+use crate::{
+    application::{
+        dtos::requests::{CreateMedicationRequest, UpdateMedicationRequest},
+        errors::ApplicationError,
+        mappers::{
+            create_medication_mapper::CreateMedicationMapper,
+            update_medication_mapper::UpdateMedicationMapper,
+        },
+    },
+    domain::{
+        entities::medication::Medication, ports::mapper::Mapper,
+        value_objects::medication_id::MedicationId,
+    },
+};
 
 /// Convert a CreateMedicationRequest into a domain Medication.
 impl TryFrom<CreateMedicationRequest> for Medication {
@@ -28,8 +35,9 @@ impl TryFrom<(UpdateMedicationRequest, MedicationId)> for Medication {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use uuid::Uuid;
+
+    use super::*;
 
     fn create_req(name: &str, amount_mg: u32, freq: &str) -> CreateMedicationRequest {
         CreateMedicationRequest::new(name, amount_mg, vec![(8, 0)], freq)

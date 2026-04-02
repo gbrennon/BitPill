@@ -1,8 +1,12 @@
-use crate::application::dtos::responses::MedicationDto;
-use crate::presentation::tui::styles::content_style;
 use chrono::NaiveDateTime;
-use ratatui::text::{Line, Span};
-use ratatui::widgets::Paragraph;
+use ratatui::{
+    text::{Line, Span},
+    widgets::Paragraph,
+};
+
+use crate::{
+    application::dtos::responses::MedicationDto, presentation::tui::styles::content_style,
+};
 
 pub fn medication_detail<'a>(m: &'a MedicationDto, taken_at: &[NaiveDateTime]) -> Paragraph<'a> {
     let mut lines = Vec::new();
@@ -42,12 +46,11 @@ pub fn medication_detail<'a>(m: &'a MedicationDto, taken_at: &[NaiveDateTime]) -
 
 #[cfg(test)]
 mod tests {
+    use chrono::NaiveDate;
+    use ratatui::{Terminal, backend::TestBackend, layout::Rect};
+
     use super::*;
     use crate::application::dtos::responses::MedicationDto;
-    use chrono::NaiveDate;
-    use ratatui::Terminal;
-    use ratatui::backend::TestBackend;
-    use ratatui::layout::Rect;
 
     fn med(with_schedule: bool) -> MedicationDto {
         MedicationDto {

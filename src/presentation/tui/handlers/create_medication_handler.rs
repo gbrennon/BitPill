@@ -1,14 +1,19 @@
-use crate::application::dtos::requests::CreateMedicationRequest;
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::handlers::medication_form_navigation::{
-    NavigationState, navigate_down, navigate_left, navigate_right, navigate_up, remove_custom_slot,
+use crate::{
+    application::dtos::requests::CreateMedicationRequest,
+    presentation::tui::{
+        app::App,
+        handlers::{
+            medication_form_navigation::{
+                NavigationState, navigate_down, navigate_left, navigate_right, navigate_up,
+                remove_custom_slot,
+            },
+            port::{Handler, HandlerResult},
+            time_slot_parser::{frequency_str, parse_slots, validate_slot_count},
+        },
+        input::Key,
+        screen::Screen,
+    },
 };
-use crate::presentation::tui::handlers::port::{Handler, HandlerResult};
-use crate::presentation::tui::handlers::time_slot_parser::{
-    frequency_str, parse_slots, validate_slot_count,
-};
-use crate::presentation::tui::input::Key;
-use crate::presentation::tui::screen::Screen;
 
 pub struct CreateMedicationHandler;
 
@@ -280,9 +285,10 @@ impl Handler for CreateMedicationHandler {
 
 #[cfg(test)]
 mod tests {
+    use crossterm::event::KeyCode;
+
     use super::*;
     use crate::presentation::tui::handlers::port::Handler;
-    use crossterm::event::KeyCode;
 
     fn make_screen(focused_field: u8, insert_mode: bool) -> Screen {
         Screen::CreateMedication {

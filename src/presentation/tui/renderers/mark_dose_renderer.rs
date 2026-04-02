@@ -1,8 +1,11 @@
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::presenters::mark_dose_presenter::{MarkDoseInput, MarkDosePresenter};
-use crate::presentation::tui::renderers::ScreenRenderer;
-use crate::presentation::tui::screen::Screen;
 use ratatui::Frame;
+
+use crate::presentation::tui::{
+    app::App,
+    presenters::mark_dose_presenter::{MarkDoseInput, MarkDosePresenter},
+    renderers::ScreenRenderer,
+    screen::Screen,
+};
 
 pub struct MarkDoseRenderer;
 

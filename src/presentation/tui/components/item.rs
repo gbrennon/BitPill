@@ -1,6 +1,6 @@
+use ratatui::{text::Span, widgets::ListItem};
+
 use crate::presentation::tui::styles::content_style;
-use ratatui::text::Span;
-use ratatui::widgets::ListItem;
 
 /// Creates a styled ListItem for a medication entry
 pub fn medication_item(name: &str, amount_mg: u32) -> ListItem<'_> {

@@ -1,5 +1,4 @@
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::input::Key;
+use crate::presentation::tui::{app::App, input::Key};
 
 pub enum HandlerResult {
     Continue,

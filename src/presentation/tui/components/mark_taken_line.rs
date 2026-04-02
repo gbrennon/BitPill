@@ -1,7 +1,8 @@
 // Renders a line for a scheduled slot or dose record with a checkbox indicating taken status.
-use crate::presentation::tui::styles::highlight_style;
 use chrono::NaiveDateTime;
 use ratatui::text::{Line, Span};
+
+use crate::presentation::tui::styles::highlight_style;
 
 pub fn mark_taken_line(
     selected: bool,
@@ -26,8 +27,9 @@ pub fn mark_taken_line(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use chrono::NaiveDateTime;
+
+    use super::*;
 
     #[test]
     fn untaken_slot_shows_empty_checkbox() {

@@ -1,23 +1,23 @@
-use std::sync::Arc;
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
-use crossterm::execute;
-use crossterm::terminal::{
-    EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
+use crossterm::{
+    execute,
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
-use ratatui::Terminal;
-use ratatui::backend::CrosstermBackend;
+use ratatui::{Terminal, backend::CrosstermBackend};
 
-use crate::application::dtos::requests::ListAllMedicationsRequest;
-use crate::application::dtos::responses::MedicationDto;
-use crate::infrastructure::container::Container;
-use crate::presentation::tui::app_services::AppServices;
-use crate::presentation::tui::draw;
-use crate::presentation::tui::event_source::{EventSource, RealEventSource};
-use crate::presentation::tui::handlers::event_handler::EventHandler;
-use crate::presentation::tui::handlers::port::Handler;
-use crate::presentation::tui::input::Key;
-use crate::presentation::tui::screen::Screen;
+use crate::{
+    application::dtos::{requests::ListAllMedicationsRequest, responses::MedicationDto},
+    infrastructure::container::Container,
+    presentation::tui::{
+        app_services::AppServices,
+        draw,
+        event_source::{EventSource, RealEventSource},
+        handlers::{event_handler::EventHandler, port::Handler},
+        input::Key,
+        screen::Screen,
+    },
+};
 
 pub struct App {
     pub services: AppServices,
@@ -140,21 +140,21 @@ impl App {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-    use std::time::Duration;
+    use std::{sync::Arc, time::Duration};
 
-    use ratatui::Terminal;
-    use ratatui::backend::TestBackend;
-
-    use crate::application::dtos::requests::ListAllMedicationsRequest;
-    use crate::application::dtos::responses::ListAllMedicationsResponse;
-    use crate::application::errors::{ApplicationError, StorageError};
-    use crate::application::ports::inbound::list_all_medications_port::ListAllMedicationsPort;
-    use crate::presentation::tui::app_services::AppServices;
-    use crate::presentation::tui::event_source::FakeEventSource;
-    use crate::presentation::tui::screen::Screen;
+    use ratatui::{Terminal, backend::TestBackend};
 
     use super::*;
+    use crate::{
+        application::{
+            dtos::{requests::ListAllMedicationsRequest, responses::ListAllMedicationsResponse},
+            errors::{ApplicationError, StorageError},
+            ports::inbound::list_all_medications_port::ListAllMedicationsPort,
+        },
+        presentation::tui::{
+            app_services::AppServices, event_source::FakeEventSource, screen::Screen,
+        },
+    };
 
     struct ErrorListAllMedicationsPort;
     impl ListAllMedicationsPort for ErrorListAllMedicationsPort {

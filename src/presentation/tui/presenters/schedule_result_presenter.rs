@@ -1,11 +1,8 @@
 // Internal imports first
-use crate::presentation::tui::templates::screen_template::ScreenTemplate;
-
 // External crates
-use ratatui::Frame;
-use ratatui::widgets::Paragraph;
+use ratatui::{Frame, widgets::Paragraph};
 
-use crate::presentation::tui::styles::content_style;
+use crate::presentation::tui::{styles::content_style, templates::screen_template::ScreenTemplate};
 
 pub struct ScheduleResultInput {
     pub created_count: usize,
@@ -33,9 +30,9 @@ impl ScheduleResultPresenter {
 
 #[cfg(test)]
 mod tests {
+    use ratatui::{Terminal, backend::TestBackend};
+
     use super::*;
-    use ratatui::Terminal;
-    use ratatui::backend::TestBackend;
 
     #[test]
     fn present_renders_scheduled_count() {

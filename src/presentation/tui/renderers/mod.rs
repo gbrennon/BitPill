@@ -1,7 +1,6 @@
-use crate::presentation::tui::app::App;
-use crate::presentation::tui::styles::content_style;
-use ratatui::Frame;
-use ratatui::widgets::Block;
+use ratatui::{Frame, widgets::Block};
+
+use crate::presentation::tui::{app::App, styles::content_style};
 
 mod confirm_cancel_renderer;
 mod confirm_delete_renderer;
@@ -13,7 +12,6 @@ mod mark_dose_renderer;
 mod medication_details_renderer;
 mod settings_renderer;
 
-use crate::presentation::tui::screen::Screen;
 use confirm_cancel_renderer::ConfirmCancelRenderer;
 use confirm_delete_renderer::ConfirmDeleteRenderer;
 use confirm_quit_renderer::ConfirmQuitRenderer;
@@ -23,6 +21,8 @@ use home_screen_renderer::HomeScreenRenderer;
 use mark_dose_renderer::MarkDoseRenderer;
 use medication_details_renderer::MedicationDetailsRenderer;
 use settings_renderer::SettingsRenderer;
+
+use crate::presentation::tui::screen::Screen;
 
 /// All screen renderers implement this trait.
 /// Each renderer has exactly one reason to change: the screen it serves (SRP).
@@ -106,10 +106,10 @@ pub fn render(f: &mut Frame, app: &App) {
 
 #[cfg(test)]
 mod tests {
+    use ratatui::{Terminal, backend::TestBackend};
+
     use super::*;
     use crate::presentation::tui::app_services::AppServices;
-    use ratatui::Terminal;
-    use ratatui::backend::TestBackend;
 
     #[test]
     fn render_all_screens_no_panic() {

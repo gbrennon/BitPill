@@ -1,7 +1,9 @@
-use crate::application::errors::StorageError;
-use crate::domain::{
-    entities::dose_record::DoseRecord,
-    value_objects::{dose_record_id::DoseRecordId, medication_id::MedicationId},
+use crate::{
+    application::errors::StorageError,
+    domain::{
+        entities::dose_record::DoseRecord,
+        value_objects::{dose_record_id::DoseRecordId, medication_id::MedicationId},
+    },
 };
 
 pub trait DoseRecordRepository: Send + Sync {

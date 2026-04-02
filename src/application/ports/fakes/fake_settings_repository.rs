@@ -1,8 +1,11 @@
 use std::sync::Mutex;
 
-use crate::application::errors::StorageError;
-use crate::application::ports::outbound::settings_repository_port::SettingsRepositoryPort;
-use crate::domain::entities::app_settings::AppSettings;
+use crate::{
+    application::{
+        errors::StorageError, ports::outbound::settings_repository_port::SettingsRepositoryPort,
+    },
+    domain::entities::app_settings::AppSettings,
+};
 
 pub struct FakeSettingsRepository {
     to_return: Option<AppSettings>,

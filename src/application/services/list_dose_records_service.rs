@@ -51,11 +51,13 @@ impl ListDoseRecordsPort for ListDoseRecordsService {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::application::ports::fakes::FakeDoseRecordRepository;
-    use crate::domain::entities::dose_record::DoseRecord;
-    use crate::domain::value_objects::medication_id::MedicationId;
     use chrono::NaiveDate;
+
+    use super::*;
+    use crate::{
+        application::ports::fakes::FakeDoseRecordRepository,
+        domain::{entities::dose_record::DoseRecord, value_objects::medication_id::MedicationId},
+    };
 
     fn make_service(repo: std::sync::Arc<FakeDoseRecordRepository>) -> ListDoseRecordsService {
         ListDoseRecordsService::new(repo)

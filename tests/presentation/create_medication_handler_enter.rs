@@ -1,10 +1,13 @@
-use bitpill::infrastructure::container::Container;
-use bitpill::presentation::tui::app::App;
-use bitpill::presentation::tui::app_services::AppServices;
-use bitpill::presentation::tui::handlers::create_medication_handler::CreateMedicationHandler;
-use bitpill::presentation::tui::handlers::port::Handler;
-use bitpill::presentation::tui::input::Key;
-use bitpill::presentation::tui::screen::Screen;
+use bitpill::{
+    infrastructure::container::Container,
+    presentation::tui::{
+        app::App,
+        app_services::AppServices,
+        handlers::{create_medication_handler::CreateMedicationHandler, port::Handler},
+        input::Key,
+        screen::Screen,
+    },
+};
 use tempfile::tempdir;
 
 #[test]

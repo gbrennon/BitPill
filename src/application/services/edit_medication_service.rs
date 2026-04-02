@@ -1,18 +1,23 @@
 use std::sync::Arc;
+
 use uuid::Uuid;
 
-use crate::application::{
-    dtos::{requests::EditMedicationRequest, responses::EditMedicationResponse},
-    errors::ApplicationError,
-    ports::{
-        inbound::edit_medication_port::EditMedicationPort,
-        outbound::medication_repository_port::MedicationRepository,
+use crate::{
+    application::{
+        dtos::{requests::EditMedicationRequest, responses::EditMedicationResponse},
+        errors::ApplicationError,
+        ports::{
+            inbound::edit_medication_port::EditMedicationPort,
+            outbound::medication_repository_port::MedicationRepository,
+        },
     },
-};
-use crate::domain::entities::medication::Medication;
-use crate::domain::value_objects::{
-    dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
-    medication_name::MedicationName, scheduled_time::ScheduledTime,
+    domain::{
+        entities::medication::Medication,
+        value_objects::{
+            dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+            medication_name::MedicationName, scheduled_time::ScheduledTime,
+        },
+    },
 };
 
 pub struct EditMedicationService {

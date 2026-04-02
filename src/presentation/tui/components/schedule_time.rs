@@ -1,7 +1,10 @@
+use ratatui::{
+    style::Modifier,
+    text::{Line, Span},
+    widgets::{Block, Borders, List, ListItem},
+};
+
 use crate::presentation::tui::styles::{BORDER_COLOR, content_style};
-use ratatui::style::Modifier;
-use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Borders, List, ListItem};
 
 /// Dumb schedule-time component.
 /// - `count`: number of input slots to render (driven by frequency)

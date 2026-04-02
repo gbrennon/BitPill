@@ -1,5 +1,7 @@
-use crate::application::errors::DeliveryError;
-use crate::domain::{entities::dose_record::DoseRecord, entities::medication::Medication};
+use crate::{
+    application::errors::DeliveryError,
+    domain::entities::{dose_record::DoseRecord, medication::Medication},
+};
 
 /// Abstracts the delivery of dose-reminder notifications to the user.
 ///

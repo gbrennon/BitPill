@@ -1,7 +1,12 @@
-use crate::application::dtos::responses::MedicationDto;
-use crate::presentation::tui::components::item::medication_item;
-use crate::presentation::tui::styles::{BORDER_COLOR, content_style};
 use ratatui::widgets::{Block, Borders, List, ListItem};
+
+use crate::{
+    application::dtos::responses::MedicationDto,
+    presentation::tui::{
+        components::item::medication_item,
+        styles::{BORDER_COLOR, content_style},
+    },
+};
 
 /// Dumb list component: accepts domain DTOs and builds styled list items
 pub fn medication_list<'a>(medications: &'a [MedicationDto]) -> List<'a> {

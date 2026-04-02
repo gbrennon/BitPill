@@ -1,9 +1,8 @@
-use tempfile::tempdir;
-
 use bitpill::{
     application::dtos::requests::{CreateMedicationRequest, GetMedicationRequest},
     infrastructure::container::Container,
 };
+use tempfile::tempdir;
 
 #[test]
 fn container_new_with_paths_persists_medication_files() {
