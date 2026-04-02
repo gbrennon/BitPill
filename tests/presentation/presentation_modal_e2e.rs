@@ -1,6 +1,5 @@
 use bitpill::presentation::tui::components::modal::render_modal;
-use ratatui::Terminal;
-use ratatui::backend::TestBackend;
+use ratatui::{Terminal, backend::TestBackend};
 
 #[test]
 fn modal_renders_e2e() {

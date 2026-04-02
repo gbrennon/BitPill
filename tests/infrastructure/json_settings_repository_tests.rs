@@ -1,7 +1,9 @@
-use bitpill::domain::value_objects::navigation_mode::{NavigationMode, NavigationModeVariant};
 use bitpill::{
     application::ports::outbound::settings_repository_port::SettingsRepositoryPort,
-    domain::entities::app_settings::AppSettings,
+    domain::{
+        entities::app_settings::AppSettings,
+        value_objects::navigation_mode::{NavigationMode, NavigationModeVariant},
+    },
     infrastructure::persistence::json_settings_repository::JsonSettingsRepository,
 };
 use tempfile::tempdir;

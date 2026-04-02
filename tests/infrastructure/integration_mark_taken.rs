@@ -1,3 +1,5 @@
+use std::fs;
+
 use bitpill::{
     application::dtos::requests::{
         CreateDoseRecordRequest, CreateMedicationRequest, MarkDoseTakenRequest,
@@ -5,7 +7,6 @@ use bitpill::{
     infrastructure::container::Container,
 };
 use chrono::NaiveDate;
-use std::fs;
 use tempfile::tempdir;
 
 #[test]
