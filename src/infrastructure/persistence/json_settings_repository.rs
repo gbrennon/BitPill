@@ -1,10 +1,9 @@
-use crate::application::errors::StorageError;
-use crate::application::ports::settings_repository_port::SettingsRepositoryPort;
-use crate::domain::entities::app_settings::AppSettings;
-use crate::domain::value_objects::navigation_mode::NavigationMode;
-use std::fs;
-use std::path::PathBuf;
-use std::sync::Mutex;
+use std::{fs, path::PathBuf, sync::Mutex};
+
+use crate::{
+    application::{errors::StorageError, ports::settings_repository_port::SettingsRepositoryPort},
+    domain::{entities::app_settings::AppSettings, value_objects::navigation_mode::NavigationMode},
+};
 
 pub struct JsonSettingsRepository {
     path: PathBuf,
@@ -75,9 +74,10 @@ impl SettingsRepositoryPort for JsonSettingsRepository {
 
 #[cfg(test)]
 mod tests {
+    use tempfile::tempdir;
+
     use super::*;
     use crate::domain::value_objects::navigation_mode::NavigationModeVariant;
-    use tempfile::tempdir;
 
     #[test]
     fn save_and_load_roundtrip() {

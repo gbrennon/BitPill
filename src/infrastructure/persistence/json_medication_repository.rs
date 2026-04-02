@@ -1,11 +1,14 @@
-use std::fs::{File, OpenOptions};
-use std::io::{Read, Write};
-use std::path::PathBuf;
-use std::sync::Mutex;
+use std::{
+    fs::{File, OpenOptions},
+    io::{Read, Write},
+    path::PathBuf,
+    sync::Mutex,
+};
 
-use crate::application::errors::StorageError;
-use crate::application::ports::medication_repository_port::MedicationRepository;
-use crate::domain::{entities::medication::Medication, value_objects::medication_id::MedicationId};
+use crate::{
+    application::{errors::StorageError, ports::medication_repository_port::MedicationRepository},
+    domain::{entities::medication::Medication, value_objects::medication_id::MedicationId},
+};
 
 pub struct JsonMedicationRepository {
     path: PathBuf,
@@ -100,10 +103,13 @@ impl MedicationRepository for JsonMedicationRepository {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::application::ports::medication_repository_port::MedicationRepository;
-    use crate::domain::entities::medication::Medication;
     use tempfile::tempdir;
+
+    use super::*;
+    use crate::{
+        application::ports::medication_repository_port::MedicationRepository,
+        domain::entities::medication::Medication,
+    };
 
     fn make_medication(name: &str) -> Medication {
         use crate::domain::value_objects::{
