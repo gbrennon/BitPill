@@ -7,5 +7,6 @@ pub mod get_settings_port;
 pub mod list_all_medications_port;
 pub mod list_dose_records_port;
 pub mod mark_dose_taken_port;
+pub mod save_settings_port;
 pub mod schedule_dose_port;
 pub mod update_medication_port;

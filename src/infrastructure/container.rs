@@ -10,7 +10,8 @@ use crate::{
             get_medication_port::GetMedicationPort, get_settings_port::GetSettingsPort,
             list_all_medications_port::ListAllMedicationsPort,
             list_dose_records_port::ListDoseRecordsPort, mark_dose_taken_port::MarkDoseTakenPort,
-            schedule_dose_port::ScheduleDosePort, update_medication_port::UpdateMedicationPort,
+            save_settings_port::SaveSettingsPort, schedule_dose_port::ScheduleDosePort,
+            update_medication_port::UpdateMedicationPort,
         },
         services::{
             create_dose_record_service::CreateDoseRecordService,
@@ -21,7 +22,7 @@ use crate::{
             list_all_medications_service::ListAllMedicationsService,
             list_dose_records_service::ListDoseRecordsService,
             mark_dose_taken_service::MarkDoseTakenService,
-            schedule_dose_service::ScheduleDoseService,
+            save_settings_service::SaveSettingsService, schedule_dose_service::ScheduleDoseService,
             update_medication_service::UpdateMedicationService,
         },
     },
@@ -52,7 +53,11 @@ pub struct Container {
     pub edit_medication_service: Arc<dyn EditMedicationPort>,
     pub delete_medication_service: Arc<dyn DeleteMedicationPort>,
     pub settings_service: Arc<dyn GetSettingsPort>,
+    pub save_settings_service: Arc<dyn SaveSettingsPort>,
 }
+
+unsafe impl Send for Container {}
+unsafe impl Sync for Container {}
 
 impl Container {
     /// Constructs a container with explicit paths for all persistence.
@@ -116,6 +121,7 @@ impl Container {
                 medication_repo.clone(),
             )),
             settings_service: Arc::new(GetSettingsService::new(settings_repo.clone())),
+            save_settings_service: Arc::new(SaveSettingsService::new(settings_repo.clone())),
         }
     }
 }
