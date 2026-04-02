@@ -142,8 +142,9 @@ impl MedicationRefill {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use chrono::NaiveDate;
+
+    use super::*;
 
     fn make_datetime() -> NaiveDateTime {
         NaiveDate::from_ymd_opt(2025, 1, 1)
