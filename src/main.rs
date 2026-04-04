@@ -18,6 +18,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // If clause to avoid spawning TUI in tests
     if cfg!(test) {
         return Ok(());
     }
