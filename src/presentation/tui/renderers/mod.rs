@@ -101,6 +101,20 @@ pub fn render(f: &mut Frame, app: &App) {
             );
         }
         Screen::Settings { .. } => SettingsRenderer.render(f, app),
+        Screen::SettingsHelp {
+            help_text,
+            previous,
+            ..
+        } => {
+            render_view(f, app, previous);
+            let content = format!("{}\n\nPress any key to close", help_text);
+            crate::presentation::tui::components::modal::render_modal(
+                f,
+                f.area(),
+                "Navigation Help",
+                &content,
+            );
+        }
     }
 }
 
@@ -160,7 +174,10 @@ mod tests {
             Screen::ConfirmCancel {
                 previous: Box::new(Screen::HomeScreen),
             },
-            Screen::Settings { vim_enabled: false },
+            Screen::Settings {
+                vim_enabled: false,
+                selected_index: 1,
+            },
             Screen::ConfirmQuit {
                 previous: Box::new(Screen::HomeScreen),
             },
@@ -222,7 +239,10 @@ mod tests {
                 records: Vec::new(),
                 selected_index: 0,
             }),
-            Box::new(Screen::Settings { vim_enabled: false }),
+            Box::new(Screen::Settings {
+                vim_enabled: false,
+                selected_index: 1,
+            }),
             Box::new(Screen::ConfirmDelete {
                 id: String::new(),
                 name: String::new(),

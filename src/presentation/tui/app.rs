@@ -46,6 +46,31 @@ impl App {
         app
     }
 
+    pub fn get_navigation_mode(
+        &self,
+    ) -> Option<crate::domain::value_objects::navigation_mode::NavigationModeVariant> {
+        use crate::application::{
+            dtos::requests::GetSettingsRequest, ports::inbound::get_settings_port::GetSettingsPort,
+        };
+
+        match GetSettingsPort::execute(&*self.services.get_settings, GetSettingsRequest {}) {
+            Ok(settings) => {
+                crate::domain::value_objects::navigation_mode::NavigationMode::try_from(
+                    settings.navigation_mode.as_str(),
+                )
+                .ok()
+                .map(|m| m.value().clone())
+            }
+            Err(_) => None,
+        }
+    }
+
+    pub fn is_vim_mode(&self) -> bool {
+        self.get_navigation_mode()
+            .map(|m| m.is_vi())
+            .unwrap_or(true)
+    }
+
     /// Set a temporary status message that will expire after `duration_ms` milliseconds.
     pub fn set_status(&mut self, msg: impl Into<String>, duration_ms: u64) {
         self.status_message = Some(msg.into());
@@ -56,6 +81,10 @@ impl App {
     pub fn clear_status(&mut self) {
         self.status_message = None;
         self.status_expires_at = None;
+    }
+
+    pub fn pop_screen(&mut self) {
+        self.current_screen = Screen::HomeScreen;
     }
 
     pub fn load_medications(&mut self) {

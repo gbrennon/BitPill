@@ -70,7 +70,10 @@ fn render_all_screens_does_not_panic_and_draws_something() {
         Screen::ConfirmCancel {
             previous: Box::new(Screen::HomeScreen),
         },
-        Screen::Settings { vim_enabled: false },
+        Screen::Settings {
+            vim_enabled: false,
+            selected_index: 1,
+        },
         Screen::ConfirmQuit {
             previous: Box::new(Screen::HomeScreen),
         },
