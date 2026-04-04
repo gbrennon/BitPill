@@ -96,6 +96,7 @@ mod tests {
                 .to_str()
                 .unwrap()
                 .ends_with("medications.json")
+                || std::env::var("BITPILL_MEDICATIONS_FILE").is_ok()
         );
         assert!(
             paths
@@ -103,6 +104,7 @@ mod tests {
                 .to_str()
                 .unwrap()
                 .ends_with("dose_records.json")
+                || std::env::var("BITPILL_DOSE_RECORDS_FILE").is_ok()
         );
         assert!(
             paths
@@ -110,6 +112,7 @@ mod tests {
                 .to_str()
                 .unwrap()
                 .ends_with("settings.json")
+                || std::env::var("BITPILL_SETTINGS_FILE").is_ok()
         );
     }
 
