@@ -133,6 +133,29 @@ impl GetSettingsPort for FakeGetSettingsPort {
     }
 }
 
+pub struct FakeGetSettingsPortWithMode {
+    pub mode: String,
+}
+
+impl FakeGetSettingsPortWithMode {
+    pub fn new(mode: &str) -> Self {
+        Self {
+            mode: mode.to_string(),
+        }
+    }
+}
+
+impl GetSettingsPort for FakeGetSettingsPortWithMode {
+    fn execute(
+        &self,
+        _request: GetSettingsRequest,
+    ) -> Result<GetSettingsResponse, ApplicationError> {
+        Ok(GetSettingsResponse {
+            navigation_mode: self.mode.clone(),
+        })
+    }
+}
+
 pub struct FakeSaveSettingsPort;
 impl SaveSettingsPort for FakeSaveSettingsPort {
     fn execute(
