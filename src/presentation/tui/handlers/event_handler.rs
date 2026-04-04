@@ -4,6 +4,7 @@ use crate::{
     application::{
         dtos::requests::SaveSettingsRequest, ports::inbound::save_settings_port::SaveSettingsPort,
     },
+    domain::value_objects::navigation_mode::NavigationModeVariant,
     presentation::tui::{
         app::App,
         handlers::{
@@ -28,11 +29,34 @@ pub struct EventHandler {
 
 impl Handler for EventHandler {
     fn handle(&mut self, app: &mut App, key: Key) -> HandlerResult {
+        // Handle SettingsHelp screen specially - any key closes it (before global handlers)
+        if let Screen::SettingsHelp { previous, .. } = &app.current_screen {
+            app.current_screen = *previous.clone();
+            return HandlerResult::Continue;
+        }
+
         // Global quit: pressing 'q' anywhere opens a quit confirmation modal.
         if let Key::Char('q') = key
             && !matches!(app.current_screen, Screen::ConfirmQuit { .. })
         {
             app.current_screen = Screen::ConfirmQuit {
+                previous: Box::new(app.current_screen.clone()),
+            };
+            return HandlerResult::Continue;
+        }
+
+        if let Key::Char('?') = key
+            && let Some(variant) = app.get_navigation_mode()
+        {
+            let help_text = variant.help_text().to_string();
+            let selected_index = NavigationModeVariant::variants()
+                .iter()
+                .position(|v| v == &variant)
+                .unwrap_or(0);
+            app.current_screen = Screen::SettingsHelp {
+                vim_enabled: variant.is_vi(),
+                selected_index,
+                help_text,
                 previous: Box::new(app.current_screen.clone()),
             };
             return HandlerResult::Continue;
@@ -155,29 +179,66 @@ impl Handler for EventHandler {
                 }
                 HandlerResult::Continue
             }
-            Screen::Settings { vim_enabled } => {
+            Screen::Settings {
+                vim_enabled,
+                selected_index,
+            } => {
+                let mode_count = NavigationModeVariant::count();
                 match key {
+                    Key::Char('?') => {
+                        let help_text = NavigationModeVariant::from_index(*selected_index)
+                            .map(|v| v.help_text())
+                            .unwrap_or("No help available")
+                            .to_string();
+                        app.current_screen = Screen::SettingsHelp {
+                            vim_enabled: *vim_enabled,
+                            selected_index: *selected_index,
+                            help_text,
+                            previous: Box::new(app.current_screen.clone()),
+                        };
+                    }
                     Key::Char(' ') => {
+                        let new_index = (selected_index + 1) % mode_count;
+                        let new_vim = NavigationModeVariant::from_index(new_index)
+                            .map(|v| v.is_vi())
+                            .unwrap_or(false);
                         app.current_screen = Screen::Settings {
-                            vim_enabled: !*vim_enabled,
+                            vim_enabled: new_vim,
+                            selected_index: new_index,
+                        };
+                    }
+                    Key::Char('j') | Key::Down | Key::Char('l') | Key::Right => {
+                        let new_index = (selected_index + 1) % mode_count;
+                        let new_vim = NavigationModeVariant::from_index(new_index)
+                            .map(|v| v.is_vi())
+                            .unwrap_or(false);
+                        app.current_screen = Screen::Settings {
+                            vim_enabled: new_vim,
+                            selected_index: new_index,
+                        };
+                    }
+                    Key::Char('k') | Key::Up | Key::Char('h') | Key::Left => {
+                        let new_index = selected_index.saturating_sub(1);
+                        let new_vim = NavigationModeVariant::from_index(new_index)
+                            .map(|v| v.is_vi())
+                            .unwrap_or(false);
+                        app.current_screen = Screen::Settings {
+                            vim_enabled: new_vim,
+                            selected_index: new_index,
                         };
                     }
                     Key::Char('s') | Key::Enter => {
-                        let value = if let Screen::Settings { vim_enabled } = &app.current_screen {
-                            *vim_enabled
-                        } else {
-                            *vim_enabled
-                        };
-                        let navigation_mode_str = if value { "vi" } else { "emacs" };
-                        match SaveSettingsPort::execute(
-                            &*app.services.save_settings,
-                            SaveSettingsRequest::new(navigation_mode_str),
-                        ) {
-                            Ok(_) => {
-                                app.set_status("Settings saved", 2000);
-                            }
-                            Err(e) => {
-                                app.set_status(format!("Save error: {e}"), 3000);
+                        if let Some(variant) = NavigationModeVariant::from_index(*selected_index) {
+                            match SaveSettingsPort::execute(
+                                &*app.services.save_settings,
+                                SaveSettingsRequest::new(variant.as_str()),
+                            ) {
+                                Ok(_) => {
+                                    app.set_status("Settings saved", 2000);
+                                }
+                                Err(e) => {
+                                    app.set_status(format!("Save error: {e}"), 3000);
+                                }
                             }
                         }
                         app.current_screen = Screen::HomeScreen;
@@ -186,6 +247,24 @@ impl Handler for EventHandler {
                         app.current_screen = Screen::HomeScreen;
                     }
                     _ => {}
+                }
+                HandlerResult::Continue
+            }
+            Screen::SettingsHelp { .. } => {
+                if let Some(variant) = app.get_navigation_mode() {
+                    let help_text = variant.help_text().to_string();
+                    let selected_index = NavigationModeVariant::variants()
+                        .iter()
+                        .position(|v| v == &variant)
+                        .unwrap_or(0);
+                    app.current_screen = Screen::SettingsHelp {
+                        vim_enabled: variant.is_vi(),
+                        selected_index,
+                        help_text,
+                        previous: Box::new(app.current_screen.clone()),
+                    };
+                } else {
+                    app.current_screen = Screen::HomeScreen;
                 }
                 HandlerResult::Continue
             }
@@ -442,21 +521,30 @@ mod tests {
     #[test]
     fn settings_space_toggles_vim_enabled() {
         let mut app = app();
-        app.current_screen = Screen::Settings { vim_enabled: false };
+        app.current_screen = Screen::Settings {
+            vim_enabled: false,
+            selected_index: 1,
+        };
         let mut h = EventHandler::default();
 
         h.handle(&mut app, key(KeyCode::Char(' ')));
 
         assert!(matches!(
             app.current_screen,
-            Screen::Settings { vim_enabled: true }
+            Screen::Settings {
+                vim_enabled: true,
+                selected_index: 0
+            }
         ));
     }
 
     #[test]
     fn settings_s_saves_and_goes_home() {
         let mut app = app();
-        app.current_screen = Screen::Settings { vim_enabled: true };
+        app.current_screen = Screen::Settings {
+            vim_enabled: true,
+            selected_index: 0,
+        };
         let mut h = EventHandler::default();
 
         h.handle(&mut app, key(KeyCode::Char('s')));
@@ -467,7 +555,10 @@ mod tests {
     #[test]
     fn settings_esc_goes_home() {
         let mut app = app();
-        app.current_screen = Screen::Settings { vim_enabled: false };
+        app.current_screen = Screen::Settings {
+            vim_enabled: false,
+            selected_index: 1,
+        };
         let mut h = EventHandler::default();
 
         h.handle(&mut app, key(KeyCode::Esc));
@@ -679,7 +770,10 @@ mod tests {
     #[test]
     fn settings_unknown_key_stays_on_settings() {
         let mut app = app();
-        app.current_screen = Screen::Settings { vim_enabled: false };
+        app.current_screen = Screen::Settings {
+            vim_enabled: false,
+            selected_index: 1,
+        };
         let mut h = EventHandler::default();
 
         h.handle(&mut app, key(KeyCode::F(1)));

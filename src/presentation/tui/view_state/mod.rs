@@ -1,12 +1,14 @@
 pub mod create_medication_state;
 pub mod edit_medication_state;
 pub mod mark_dose_state;
+pub mod settings_state;
 
 pub use create_medication_state::CreateMedicationState;
 pub use edit_medication_state::EditMedicationState;
 pub use mark_dose_state::MarkDoseState;
+pub use settings_state::SettingsState;
 
-use crate::application::dtos::responses::DoseRecordDto;
+use crate::{application::dtos::responses::DoseRecordDto, presentation::tui::screen::Screen};
 
 /// Central enum representing UI view state (struct-like variants for compatibility)
 #[derive(Clone)]
@@ -52,6 +54,14 @@ pub enum ViewState {
     /// Settings screen
     Settings {
         vim_enabled: bool,
+        selected_index: usize,
+    },
+    /// Settings help modal - shows mode-specific navigation instructions
+    SettingsHelp {
+        vim_enabled: bool,
+        selected_index: usize,
+        help_text: String,
+        previous: Box<Screen>,
     },
     /// Confirmation modal for quitting the application. Holds the previous view to return to on cancel.
     ConfirmQuit {
