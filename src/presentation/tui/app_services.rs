@@ -6,6 +6,7 @@ use crate::{
         edit_medication_port::EditMedicationPort, get_medication_port::GetMedicationPort,
         get_settings_port::GetSettingsPort, list_all_medications_port::ListAllMedicationsPort,
         list_dose_records_port::ListDoseRecordsPort, mark_dose_taken_port::MarkDoseTakenPort,
+        save_settings_port::SaveSettingsPort,
     },
     infrastructure::container::Container,
 };
@@ -21,6 +22,7 @@ pub struct AppServices {
     pub list_dose_records: Arc<dyn ListDoseRecordsPort>,
     pub mark_dose_taken: Arc<dyn MarkDoseTakenPort>,
     pub get_settings: Arc<dyn GetSettingsPort>,
+    pub save_settings: Arc<dyn SaveSettingsPort>,
 }
 
 impl AppServices {
@@ -36,6 +38,7 @@ impl AppServices {
             list_dose_records: container.list_dose_records_service.clone(),
             mark_dose_taken: container.mark_dose_taken_service.clone(),
             get_settings: container.settings_service.clone(),
+            save_settings: container.save_settings_service.clone(),
         }
     }
 }
@@ -48,7 +51,7 @@ impl AppServices {
         use crate::application::ports::fakes::{
             FakeCreateMedicationPort, FakeDeleteMedicationPort, FakeEditMedicationPort,
             FakeGetMedicationPort, FakeGetSettingsPort, FakeListAllMedicationsPort,
-            FakeListDoseRecordsPort, FakeMarkDoseTakenPort,
+            FakeListDoseRecordsPort, FakeMarkDoseTakenPort, FakeSaveSettingsPort,
         };
         Self {
             list_all_medications: Arc::new(FakeListAllMedicationsPort),
@@ -59,6 +62,7 @@ impl AppServices {
             list_dose_records: Arc::new(FakeListDoseRecordsPort),
             mark_dose_taken: Arc::new(FakeMarkDoseTakenPort),
             get_settings: Arc::new(FakeGetSettingsPort),
+            save_settings: Arc::new(FakeSaveSettingsPort),
         }
     }
 }
@@ -78,5 +82,6 @@ mod tests {
         let _ = &services.list_dose_records;
         let _ = &services.mark_dose_taken;
         let _ = &services.get_settings;
+        let _ = &services.save_settings;
     }
 }
