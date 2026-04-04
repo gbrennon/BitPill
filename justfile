@@ -14,7 +14,11 @@ run:
 
 # Run all tests with coverage
 test:
-    ./scripts/check_coverage.sh
+    BITPILL_TEST_MODE=1 TERM=dumb ./scripts/check_coverage.sh
+
+# Run tests without coverage (faster, for local development)
+test-local:
+    BITPILL_TEST_MODE=1 TERM=dumb cargo test
 
 # Run tests matching a specific path or name filter
 # Examples:
