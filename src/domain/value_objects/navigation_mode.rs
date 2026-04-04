@@ -14,6 +14,33 @@ impl NavigationModeVariant {
             NavigationModeVariant::Emacs => "emacs",
         }
     }
+
+    pub fn is_vi(&self) -> bool {
+        matches!(self, NavigationModeVariant::Vi)
+    }
+
+    pub fn variants() -> &'static [NavigationModeVariant] {
+        &[NavigationModeVariant::Vi, NavigationModeVariant::Emacs]
+    }
+
+    pub fn count() -> usize {
+        Self::variants().len()
+    }
+
+    pub fn from_index(index: usize) -> Option<Self> {
+        Self::variants().get(index).cloned()
+    }
+
+    pub fn help_text(&self) -> &'static str {
+        match self {
+            NavigationModeVariant::Vi => {
+                "VI MODE: j/k or ↑/↓ to move, l or → to next, h or ← to prev, i insert, Esc normal"
+            }
+            NavigationModeVariant::Emacs => {
+                "EMACS MODE: C-n/C-p or ↑/↓ to move, C-f/C-b or ←/→ to move, C-a/C-e line edges"
+            }
+        }
+    }
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
