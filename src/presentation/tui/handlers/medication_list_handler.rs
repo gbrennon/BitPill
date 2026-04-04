@@ -54,15 +54,6 @@ impl Handler for MedicationListHandler {
                 };
             }
             Key::Char('s') => {
-                app.set_status("Open medication details (v) to mark doses as taken", 3000);
-            }
-            Key::Char('v') => {
-                if !app.medications.is_empty() {
-                    let med = &app.medications[app.selected_index];
-                    app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
-                }
-            }
-            Key::Char('g') => {
                 let vim_enabled = match app
                     .services
                     .get_settings
@@ -73,7 +64,13 @@ impl Handler for MedicationListHandler {
                 };
                 app.current_screen = Screen::Settings { vim_enabled };
             }
-            Key::Char('t') => {
+            Key::Char('v') => {
+                if !app.medications.is_empty() {
+                    let med = &app.medications[app.selected_index];
+                    app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
+                }
+            }
+            Key::Char('m') => {
                 if !app.medications.is_empty() {
                     let med = &app.medications[app.selected_index];
                     match crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort::execute(
@@ -202,17 +199,11 @@ mod tests {
     }
 
     #[test]
-    fn pressing_s_shows_instruction_to_open_details() {
+    fn s_opens_settings() {
         let mut app = new_app();
-        app.medications = vec![med("m1")];
-        let mut h = MedicationListHandler::default();
+        let mut h = MedicationListHandler;
         h.handle(&mut app, key(KeyCode::Char('s')));
-        assert!(
-            app.status_message
-                .as_deref()
-                .unwrap_or("")
-                .contains("Open medication details")
-        );
+        assert!(matches!(app.current_screen, Screen::Settings { .. }));
     }
 
     #[test]
@@ -311,14 +302,6 @@ mod tests {
     }
 
     #[test]
-    fn g_opens_settings() {
-        let mut app = new_app();
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('g')));
-        assert!(matches!(app.current_screen, Screen::Settings { .. }));
-    }
-
-    #[test]
     fn d_opens_confirm_delete() {
         let mut app = new_app();
         app.medications = vec![med("del-id")];
@@ -337,11 +320,11 @@ mod tests {
     }
 
     #[test]
-    fn t_opens_mark_dose_screen() {
+    fn m_opens_mark_dose_screen() {
         let mut app = new_app();
         app.medications = vec![med("t-id")];
         let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('t')));
+        h.handle(&mut app, key(KeyCode::Char('m')));
         assert!(
             matches!(app.current_screen, Screen::MarkDose { medication_id, .. } if medication_id == "t-id")
         );

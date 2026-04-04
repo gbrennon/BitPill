@@ -1,9 +1,8 @@
 use chrono::Datelike;
 
 use crate::{
-    domain::{
-        entities::app_settings::AppSettings,
-        value_objects::navigation_mode::{NavigationMode, NavigationModeVariant},
+    application::{
+        dtos::requests::SaveSettingsRequest, ports::inbound::save_settings_port::SaveSettingsPort,
     },
     presentation::tui::{
         app::App,
@@ -78,7 +77,7 @@ impl Handler for EventHandler {
                             };
                         }
                     }
-                    Key::Char('s') => {
+                    Key::Char('m') => {
                         // open selection of today's registered dose records AND scheduled slots to mark as taken
                         if let Screen::MedicationDetails { id } = &app.current_screen
                             && let Some(m) = app.medications.iter().find(|m| m.id == *id)
@@ -163,20 +162,24 @@ impl Handler for EventHandler {
                             vim_enabled: !*vim_enabled,
                         };
                     }
-                    Key::Char('s') => {
+                    Key::Char('s') | Key::Enter => {
                         let value = if let Screen::Settings { vim_enabled } = &app.current_screen {
                             *vim_enabled
                         } else {
                             *vim_enabled
                         };
-                        let mode = if value {
-                            NavigationModeVariant::Vi
-                        } else {
-                            NavigationModeVariant::Emacs
-                        };
-                        let new_settings = AppSettings::new(NavigationMode::new(mode).unwrap());
-                        let _ = new_settings;
-                        app.set_status("Settings (read-only for now)", 2000);
+                        let navigation_mode_str = if value { "vi" } else { "emacs" };
+                        match SaveSettingsPort::execute(
+                            &*app.services.save_settings,
+                            SaveSettingsRequest::new(navigation_mode_str),
+                        ) {
+                            Ok(_) => {
+                                app.set_status("Settings saved", 2000);
+                            }
+                            Err(e) => {
+                                app.set_status(format!("Save error: {e}"), 3000);
+                            }
+                        }
                         app.current_screen = Screen::HomeScreen;
                     }
                     Key::Esc => {
