@@ -7,5 +7,6 @@ pub mod mark_taken_line;
 pub mod medication_form;
 pub mod modal;
 pub mod schedule_time;
+pub mod settings;
 pub mod table;
 pub mod title_bar;

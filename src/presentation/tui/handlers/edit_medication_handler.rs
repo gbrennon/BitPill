@@ -244,6 +244,36 @@ impl Handler for EditMedicationHandler {
             Some(s) => s,
             None => return HandlerResult::Continue,
         };
+
+        let vim_enabled = app.is_vim_mode();
+
+        // Emacs mode keybindings
+        if !vim_enabled && !state.insert_mode {
+            match key {
+                Key::Char('n') => {
+                    state.apply_navigate_down().apply_to(app);
+                    return HandlerResult::Continue;
+                }
+                Key::Char('p') => {
+                    state.apply_navigate_up().apply_to(app);
+                    return HandlerResult::Continue;
+                }
+                Key::Char('f') => {
+                    state.apply_navigate_right().apply_to(app);
+                    return HandlerResult::Continue;
+                }
+                Key::Char('b') => {
+                    state.apply_navigate_left().apply_to(app);
+                    return HandlerResult::Continue;
+                }
+                // Skip vim keys but allow other keys to pass through
+                Key::Char('j') | Key::Char('k') | Key::Char('h') | Key::Char('l') => {
+                    return HandlerResult::Continue;
+                }
+                _ => {}
+            }
+        }
+
         match key {
             Key::Esc => {
                 if state.insert_mode {
@@ -622,6 +652,7 @@ mod tests {
             list_dose_records: container.list_dose_records_service.clone(),
             mark_dose_taken: container.mark_dose_taken_service.clone(),
             get_settings: container.settings_service.clone(),
+            save_settings: container.save_settings_service.clone(),
         };
         (App::new(services), dir)
     }

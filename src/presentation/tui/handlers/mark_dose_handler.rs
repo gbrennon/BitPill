@@ -30,6 +30,35 @@ impl Handler for MarkDoseHandler {
             return HandlerResult::Continue;
         };
 
+        let vim_enabled = app.is_vim_mode();
+
+        // Emacs mode: n/p for navigation
+        if !vim_enabled {
+            if let Key::Char('n') = key {
+                let idx = (sel_idx + 1).min(recs.len().saturating_sub(1));
+                app.current_screen = Screen::MarkDose {
+                    medication_id: med_id.clone(),
+                    records: recs.to_vec(),
+                    selected_index: idx,
+                };
+                return HandlerResult::Continue;
+            }
+            if let Key::Char('p') = key {
+                let idx = sel_idx.saturating_sub(1);
+                app.current_screen = Screen::MarkDose {
+                    medication_id: med_id.clone(),
+                    records: recs.to_vec(),
+                    selected_index: idx,
+                };
+                return HandlerResult::Continue;
+            }
+            // Skip vim keys but allow other keys to pass through
+            if matches!(key, Key::Char('j') | Key::Char('k')) {
+                return HandlerResult::Continue;
+            }
+        }
+
+        // Vim mode: j/k for navigation
         match key {
             Key::Esc => {
                 app.current_screen = Screen::HomeScreen;

@@ -15,14 +15,31 @@ impl Default for MedicationListHandler {
 
 impl Handler for MedicationListHandler {
     fn handle(&mut self, app: &mut App, key: Key) -> HandlerResult {
-        let _vim_enabled = match app
-            .services
-            .get_settings
-            .execute(crate::application::dtos::requests::GetSettingsRequest {})
-        {
-            Ok(settings) => settings.navigation_mode == "vi",
-            Err(_) => false,
-        };
+        let vim_enabled = app.is_vim_mode();
+
+        // Emacs mode: n/p for navigation
+        if !vim_enabled {
+            if let Key::Char('n') = key {
+                if !app.medications.is_empty() {
+                    app.selected_index =
+                        (app.selected_index + 1).min(app.medications.len().saturating_sub(1));
+                }
+                return HandlerResult::Continue;
+            }
+            if let Key::Char('p') = key {
+                app.selected_index = app.selected_index.saturating_sub(1);
+                return HandlerResult::Continue;
+            }
+            // Emacs mode: skip vim keys but allow other keys to pass through
+            if matches!(
+                key,
+                Key::Char('j') | Key::Char('k') | Key::Char('h') | Key::Char('l')
+            ) {
+                return HandlerResult::Continue;
+            }
+        }
+
+        // Vim mode: j/k/l/h for navigation
         match key {
             Key::Char('j') | Key::Char('l') => {
                 if !app.medications.is_empty() {
@@ -54,15 +71,6 @@ impl Handler for MedicationListHandler {
                 };
             }
             Key::Char('s') => {
-                app.set_status("Open medication details (v) to mark doses as taken", 3000);
-            }
-            Key::Char('v') => {
-                if !app.medications.is_empty() {
-                    let med = &app.medications[app.selected_index];
-                    app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
-                }
-            }
-            Key::Char('g') => {
                 let vim_enabled = match app
                     .services
                     .get_settings
@@ -71,9 +79,19 @@ impl Handler for MedicationListHandler {
                     Ok(settings) => settings.navigation_mode == "vi",
                     Err(_) => false,
                 };
-                app.current_screen = Screen::Settings { vim_enabled };
+                let selected_index = if vim_enabled { 0 } else { 1 };
+                app.current_screen = Screen::Settings {
+                    vim_enabled,
+                    selected_index,
+                };
             }
-            Key::Char('t') => {
+            Key::Char('v') => {
+                if !app.medications.is_empty() {
+                    let med = &app.medications[app.selected_index];
+                    app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
+                }
+            }
+            Key::Char('m') => {
                 if !app.medications.is_empty() {
                     let med = &app.medications[app.selected_index];
                     match crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort::execute(
@@ -202,17 +220,11 @@ mod tests {
     }
 
     #[test]
-    fn pressing_s_shows_instruction_to_open_details() {
+    fn s_opens_settings() {
         let mut app = new_app();
-        app.medications = vec![med("m1")];
-        let mut h = MedicationListHandler::default();
+        let mut h = MedicationListHandler;
         h.handle(&mut app, key(KeyCode::Char('s')));
-        assert!(
-            app.status_message
-                .as_deref()
-                .unwrap_or("")
-                .contains("Open medication details")
-        );
+        assert!(matches!(app.current_screen, Screen::Settings { .. }));
     }
 
     #[test]
@@ -311,14 +323,6 @@ mod tests {
     }
 
     #[test]
-    fn g_opens_settings() {
-        let mut app = new_app();
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('g')));
-        assert!(matches!(app.current_screen, Screen::Settings { .. }));
-    }
-
-    #[test]
     fn d_opens_confirm_delete() {
         let mut app = new_app();
         app.medications = vec![med("del-id")];
@@ -337,11 +341,11 @@ mod tests {
     }
 
     #[test]
-    fn t_opens_mark_dose_screen() {
+    fn m_opens_mark_dose_screen() {
         let mut app = new_app();
         app.medications = vec![med("t-id")];
         let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('t')));
+        h.handle(&mut app, key(KeyCode::Char('m')));
         assert!(
             matches!(app.current_screen, Screen::MarkDose { medication_id, .. } if medication_id == "t-id")
         );
@@ -362,5 +366,101 @@ mod tests {
         let mut h = MedicationListHandler;
         h.handle(&mut app, key(KeyCode::Char('v')));
         assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn vim_mode_j_moves_selection_down() {
+        let mut app = new_app();
+        app.medications = vec![med("m1"), med("m2")];
+        app.selected_index = 0;
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('j')));
+        assert_eq!(app.selected_index, 1);
+    }
+
+    #[test]
+    fn vim_mode_k_moves_selection_up() {
+        let mut app = new_app();
+        app.medications = vec![med("m1"), med("m2")];
+        app.selected_index = 1;
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('k')));
+        assert_eq!(app.selected_index, 0);
+    }
+
+    #[test]
+    fn emacs_mode_n_moves_selection_down() {
+        let mut app = App::new(crate::presentation::tui::app_services::AppServices {
+            list_all_medications: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeListAllMedicationsPort,
+            ),
+            create_medication: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeCreateMedicationPort,
+            ),
+            edit_medication: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeEditMedicationPort,
+            ),
+            delete_medication: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeDeleteMedicationPort,
+            ),
+            get_medication: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeGetMedicationPort,
+            ),
+            list_dose_records: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeListDoseRecordsPort,
+            ),
+            mark_dose_taken: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeMarkDoseTakenPort,
+            ),
+            get_settings: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeGetSettingsPortWithMode::new("emacs"),
+            ),
+            save_settings: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeSaveSettingsPort,
+            ),
+        });
+        app.medications = vec![med("m1"), med("m2")];
+        app.selected_index = 0;
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('n')));
+        assert_eq!(app.selected_index, 1);
+    }
+
+    #[test]
+    fn emacs_mode_p_moves_selection_up() {
+        let mut app = App::new(crate::presentation::tui::app_services::AppServices {
+            list_all_medications: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeListAllMedicationsPort,
+            ),
+            create_medication: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeCreateMedicationPort,
+            ),
+            edit_medication: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeEditMedicationPort,
+            ),
+            delete_medication: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeDeleteMedicationPort,
+            ),
+            get_medication: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeGetMedicationPort,
+            ),
+            list_dose_records: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeListDoseRecordsPort,
+            ),
+            mark_dose_taken: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeMarkDoseTakenPort,
+            ),
+            get_settings: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeGetSettingsPortWithMode::new("emacs"),
+            ),
+            save_settings: std::sync::Arc::new(
+                crate::application::ports::fakes::FakeSaveSettingsPort,
+            ),
+        });
+        app.medications = vec![med("m1"), med("m2")];
+        app.selected_index = 1;
+        let mut h = MedicationListHandler;
+        h.handle(&mut app, key(KeyCode::Char('p')));
+        assert_eq!(app.selected_index, 0);
     }
 }

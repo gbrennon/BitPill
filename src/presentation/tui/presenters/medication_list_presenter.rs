@@ -20,9 +20,9 @@ impl MedicationListPresenter {
         status_message: Option<&String>,
     ) {
         let default_help = if medications.is_empty() {
-            " [c] Create  [q] Quit"
+            " [c] Create  [s] Settings  [q] Quit"
         } else {
-            " [c] Create  [Enter] Details  [s] Mark Taken  [e] Edit  [d] Delete  [q] Quit"
+            " [c] Create  [Enter] Details  [m] Mark Taken  [e] Edit  [d] Delete  [s] Settings  [q] Quit"
         };
         let help_text = status_message.map(String::as_str).unwrap_or(default_help);
 
