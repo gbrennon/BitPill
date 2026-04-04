@@ -83,13 +83,15 @@ When you first open the app, you start in Normal mode. Press `i` to enter Insert
 | Medication list | `Enter` | Open medication details |
 | Medication list | `e` | Edit selected medication |
 | Medication list | `d` | Delete selected medication |
-| Medication list | `t` | Open mark-dose screen |
-| Medication list | `s` | Show instruction (use `v` to open details first) |
-| Medication list | `g` | Open settings |
+| Medication list | `m` | Open mark-dose screen |
+| Medication list | `s` | Open settings |
 | Medication list | `q` | Quit |
-| Medication details | `s` | Open Mark-as-taken selection for today's slots/records |
+| Medication details | `m` | Open Mark-as-taken selection for today's slots/records |
 | Medication details | `e` | Edit medication |
 | Medication details | `Esc` | Go back to list |
+| Settings | `Space` | Toggle Vim/Emacs navigation mode |
+| Settings | `s` / `Enter` | Save settings and go back |
+| Settings | `Esc` | Cancel and go back |
 | Confirm delete | `y` | Confirm delete |
 | Confirm delete | `n` / `Esc` | Cancel and go back |
 | Confirm quit | `y` | Confirm quit |
@@ -117,7 +119,7 @@ Press `i` to enter insert mode when a form field is selected, and `Esc` to exit 
 ### Validation and modals
 
 - Input validation errors (e.g., invalid amount or malformed time slots) are shown in a modal over the current screen. The background is dimmed to focus the modal; press Esc or Enter (or any key) to dismiss and return to the form.
-- Shortcuts are contextual: actions such as "mark as taken" are only available on screens that support them (for example, `s` for marking doses is only active inside the Medication Details screen).
+- Shortcuts are contextual: actions such as "mark as taken" are only available on screens that support them (for example, `m` for marking doses is only active inside the Medication Details screen).
 
 ### REST API
 

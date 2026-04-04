@@ -53,7 +53,10 @@ fn render_create_and_edit_and_settings_and_confirm_modals() {
     assert!(buf.content.iter().any(|cell| cell.symbol() != " "));
 
     // Settings
-    app.current_screen = Screen::Settings { vim_enabled: true };
+    app.current_screen = Screen::Settings {
+        vim_enabled: true,
+        selected_index: 0,
+    };
     let buf = draw_with_app(&app);
     assert!(buf.content.iter().any(|cell| cell.symbol() != " "));
 
