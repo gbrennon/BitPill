@@ -3,12 +3,12 @@ use crate::application::{
         requests::{
             CreateMedicationRequest, DeleteMedicationRequest, EditMedicationRequest,
             GetMedicationRequest, GetSettingsRequest, ListAllMedicationsRequest,
-            ListDoseRecordsRequest, MarkDoseTakenRequest,
+            ListDoseRecordsRequest, MarkDoseTakenRequest, SaveSettingsRequest,
         },
         responses::{
             CreateMedicationResponse, DeleteMedicationResponse, EditMedicationResponse,
             GetMedicationResponse, GetSettingsResponse, ListAllMedicationsResponse,
-            ListDoseRecordsResponse, MarkDoseTakenResponse, MedicationDto,
+            ListDoseRecordsResponse, MarkDoseTakenResponse, MedicationDto, SaveSettingsResponse,
         },
     },
     errors::ApplicationError,
@@ -17,6 +17,7 @@ use crate::application::{
         edit_medication_port::EditMedicationPort, get_medication_port::GetMedicationPort,
         get_settings_port::GetSettingsPort, list_all_medications_port::ListAllMedicationsPort,
         list_dose_records_port::ListDoseRecordsPort, mark_dose_taken_port::MarkDoseTakenPort,
+        save_settings_port::SaveSettingsPort,
     },
 };
 
@@ -127,6 +128,18 @@ impl GetSettingsPort for FakeGetSettingsPort {
         _request: GetSettingsRequest,
     ) -> Result<GetSettingsResponse, ApplicationError> {
         Ok(GetSettingsResponse {
+            navigation_mode: "vi".to_string(),
+        })
+    }
+}
+
+pub struct FakeSaveSettingsPort;
+impl SaveSettingsPort for FakeSaveSettingsPort {
+    fn execute(
+        &self,
+        _request: SaveSettingsRequest,
+    ) -> Result<SaveSettingsResponse, ApplicationError> {
+        Ok(SaveSettingsResponse {
             navigation_mode: "vi".to_string(),
         })
     }
