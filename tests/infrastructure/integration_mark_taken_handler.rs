@@ -24,7 +24,7 @@ use bitpill::{
 use tempfile::tempdir;
 
 #[test]
-fn medication_list_handler_saves_taken_dose_record_on_s() {
+fn medication_list_handler_saves_taken_dose_record_on_m() {
     let dir = tempdir().unwrap();
     let container = Container::new(
         dir.path().join("meds.json"),
@@ -43,6 +43,7 @@ fn medication_list_handler_saves_taken_dose_record_on_s() {
         mark_dose_taken: Arc::new(MarkDoseTakenService::new(fake_dose_repo, fake_med_repo))
             as Arc<dyn MarkDoseTakenPort>,
         get_settings: container.settings_service.clone(),
+        save_settings: container.save_settings_service.clone(),
     };
 
     let mut app = App::new(services);
@@ -58,7 +59,7 @@ fn medication_list_handler_saves_taken_dose_record_on_s() {
     app.medications.push(med);
 
     let mut handler = MedicationListHandler;
-    handler.handle(&mut app, Key::from(Key::Char('s')));
+    handler.handle(&mut app, Key::from(Key::Char('m')));
 
     assert!(app.status_message.is_some());
 }

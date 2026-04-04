@@ -6,12 +6,13 @@ use bitpill::{
         app_services::AppServices,
         handlers::{medication_list_handler::MedicationListHandler, port::Handler},
         input::Key,
+        screen::Screen,
     },
 };
 use tempfile::tempdir;
 
 #[test]
-fn handler_saves_dose_record_to_file() {
+fn handler_opens_mark_dose_screen_on_m() {
     let dir = tempdir().unwrap();
     let dose_path = dir.path().join("dose_records.json");
     let container = Container::new(
@@ -35,14 +36,7 @@ fn handler_saves_dose_record_to_file() {
     app.selected_index = 0;
 
     let mut handler = MedicationListHandler::default();
-    handler.handle(&mut app, Key::Char('s'));
+    handler.handle(&mut app, Key::Char('m'));
 
-    // Now pressing 's' should show an instruction to open details
-    assert!(app.status_message.is_some());
-    assert!(
-        app.status_message
-            .as_ref()
-            .unwrap()
-            .contains("Open medication details")
-    );
+    assert!(matches!(app.current_screen, Screen::MarkDose { .. }));
 }
