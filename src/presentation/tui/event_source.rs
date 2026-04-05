@@ -80,6 +80,11 @@ mod tests {
     use super::*;
 
     #[test]
+    fn event_source_trait_is_object_safe() {
+        fn _assert_object_safe(_: &dyn EventSource) {}
+    }
+
+    #[test]
     fn fake_event_source_default_is_empty() {
         let source = FakeEventSource::default();
         assert_eq!(source.poll_result, None);
@@ -174,10 +179,5 @@ mod tests {
         let source: FakeEventSource = FakeEventSource::new();
         let _ = source.poll(Duration::ZERO);
         let _ = source.read_key();
-    }
-
-    #[test]
-    fn event_source_trait_is_object_safe() {
-        fn _assert_object_safe(_: &dyn EventSource) {}
     }
 }
