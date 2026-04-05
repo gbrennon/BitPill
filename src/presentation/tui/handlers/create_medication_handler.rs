@@ -238,8 +238,8 @@ impl Handler for CreateMedicationHandler {
 
         let vim_enabled = app.is_vim_mode();
 
-        // Emacs mode keybindings
-        if !vim_enabled && !state.insert_mode {
+        // Emacs mode: No insert/normal mode - just navigate and type
+        if !vim_enabled {
             match key {
                 Key::Char('n') => {
                     state.apply_navigate_down().apply_to(app);
@@ -261,53 +261,78 @@ impl Handler for CreateMedicationHandler {
                 Key::Char('j') | Key::Char('k') | Key::Char('h') | Key::Char('l') => {
                     return HandlerResult::Continue;
                 }
+                Key::Char(c) => {
+                    state.type_char(c).apply_to(app);
+                    return HandlerResult::Continue;
+                }
+                Key::Backspace => {
+                    state.delete_char().apply_to(app);
+                    return HandlerResult::Continue;
+                }
+                Key::Enter => {
+                    handle_enter_create(app, state);
+                    return HandlerResult::Continue;
+                }
                 _ => {}
             }
+            return HandlerResult::Continue;
         }
 
-        match key {
-            Key::Esc => {
-                if state.insert_mode {
-                    state.with_insert_mode(false).apply_to(app);
-                } else {
+        // Vim mode: Handle normal mode (no insert_mode)
+        if !state.insert_mode {
+            match key {
+                Key::Esc => {
                     app.current_screen = Screen::ConfirmCancel {
                         previous: Box::new(app.current_screen.clone()),
                     };
                 }
+                Key::Tab | Key::Right | Key::Char('l') => {
+                    state.apply_navigate_right().apply_to(app);
+                }
+                Key::Char('j') | Key::Down => {
+                    state.apply_navigate_down().apply_to(app);
+                }
+                Key::Char('h') | Key::Left => {
+                    state.apply_navigate_left().apply_to(app);
+                }
+                Key::Char('k') | Key::Up => {
+                    state.apply_navigate_up().apply_to(app);
+                }
+                Key::Char('d')
+                    if state.nav.focused_field == 3
+                        && state.selected_frequency == 3
+                        && state.nav.scheduled_time.len() > 1 =>
+                {
+                    state.delete_slot().apply_to(app);
+                }
+                Key::Enter => {
+                    handle_enter_create(app, state);
+                }
+                Key::Char('i') => {
+                    state.with_insert_mode(true).apply_to(app);
+                }
+                _ => {}
             }
-            Key::Tab | Key::Right | Key::Char('l') if !state.insert_mode => {
-                state.apply_navigate_right().apply_to(app);
+            return HandlerResult::Continue;
+        }
+
+        // Vim mode: Handle insert mode (typing)
+        if state.insert_mode {
+            match key {
+                Key::Esc => {
+                    state.with_insert_mode(false).apply_to(app);
+                }
+                Key::Backspace => {
+                    state.delete_char().apply_to(app);
+                }
+                Key::Enter => {
+                    handle_enter_create(app, state);
+                }
+                Key::Char(c) => {
+                    state.type_char(c).apply_to(app);
+                }
+                _ => {}
             }
-            Key::Char('j') | Key::Down if !state.insert_mode => {
-                state.apply_navigate_down().apply_to(app);
-            }
-            Key::Char('h') | Key::Left if !state.insert_mode => {
-                state.apply_navigate_left().apply_to(app);
-            }
-            Key::Char('k') | Key::Up if !state.insert_mode => {
-                state.apply_navigate_up().apply_to(app);
-            }
-            Key::Char('d')
-                if !state.insert_mode
-                    && state.nav.focused_field == 3
-                    && state.selected_frequency == 3
-                    && state.nav.scheduled_time.len() > 1 =>
-            {
-                state.delete_slot().apply_to(app);
-            }
-            Key::Enter => {
-                handle_enter_create(app, state);
-            }
-            Key::Backspace if state.insert_mode => {
-                state.delete_char().apply_to(app);
-            }
-            Key::Char('i') if !state.insert_mode => {
-                state.with_insert_mode(true).apply_to(app);
-            }
-            Key::Char(c) if state.insert_mode => {
-                state.type_char(c).apply_to(app);
-            }
-            _ => {}
         }
         HandlerResult::Continue
     }
