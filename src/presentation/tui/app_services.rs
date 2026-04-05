@@ -65,6 +65,26 @@ impl AppServices {
             save_settings: Arc::new(FakeSaveSettingsPort),
         }
     }
+
+    /// Constructs an `AppServices` with a specific navigation mode.
+    pub fn fake_with_mode(mode: &'static str) -> Self {
+        use crate::application::ports::fakes::{
+            FakeCreateMedicationPort, FakeDeleteMedicationPort, FakeEditMedicationPort,
+            FakeGetMedicationPort, FakeGetSettingsPortWithMode, FakeListAllMedicationsPort,
+            FakeListDoseRecordsPort, FakeMarkDoseTakenPort, FakeSaveSettingsPort,
+        };
+        Self {
+            list_all_medications: Arc::new(FakeListAllMedicationsPort),
+            create_medication: Arc::new(FakeCreateMedicationPort),
+            edit_medication: Arc::new(FakeEditMedicationPort),
+            delete_medication: Arc::new(FakeDeleteMedicationPort),
+            get_medication: Arc::new(FakeGetMedicationPort),
+            list_dose_records: Arc::new(FakeListDoseRecordsPort),
+            mark_dose_taken: Arc::new(FakeMarkDoseTakenPort),
+            get_settings: Arc::new(FakeGetSettingsPortWithMode::new(mode)),
+            save_settings: Arc::new(FakeSaveSettingsPort),
+        }
+    }
 }
 
 #[cfg(test)]
