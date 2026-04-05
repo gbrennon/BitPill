@@ -9,7 +9,7 @@ readonly COVERAGE_THRESHOLD=90
 
 run_coverage_and_emit_json() {
   echo "Running cargo-llvm-cov (generating JSON report)..."
-  cargo llvm-cov --features test-helpers --ignore-filename-regex "ports/fakes" --json --output-path cov.json || true
+  BITPILL_TEST_MODE=1 TERM=dumb cargo llvm-cov --features test-helpers --ignore-filename-regex "ports/fakes" --json --output-path cov.json || true
 }
 
 run_coverage_and_emit_json

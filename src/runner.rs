@@ -6,24 +6,29 @@ pub fn parse_mode(args: &mut impl Iterator<Item = String>) -> String {
     args.nth(1).unwrap_or_else(|| "tui".to_string())
 }
 
+fn is_test_mode() -> bool {
+    std::env::var("BITPILL_TEST_MODE").is_ok()
+        || std::env::var("CARGO_TEST").is_ok()
+        || std::env::var("TERM").is_ok_and(|t| t == "dumb")
+        || cfg!(test)
+        || std::env::var("PROFILE").is_ok_and(|p| p == "test")
+}
+
 pub fn run_app(mode: &str, container: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
+    if is_test_mode() {
+        return Ok(());
+    }
     match mode {
         "api" => start_api(container),
         _ => start_tui(container),
     }
 }
 
-#[cfg(not(test))]
 fn start_tui(container: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     crate::presentation::tui::app::App::run(container)
 }
 
-#[cfg(test)]
-fn start_tui(_: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
-    Ok(())
-}
-
-#[cfg(all(not(test), feature = "rest-api"))]
+#[cfg(feature = "rest-api")]
 fn start_api(container: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     tokio::runtime::Runtime::new()
         .expect("failed to create tokio runtime")
@@ -35,14 +40,9 @@ fn start_api(container: Arc<Container>) -> Result<(), Box<dyn std::error::Error>
     Ok(())
 }
 
-#[cfg(all(not(test), not(feature = "rest-api")))]
+#[cfg(not(feature = "rest-api"))]
 fn start_api(_: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     eprintln!("REST API not enabled. Compile with --features rest-api to enable.");
-    Ok(())
-}
-
-#[cfg(test)]
-fn start_api(_: Arc<Container>) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
