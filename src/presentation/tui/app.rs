@@ -6,8 +6,6 @@ use crossterm::{
 };
 use ratatui::{Terminal, backend::CrosstermBackend};
 
-#[cfg(test)]
-use crate::presentation::tui::event_source::FakeEventSource;
 use crate::{
     application::dtos::{requests::ListAllMedicationsRequest, responses::MedicationDto},
     infrastructure::container::Container,
@@ -182,7 +180,9 @@ mod tests {
             errors::{ApplicationError, StorageError},
             ports::inbound::list_all_medications_port::ListAllMedicationsPort,
         },
-        presentation::tui::{app_services::AppServices, screen::Screen},
+        presentation::tui::{
+            app_services::AppServices, event_source::FakeEventSource, screen::Screen,
+        },
     };
 
     struct ErrorListAllMedicationsPort;
