@@ -16,5 +16,5 @@ pre-commit:
     - name: Check for auto-fixed files
       run: |
         if ! git diff --quiet; then
-          echo "⚠️  Auto-fixed files detected. Run: git add -A && git commit --amend --no-edit"
+          echo "Auto-fixed files detected. Run: git add -A && git commit --amend --no-edit"
         fi
