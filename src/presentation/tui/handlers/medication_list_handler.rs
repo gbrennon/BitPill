@@ -30,6 +30,17 @@ impl Handler for MedicationListHandler {
                 app.selected_index = app.selected_index.saturating_sub(1);
                 return HandlerResult::Continue;
             }
+            if let Key::Char('f') = key {
+                if !app.medications.is_empty() {
+                    app.selected_index =
+                        (app.selected_index + 1).min(app.medications.len().saturating_sub(1));
+                }
+                return HandlerResult::Continue;
+            }
+            if let Key::Char('b') = key {
+                app.selected_index = app.selected_index.saturating_sub(1);
+                return HandlerResult::Continue;
+            }
             // Emacs mode: skip vim keys but allow other keys to pass through
             if matches!(
                 key,
