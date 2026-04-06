@@ -11,7 +11,7 @@ pub use fake_inbound_ports::{
     FakeCreateMedicationPort, FakeDeleteMedicationPort, FakeEditMedicationPort,
     FakeGetMedicationPort, FakeGetMedicationPortOk, FakeGetSettingsPort,
     FakeGetSettingsPortWithMode, FakeListAllMedicationsPort, FakeListDoseRecordsPort,
-    FakeMarkDoseTakenPort, FakeSaveSettingsPort,
+    FakeMarkDoseTakenPort, FakeSaveSettingsPort, FakeUpdateMedicationPort,
 };
 pub use fake_medication_repository::FakeMedicationRepository;
 pub use fake_notification_port::FakeNotificationPort;

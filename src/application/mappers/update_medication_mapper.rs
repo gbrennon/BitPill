@@ -3,7 +3,6 @@ use crate::{
     domain::{
         entities::medication::Medication,
         errors::DomainError,
-        ports::mapper::Mapper,
         value_objects::{
             dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
             medication_name::MedicationName, scheduled_time::ScheduledTime,
@@ -11,21 +10,55 @@ use crate::{
     },
 };
 
-/// Mapper that produces a `Medication` from an `(UpdateMedicationRequest, MedicationId)` tuple.
 pub struct UpdateMedicationMapper;
 
-impl Mapper<Medication> for UpdateMedicationMapper {
-    type Source = (UpdateMedicationRequest, MedicationId);
-
-    fn map(&self, src: (UpdateMedicationRequest, MedicationId)) -> Result<Medication, DomainError> {
+impl UpdateMedicationMapper {
+    pub fn map(
+        &self,
+        src: (UpdateMedicationRequest, MedicationId),
+    ) -> Result<Medication, Vec<DomainError>> {
+        let mut errors = Vec::new();
         let (request, id) = src;
-        let name = MedicationName::new(request.name)?;
-        let dosage = Dosage::new(request.amount_mg)?;
-        let times = request
+
+        let name = match MedicationName::new(request.name) {
+            Ok(n) => n,
+            Err(e) => {
+                errors.push(e);
+                return Err(errors);
+            }
+        };
+
+        let dosage = match Dosage::new(request.amount_mg) {
+            Ok(d) => d,
+            Err(e) => {
+                errors.push(e);
+                return Err(errors);
+            }
+        };
+
+        let times: Vec<ScheduledTime> = request
             .scheduled_time
             .into_iter()
-            .map(|(h, m)| ScheduledTime::new(h, m))
-            .collect::<Result<Vec<_>, _>>()?;
+            .filter_map(|(h, m)| match ScheduledTime::new(h, m) {
+                Ok(st) => Some(st),
+                Err(e) => {
+                    errors.push(e);
+                    None
+                }
+            })
+            .collect();
+
+        if errors.is_empty() {
+            let dose_frequency = match request.dose_frequency.as_str() {
+                "OnceDaily" => DoseFrequency::OnceDaily,
+                "TwiceDaily" => DoseFrequency::TwiceDaily,
+                "ThriceDaily" => DoseFrequency::ThriceDaily,
+                "Custom" => DoseFrequency::Custom(times.clone()),
+                _ => DoseFrequency::OnceDaily,
+            };
+
+            return Medication::new(id, name, dosage, times, dose_frequency);
+        }
 
         let dose_frequency = match request.dose_frequency.as_str() {
             "OnceDaily" => DoseFrequency::OnceDaily,
@@ -35,7 +68,12 @@ impl Mapper<Medication> for UpdateMedicationMapper {
             _ => DoseFrequency::OnceDaily,
         };
 
-        Ok(Medication::new(id, name, dosage, times, dose_frequency))
+        if let Err(mut scheduled_errors) = Medication::new(id, name, dosage, times, dose_frequency)
+        {
+            errors.append(&mut scheduled_errors);
+        }
+
+        Err(errors)
     }
 }
 
@@ -51,6 +89,15 @@ mod tests {
 
     fn make_id() -> MedicationId {
         MedicationId::from(Uuid::nil())
+    }
+
+    fn assert_error_contains(errors: Vec<DomainError>, expected: DomainError) {
+        assert!(
+            errors.contains(&expected),
+            "expected errors to contain {:?}, got {:?}",
+            expected,
+            errors
+        );
     }
 
     #[test]
@@ -75,7 +122,8 @@ mod tests {
 
         let result = mapper.map((request, make_id()));
 
-        assert!(matches!(result, Err(DomainError::EmptyMedicationName)));
+        assert!(result.is_err());
+        assert_error_contains(result.unwrap_err(), DomainError::EmptyMedicationName);
     }
 
     #[test]
@@ -85,7 +133,8 @@ mod tests {
 
         let result = mapper.map((request, make_id()));
 
-        assert!(matches!(result, Err(DomainError::InvalidDosage)));
+        assert!(result.is_err());
+        assert_error_contains(result.unwrap_err(), DomainError::InvalidDosage);
     }
 
     #[test]
@@ -101,7 +150,8 @@ mod tests {
 
         let result = mapper.map((request, make_id()));
 
-        assert!(matches!(result, Err(DomainError::InvalidScheduledTime)));
+        assert!(result.is_err());
+        assert_error_contains(result.unwrap_err(), DomainError::InvalidScheduledTime);
     }
 
     #[test]
@@ -112,5 +162,70 @@ mod tests {
         let med = mapper.map((request, make_id())).unwrap();
 
         assert_eq!(med.dose_frequency(), &DoseFrequency::OnceDaily);
+    }
+
+    #[test]
+    fn map_twice_daily_without_required_times_returns_error() {
+        let mapper = UpdateMedicationMapper;
+        let request = UpdateMedicationRequest::new(
+            Uuid::nil().to_string(),
+            "Test",
+            100,
+            vec![],
+            "TwiceDaily",
+        );
+
+        let result = mapper.map((request, make_id()));
+
+        assert!(result.is_err());
+        assert_error_contains(result.unwrap_err(), DomainError::InvalidScheduledTimesCount);
+    }
+
+    #[test]
+    fn map_with_duplicate_times_returns_error() {
+        let mapper = UpdateMedicationMapper;
+        let request = UpdateMedicationRequest::new(
+            Uuid::nil().to_string(),
+            "Test",
+            100,
+            vec![(8, 0), (8, 0)],
+            "TwiceDaily",
+        );
+
+        let result = mapper.map((request, make_id()));
+
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+        assert!(errors.contains(&DomainError::DuplicateScheduledTime));
+    }
+
+    #[test]
+    fn map_once_daily_with_multiple_times_returns_error() {
+        let mapper = UpdateMedicationMapper;
+        let request = UpdateMedicationRequest::new(
+            Uuid::nil().to_string(),
+            "Test",
+            100,
+            vec![(8, 0), (20, 0)],
+            "OnceDaily",
+        );
+
+        let result = mapper.map((request, make_id()));
+
+        assert!(result.is_err());
+        assert_error_contains(result.unwrap_err(), DomainError::InvalidScheduledTimesCount);
+    }
+
+    #[test]
+    fn map_with_empty_name_and_zero_dosage_returns_aggregated_errors() {
+        let mapper = UpdateMedicationMapper;
+        let request =
+            UpdateMedicationRequest::new(Uuid::nil().to_string(), "", 0, vec![(8, 0)], "OnceDaily");
+
+        let result = mapper.map((request, make_id()));
+
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+        assert!(errors.contains(&DomainError::EmptyMedicationName));
     }
 }

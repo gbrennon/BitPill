@@ -15,21 +15,23 @@ use crate::{
     },
 };
 
-/// Convert a CreateMedicationRequest into a domain Medication.
 impl TryFrom<CreateMedicationRequest> for Medication {
     type Error = ApplicationError;
 
     fn try_from(request: CreateMedicationRequest) -> Result<Self, Self::Error> {
-        Ok(CreateMedicationMapper.map(request)?)
+        CreateMedicationMapper
+            .map(request)
+            .map_err(|e| ApplicationError::MultipleDomainErrors { errors: vec![e] })
     }
 }
 
-/// Convert an (UpdateMedicationRequest, MedicationId) tuple into a domain Medication.
 impl TryFrom<(UpdateMedicationRequest, MedicationId)> for Medication {
     type Error = ApplicationError;
 
     fn try_from(src: (UpdateMedicationRequest, MedicationId)) -> Result<Self, Self::Error> {
-        Ok(UpdateMedicationMapper.map(src)?)
+        UpdateMedicationMapper
+            .map(src)
+            .map_err(|e| ApplicationError::MultipleDomainErrors { errors: e })
     }
 }
 
@@ -64,24 +66,24 @@ mod tests {
     fn try_from_create_request_with_empty_name_returns_error() {
         let result = Medication::try_from(create_req("", 500, "OnceDaily"));
 
-        assert!(matches!(
-            result,
-            Err(ApplicationError::Domain(
-                crate::domain::errors::DomainError::EmptyMedicationName
-            ))
-        ));
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(matches!(err, ApplicationError::MultipleDomainErrors { .. }));
+        if let ApplicationError::MultipleDomainErrors { errors } = err {
+            assert!(errors.contains(&crate::domain::errors::DomainError::EmptyMedicationName));
+        }
     }
 
     #[test]
     fn try_from_create_request_with_zero_dosage_returns_error() {
         let result = Medication::try_from(create_req("Aspirin", 0, "OnceDaily"));
 
-        assert!(matches!(
-            result,
-            Err(ApplicationError::Domain(
-                crate::domain::errors::DomainError::InvalidDosage
-            ))
-        ));
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(matches!(err, ApplicationError::MultipleDomainErrors { .. }));
+        if let ApplicationError::MultipleDomainErrors { errors } = err {
+            assert!(errors.contains(&crate::domain::errors::DomainError::InvalidDosage));
+        }
     }
 
     #[test]
@@ -90,12 +92,12 @@ mod tests {
 
         let result = Medication::try_from(request);
 
-        assert!(matches!(
-            result,
-            Err(ApplicationError::Domain(
-                crate::domain::errors::DomainError::InvalidScheduledTime
-            ))
-        ));
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(matches!(err, ApplicationError::MultipleDomainErrors { .. }));
+        if let ApplicationError::MultipleDomainErrors { errors } = err {
+            assert!(errors.contains(&crate::domain::errors::DomainError::InvalidScheduledTime));
+        }
     }
 
     #[test]
@@ -111,8 +113,15 @@ mod tests {
     #[test]
     fn try_from_update_tuple_with_valid_data_returns_medication_with_given_id() {
         let id = MedicationId::from(Uuid::nil());
+        let request = UpdateMedicationRequest::new(
+            Uuid::nil().to_string(),
+            "Ibuprofen",
+            200,
+            vec![(8, 0), (20, 0)],
+            "TwiceDaily",
+        );
 
-        let result = Medication::try_from((update_req("Ibuprofen", 200, "TwiceDaily"), id.clone()));
+        let result = Medication::try_from((request, id.clone()));
 
         assert!(result.is_ok());
         let med = result.unwrap();
@@ -127,12 +136,12 @@ mod tests {
 
         let result = Medication::try_from((update_req("", 200, "OnceDaily"), id));
 
-        assert!(matches!(
-            result,
-            Err(ApplicationError::Domain(
-                crate::domain::errors::DomainError::EmptyMedicationName
-            ))
-        ));
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(matches!(err, ApplicationError::MultipleDomainErrors { .. }));
+        if let ApplicationError::MultipleDomainErrors { errors } = err {
+            assert!(errors.contains(&crate::domain::errors::DomainError::EmptyMedicationName));
+        }
     }
 
     #[test]
@@ -141,12 +150,12 @@ mod tests {
 
         let result = Medication::try_from((update_req("Aspirin", 0, "OnceDaily"), id));
 
-        assert!(matches!(
-            result,
-            Err(ApplicationError::Domain(
-                crate::domain::errors::DomainError::InvalidDosage
-            ))
-        ));
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(matches!(err, ApplicationError::MultipleDomainErrors { .. }));
+        if let ApplicationError::MultipleDomainErrors { errors } = err {
+            assert!(errors.contains(&crate::domain::errors::DomainError::InvalidDosage));
+        }
     }
 
     #[test]
@@ -162,11 +171,11 @@ mod tests {
 
         let result = Medication::try_from((request, id));
 
-        assert!(matches!(
-            result,
-            Err(ApplicationError::Domain(
-                crate::domain::errors::DomainError::InvalidScheduledTime
-            ))
-        ));
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(matches!(err, ApplicationError::MultipleDomainErrors { .. }));
+        if let ApplicationError::MultipleDomainErrors { errors } = err {
+            assert!(errors.contains(&crate::domain::errors::DomainError::InvalidScheduledTime));
+        }
     }
 }
