@@ -18,7 +18,7 @@ pub use medication_refill_id::MedicationRefillId;
 pub use navigation_mode::NavigationMode;
 pub use scheduled_time::ScheduledTime;
 pub use scheduled_time_parser::{
-    parse_scheduled_times, ParsedScheduledTimes, ScheduledTimeParseError,
-    ScheduledTimeParseErrorKind,
+    ParsedScheduledTimes, ScheduledTimeParseError, ScheduledTimeParseErrorKind,
+    parse_scheduled_times,
 };
 pub use taken_at::TakenAt;
