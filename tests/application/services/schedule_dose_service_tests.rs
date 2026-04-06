@@ -1,17 +1,22 @@
+use std::sync::Arc;
+
+use bitpill::{
+    application::{
+        dtos::requests::ScheduleDoseRequest, ports::inbound::schedule_dose_port::ScheduleDosePort,
+        services::schedule_dose_service::ScheduleDoseService,
+    },
+    domain::{
+        entities::medication::Medication,
+        value_objects::{
+            dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+            medication_name::MedicationName, scheduled_time::ScheduledTime,
+        },
+    },
+};
+
 use crate::fakes::{
     FakeClock, FakeDoseRecordRepository, FakeMedicationRepository, FakeNotificationPort,
 };
-use bitpill::application::dtos::requests::ScheduleDoseRequest;
-use bitpill::application::ports::inbound::schedule_dose_port::ScheduleDosePort;
-use bitpill::application::services::schedule_dose_service::ScheduleDoseService;
-use bitpill::domain::{
-    entities::medication::Medication,
-    value_objects::{
-        dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
-        medication_name::MedicationName, scheduled_time::ScheduledTime,
-    },
-};
-use std::sync::Arc;
 
 fn make_medication(name: &str, hour: u32, minute: u32) -> Medication {
     Medication::new(

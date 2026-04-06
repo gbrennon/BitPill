@@ -1,16 +1,21 @@
-use crate::fakes::FakeMedicationRepository;
-use bitpill::application::dtos::requests::GetMedicationRequest;
-use bitpill::application::errors::ApplicationError;
-use bitpill::application::ports::inbound::get_medication_port::GetMedicationPort;
-use bitpill::application::services::get_medication_service::GetMedicationService;
-use bitpill::domain::{
-    entities::medication::Medication,
-    value_objects::{
-        dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
-        medication_name::MedicationName, scheduled_time::ScheduledTime,
+use std::sync::Arc;
+
+use bitpill::{
+    application::{
+        dtos::requests::GetMedicationRequest, errors::ApplicationError,
+        ports::inbound::get_medication_port::GetMedicationPort,
+        services::get_medication_service::GetMedicationService,
+    },
+    domain::{
+        entities::medication::Medication,
+        value_objects::{
+            dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+            medication_name::MedicationName, scheduled_time::ScheduledTime,
+        },
     },
 };
-use std::sync::Arc;
+
+use crate::fakes::FakeMedicationRepository;
 
 #[test]
 fn get_medication_returns_medication_dto_when_found() {

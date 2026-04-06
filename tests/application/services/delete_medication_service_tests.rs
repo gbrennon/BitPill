@@ -1,17 +1,25 @@
-use crate::fakes::FakeMedicationRepository;
-use bitpill::application::dtos::requests::DeleteMedicationRequest;
-use bitpill::application::errors::ApplicationError;
-use bitpill::application::ports::inbound::delete_medication_port::DeleteMedicationPort;
-use bitpill::application::ports::outbound::medication_repository_port::MedicationRepository;
-use bitpill::application::services::delete_medication_service::DeleteMedicationService;
-use bitpill::domain::{
-    entities::medication::Medication,
-    value_objects::{
-        dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
-        medication_name::MedicationName, scheduled_time::ScheduledTime,
+use std::sync::Arc;
+
+use bitpill::{
+    application::{
+        dtos::requests::DeleteMedicationRequest,
+        errors::ApplicationError,
+        ports::{
+            inbound::delete_medication_port::DeleteMedicationPort,
+            outbound::medication_repository_port::MedicationRepository,
+        },
+        services::delete_medication_service::DeleteMedicationService,
+    },
+    domain::{
+        entities::medication::Medication,
+        value_objects::{
+            dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
+            medication_name::MedicationName, scheduled_time::ScheduledTime,
+        },
     },
 };
-use std::sync::Arc;
+
+use crate::fakes::FakeMedicationRepository;
 
 #[test]
 fn delete_medication_success_removes_from_repo() {
