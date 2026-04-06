@@ -6,6 +6,7 @@ pub mod medication_name;
 pub mod medication_refill_id;
 pub mod navigation_mode;
 pub mod scheduled_time;
+pub mod scheduled_time_parser;
 pub mod taken_at;
 
 pub use dosage::Dosage;
@@ -16,4 +17,8 @@ pub use medication_name::MedicationName;
 pub use medication_refill_id::MedicationRefillId;
 pub use navigation_mode::NavigationMode;
 pub use scheduled_time::ScheduledTime;
+pub use scheduled_time_parser::{
+    parse_scheduled_times, ParsedScheduledTimes, ScheduledTimeParseError,
+    ScheduledTimeParseErrorKind,
+};
 pub use taken_at::TakenAt;

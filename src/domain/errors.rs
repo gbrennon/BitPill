@@ -46,4 +46,16 @@ pub enum DomainError {
 
     #[error("invalid navigation mode")]
     InvalidNavigationMode,
+
+    #[error("scheduled times count does not match dose frequency")]
+    InvalidScheduledTimesCount,
+
+    #[error("custom frequency requires at least 4 scheduled times")]
+    CustomFrequencyRequiresMinimumFourTimes,
+
+    #[error("scheduled times must not contain duplicates")]
+    DuplicateScheduledTime,
+
+    #[error("invalid scheduled time: {0}")]
+    InvalidScheduledTimeCustom(String),
 }
