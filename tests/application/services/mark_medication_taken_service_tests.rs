@@ -1,12 +1,16 @@
-use crate::fakes::FakeDoseRecordRepository;
-use bitpill::application::{
-    dtos::requests::MarkDoseTakenRequest, errors::ApplicationError,
-    ports::inbound::mark_dose_taken_port::MarkDoseTakenPort,
-    services::mark_dose_taken_service::MarkDoseTakenService,
-};
-use bitpill::domain::value_objects::dose_record_id::DoseRecordId;
-use chrono::NaiveDate;
 use std::sync::Arc;
+
+use bitpill::{
+    application::{
+        dtos::requests::MarkDoseTakenRequest, errors::ApplicationError,
+        ports::inbound::mark_dose_taken_port::MarkDoseTakenPort,
+        services::mark_dose_taken_service::MarkDoseTakenService,
+    },
+    domain::value_objects::dose_record_id::DoseRecordId,
+};
+use chrono::NaiveDate;
+
+use crate::fakes::FakeDoseRecordRepository;
 
 fn make_datetime(h: u32, m: u32) -> chrono::NaiveDateTime {
     NaiveDate::from_ymd_opt(2025, 1, 1)
@@ -20,9 +24,10 @@ fn make_med() -> bitpill::domain::entities::medication::Medication {
         bitpill::domain::value_objects::medication_id::MedicationId::from(uuid::Uuid::nil()),
         bitpill::domain::value_objects::medication_name::MedicationName::new("TestMed").unwrap(),
         bitpill::domain::value_objects::dosage::Dosage::new(1).unwrap(),
-        Vec::new(),
+        vec![bitpill::domain::value_objects::scheduled_time::ScheduledTime::new(8, 0).unwrap()],
         bitpill::domain::value_objects::medication_frequency::DoseFrequency::OnceDaily,
     )
+    .unwrap()
 }
 
 #[test]

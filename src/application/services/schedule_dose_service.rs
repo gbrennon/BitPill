@@ -133,7 +133,8 @@ mod tests {
             Dosage::new(100).unwrap(),
             vec![ScheduledTime::new(8, 0).unwrap()],
             DoseFrequency::OnceDaily,
-        );
+        )
+        .unwrap();
         let med_repo = std::sync::Arc::new(FakeMedicationRepository::with(vec![med.clone()]));
         let dose_repo = std::sync::Arc::new(FakeDoseRecordRepository::new());
         let notification = std::sync::Arc::new(FakeNotificationPort::new());
@@ -159,7 +160,8 @@ mod tests {
             Dosage::new(100).unwrap(),
             vec![ScheduledTime::new(9, 0).unwrap()],
             DoseFrequency::OnceDaily,
-        );
+        )
+        .unwrap();
         let med_repo = std::sync::Arc::new(FakeMedicationRepository::with(vec![med]));
         let dose_repo = std::sync::Arc::new(FakeDoseRecordRepository::new());
         let notification = std::sync::Arc::new(FakeNotificationPort::new());

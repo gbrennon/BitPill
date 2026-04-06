@@ -60,13 +60,15 @@ mod tests {
 
     #[test]
     fn execute_with_valid_uuid_calls_delete() {
+        use crate::domain::value_objects::scheduled_time::ScheduledTime;
         let med = crate::domain::entities::medication::Medication::new(
             crate::domain::value_objects::medication_id::MedicationId::generate(),
             crate::domain::value_objects::medication_name::MedicationName::new("Test").unwrap(),
             crate::domain::value_objects::dosage::Dosage::new(100).unwrap(),
-            vec![],
+            vec![ScheduledTime::new(8, 0).unwrap()],
             crate::domain::value_objects::medication_frequency::DoseFrequency::OnceDaily,
-        );
+        )
+        .unwrap();
         let id = med.id().to_string();
         let repo = std::sync::Arc::new(FakeMedicationRepository::with(vec![med]));
         let service = make_service(repo.clone());

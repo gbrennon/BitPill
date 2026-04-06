@@ -114,15 +114,16 @@ mod tests {
     fn make_medication(name: &str) -> Medication {
         use crate::domain::value_objects::{
             dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
-            medication_name::MedicationName,
+            medication_name::MedicationName, scheduled_time::ScheduledTime,
         };
         Medication::new(
             MedicationId::generate(),
             MedicationName::new(name).unwrap(),
             Dosage::new(100).unwrap(),
-            vec![],
+            vec![ScheduledTime::new(8, 0).unwrap()],
             DoseFrequency::OnceDaily,
         )
+        .unwrap()
     }
 
     #[test]

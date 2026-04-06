@@ -105,7 +105,7 @@ fn render_medication_details_and_mark_dose_and_validation_error() {
 
     // ValidationError overlay
     app.current_screen = Screen::ValidationError {
-        message: "Bad field".into(),
+        messages: vec!["Bad field".into()],
         previous: Box::new(Screen::HomeScreen),
     };
     let buf = draw_with_app(&app);

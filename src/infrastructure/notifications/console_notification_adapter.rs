@@ -41,7 +41,8 @@ mod tests {
             Dosage::new(10).unwrap(),
             vec![ScheduledTime::new(8, 0).unwrap()],
             DoseFrequency::OnceDaily,
-        );
+        )
+        .unwrap();
         let scheduled_at = chrono::NaiveDate::from_ymd_opt(2025, 1, 1)
             .unwrap()
             .and_hms_opt(8, 0, 0)

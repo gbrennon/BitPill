@@ -30,6 +30,17 @@ impl Handler for MedicationListHandler {
                 app.selected_index = app.selected_index.saturating_sub(1);
                 return HandlerResult::Continue;
             }
+            if let Key::Char('f') = key {
+                if !app.medications.is_empty() {
+                    app.selected_index =
+                        (app.selected_index + 1).min(app.medications.len().saturating_sub(1));
+                }
+                return HandlerResult::Continue;
+            }
+            if let Key::Char('b') = key {
+                app.selected_index = app.selected_index.saturating_sub(1);
+                return HandlerResult::Continue;
+            }
             // Emacs mode: skip vim keys but allow other keys to pass through
             if matches!(
                 key,
@@ -390,35 +401,8 @@ mod tests {
 
     #[test]
     fn emacs_mode_n_moves_selection_down() {
-        let mut app = App::new(crate::presentation::tui::app_services::AppServices {
-            list_all_medications: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeListAllMedicationsPort,
-            ),
-            create_medication: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeCreateMedicationPort,
-            ),
-            edit_medication: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeEditMedicationPort,
-            ),
-            delete_medication: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeDeleteMedicationPort,
-            ),
-            get_medication: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeGetMedicationPort,
-            ),
-            list_dose_records: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeListDoseRecordsPort,
-            ),
-            mark_dose_taken: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeMarkDoseTakenPort,
-            ),
-            get_settings: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeGetSettingsPortWithMode::new("emacs"),
-            ),
-            save_settings: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeSaveSettingsPort,
-            ),
-        });
+        let mut app =
+            App::new(crate::presentation::tui::app_services::AppServices::fake_with_mode("emacs"));
         app.medications = vec![med("m1"), med("m2")];
         app.selected_index = 0;
         let mut h = MedicationListHandler;
@@ -428,35 +412,8 @@ mod tests {
 
     #[test]
     fn emacs_mode_p_moves_selection_up() {
-        let mut app = App::new(crate::presentation::tui::app_services::AppServices {
-            list_all_medications: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeListAllMedicationsPort,
-            ),
-            create_medication: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeCreateMedicationPort,
-            ),
-            edit_medication: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeEditMedicationPort,
-            ),
-            delete_medication: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeDeleteMedicationPort,
-            ),
-            get_medication: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeGetMedicationPort,
-            ),
-            list_dose_records: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeListDoseRecordsPort,
-            ),
-            mark_dose_taken: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeMarkDoseTakenPort,
-            ),
-            get_settings: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeGetSettingsPortWithMode::new("emacs"),
-            ),
-            save_settings: std::sync::Arc::new(
-                crate::application::ports::fakes::FakeSaveSettingsPort,
-            ),
-        });
+        let mut app =
+            App::new(crate::presentation::tui::app_services::AppServices::fake_with_mode("emacs"));
         app.medications = vec![med("m1"), med("m2")];
         app.selected_index = 1;
         let mut h = MedicationListHandler;

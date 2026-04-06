@@ -15,6 +15,7 @@ pub fn medication(name: &str, amount_mg: u32) -> Medication {
         vec![ScheduledTime::new(8, 0).unwrap()],
         DoseFrequency::OnceDaily,
     )
+    .unwrap()
 }
 
 /// Builds a `Medication` scheduled at the given hour and minute.
@@ -27,4 +28,5 @@ pub fn medication_at(name: &str, hour: u32, minute: u32) -> Medication {
         vec![ScheduledTime::new(hour, minute).unwrap()],
         DoseFrequency::OnceDaily,
     )
+    .unwrap()
 }
