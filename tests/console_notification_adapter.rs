@@ -19,6 +19,7 @@ fn make_medication() -> Medication {
         vec![ScheduledTime::new(8, 0).unwrap()],
         bitpill::domain::value_objects::medication_frequency::DoseFrequency::OnceDaily,
     )
+    .unwrap()
 }
 
 fn make_dose_record(medication_id: &MedicationId) -> DoseRecord {

@@ -1,12 +1,16 @@
-use crate::fakes::FakeDoseRecordRepository;
-use bitpill::application::{
-    dtos::requests::MarkDoseTakenRequest, errors::ApplicationError,
-    ports::inbound::mark_dose_taken_port::MarkDoseTakenPort,
-    services::mark_dose_taken_service::MarkDoseTakenService,
-};
-use bitpill::domain::value_objects::dose_record_id::DoseRecordId;
-use chrono::NaiveDate;
 use std::sync::Arc;
+
+use bitpill::{
+    application::{
+        dtos::requests::MarkDoseTakenRequest, errors::ApplicationError,
+        ports::inbound::mark_dose_taken_port::MarkDoseTakenPort,
+        services::mark_dose_taken_service::MarkDoseTakenService,
+    },
+    domain::value_objects::dose_record_id::DoseRecordId,
+};
+use chrono::NaiveDate;
+
+use crate::fakes::FakeDoseRecordRepository;
 
 fn make_datetime(h: u32, m: u32) -> chrono::NaiveDateTime {
     NaiveDate::from_ymd_opt(2025, 1, 1)

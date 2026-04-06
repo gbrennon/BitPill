@@ -22,3 +22,6 @@ mod presentation_modal_e2e;
 
 #[path = "presentation/render_all_screens.rs"]
 mod render_all_screens;
+
+#[path = "presentation/tui/handlers/time_slot_parser.rs"]
+mod time_slot_parser;
