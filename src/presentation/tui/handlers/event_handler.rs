@@ -657,7 +657,7 @@ mod tests {
     fn validation_error_enter_dismisses_modal() {
         let mut app = app();
         app.current_screen = Screen::ValidationError {
-            message: "bad".into(),
+            messages: vec!["bad".into()],
             previous: Box::new(Screen::HomeScreen),
         };
         let mut h = EventHandler::default();
@@ -671,7 +671,7 @@ mod tests {
     fn validation_error_any_key_dismisses_modal() {
         let mut app = app();
         app.current_screen = Screen::ValidationError {
-            message: "bad".into(),
+            messages: vec!["bad".into()],
             previous: Box::new(Screen::HomeScreen),
         };
         let mut h = EventHandler::default();

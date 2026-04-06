@@ -5,3 +5,4 @@ pub mod medication_list_presenter;
 pub mod schedule_result_presenter;
 pub mod settings_presenter;
 pub mod update_medication_presenter;
+pub mod validation_error_presenter;

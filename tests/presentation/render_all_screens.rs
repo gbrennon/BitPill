@@ -78,7 +78,7 @@ fn render_all_screens_does_not_panic_and_draws_something() {
             previous: Box::new(Screen::HomeScreen),
         },
         Screen::ValidationError {
-            message: "err".into(),
+            messages: vec!["err".into()],
             previous: Box::new(Screen::HomeScreen),
         },
     ];
