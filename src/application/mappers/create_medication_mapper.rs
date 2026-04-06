@@ -40,13 +40,19 @@ impl Mapper<Medication> for CreateMedicationMapper {
             _ => DoseFrequency::OnceDaily,
         };
 
-        Ok(Medication::new(
+        Medication::new(
             MedicationId::generate(),
             name,
             dosage,
             times,
             dose_frequency,
-        ))
+        )
+        .map_err(|errors| {
+            errors
+                .into_iter()
+                .next()
+                .unwrap_or(DomainError::EmptyMedicationName)
+        })
     }
 }
 
@@ -104,7 +110,8 @@ mod tests {
     #[test]
     fn map_parses_twice_daily_frequency() {
         let mapper = CreateMedicationMapper;
-        let request = make_request("Ibuprofen", 200, "TwiceDaily");
+        let request =
+            CreateMedicationRequest::new("Ibuprofen", 200, vec![(8, 0), (20, 0)], "TwiceDaily");
 
         let med = mapper.map(request).unwrap();
 

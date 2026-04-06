@@ -52,6 +52,24 @@ impl Handler for MarkDoseHandler {
                 };
                 return HandlerResult::Continue;
             }
+            if let Key::Char('f') = key {
+                let idx = (sel_idx + 1).min(recs.len().saturating_sub(1));
+                app.current_screen = Screen::MarkDose {
+                    medication_id: med_id.clone(),
+                    records: recs.to_vec(),
+                    selected_index: idx,
+                };
+                return HandlerResult::Continue;
+            }
+            if let Key::Char('b') = key {
+                let idx = sel_idx.saturating_sub(1);
+                app.current_screen = Screen::MarkDose {
+                    medication_id: med_id.clone(),
+                    records: recs.to_vec(),
+                    selected_index: idx,
+                };
+                return HandlerResult::Continue;
+            }
             // Skip vim keys but allow other keys to pass through
             if matches!(key, Key::Char('j') | Key::Char('k')) {
                 return HandlerResult::Continue;

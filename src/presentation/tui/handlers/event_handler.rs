@@ -184,6 +184,62 @@ impl Handler for EventHandler {
                 selected_index,
             } => {
                 let mode_count = NavigationModeVariant::count();
+
+                // Emacs mode: n/p for navigation
+                if !app.is_vim_mode() {
+                    if let Key::Char('n') = key {
+                        let new_index = (*selected_index + 1) % mode_count;
+                        let new_vim = NavigationModeVariant::from_index(new_index)
+                            .map(|v| v.is_vi())
+                            .unwrap_or(false);
+                        app.current_screen = Screen::Settings {
+                            vim_enabled: new_vim,
+                            selected_index: new_index,
+                        };
+                        return HandlerResult::Continue;
+                    }
+                    if let Key::Char('p') = key {
+                        let new_index = selected_index.saturating_sub(1);
+                        let new_vim = NavigationModeVariant::from_index(new_index)
+                            .map(|v| v.is_vi())
+                            .unwrap_or(false);
+                        app.current_screen = Screen::Settings {
+                            vim_enabled: new_vim,
+                            selected_index: new_index,
+                        };
+                        return HandlerResult::Continue;
+                    }
+                    if let Key::Char('f') = key {
+                        let new_index = (*selected_index + 1) % mode_count;
+                        let new_vim = NavigationModeVariant::from_index(new_index)
+                            .map(|v| v.is_vi())
+                            .unwrap_or(false);
+                        app.current_screen = Screen::Settings {
+                            vim_enabled: new_vim,
+                            selected_index: new_index,
+                        };
+                        return HandlerResult::Continue;
+                    }
+                    if let Key::Char('b') = key {
+                        let new_index = selected_index.saturating_sub(1);
+                        let new_vim = NavigationModeVariant::from_index(new_index)
+                            .map(|v| v.is_vi())
+                            .unwrap_or(false);
+                        app.current_screen = Screen::Settings {
+                            vim_enabled: new_vim,
+                            selected_index: new_index,
+                        };
+                        return HandlerResult::Continue;
+                    }
+                    // Skip vim keys in emacs mode
+                    if matches!(
+                        key,
+                        Key::Char('j') | Key::Char('k') | Key::Char('h') | Key::Char('l')
+                    ) {
+                        return HandlerResult::Continue;
+                    }
+                }
+
                 match key {
                     Key::Char('?') => {
                         let help_text = NavigationModeVariant::from_index(*selected_index)
@@ -208,6 +264,9 @@ impl Handler for EventHandler {
                         };
                     }
                     Key::Char('j') | Key::Down | Key::Char('l') | Key::Right => {
+                        if !app.is_vim_mode() {
+                            return HandlerResult::Continue;
+                        }
                         let new_index = (selected_index + 1) % mode_count;
                         let new_vim = NavigationModeVariant::from_index(new_index)
                             .map(|v| v.is_vi())
@@ -218,6 +277,9 @@ impl Handler for EventHandler {
                         };
                     }
                     Key::Char('k') | Key::Up | Key::Char('h') | Key::Left => {
+                        if !app.is_vim_mode() {
+                            return HandlerResult::Continue;
+                        }
                         let new_index = selected_index.saturating_sub(1);
                         let new_vim = NavigationModeVariant::from_index(new_index)
                             .map(|v| v.is_vi())
@@ -595,7 +657,7 @@ mod tests {
     fn validation_error_enter_dismisses_modal() {
         let mut app = app();
         app.current_screen = Screen::ValidationError {
-            message: "bad".into(),
+            messages: vec!["bad".into()],
             previous: Box::new(Screen::HomeScreen),
         };
         let mut h = EventHandler::default();
@@ -609,7 +671,7 @@ mod tests {
     fn validation_error_any_key_dismisses_modal() {
         let mut app = app();
         app.current_screen = Screen::ValidationError {
-            message: "bad".into(),
+            messages: vec!["bad".into()],
             previous: Box::new(Screen::HomeScreen),
         };
         let mut h = EventHandler::default();

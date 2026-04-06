@@ -100,7 +100,13 @@ mod tests {
 
     use super::*;
     use crate::{
-        application::ports::fakes::{FakeDoseRecordRepository, FakeMedicationRepository},
+        application::{
+            errors::StorageError,
+            ports::{
+                dose_record_repository_port::DoseRecordRepository,
+                fakes::{FakeDoseRecordRepository, FakeMedicationRepository},
+            },
+        },
         domain::{
             entities::medication::Medication,
             value_objects::{Dosage, DoseFrequency, MedicationId, MedicationName},
@@ -153,13 +159,15 @@ mod tests {
 
     #[test]
     fn execute_when_no_record_but_med_exists_creates_and_saves() {
+        use crate::domain::value_objects::ScheduledTime;
         let med = Medication::new(
             MedicationId::generate(),
             MedicationName::new("Test").unwrap(),
             Dosage::new(100).unwrap(),
-            vec![],
+            vec![ScheduledTime::new(8, 0).unwrap()],
             DoseFrequency::OnceDaily,
-        );
+        )
+        .unwrap();
         let med_id = med.id().clone();
         let repo = Arc::new(FakeDoseRecordRepository::new());
         let med_repo = Arc::new(FakeMedicationRepository::with(vec![med]));
@@ -186,5 +194,67 @@ mod tests {
         };
         let res = service.execute(req);
         assert!(matches!(res, Err(ApplicationError::NotFound(_))));
+    }
+
+    #[test]
+    fn execute_when_find_by_id_fails_returns_storage_error() {
+        let med_id = MedicationId::generate();
+        let record = DoseRecord::new(med_id.clone(), make_datetime(8, 0));
+        let record_id = record.id().clone();
+        let repo = Arc::new(
+            FakeDoseRecordRepository::with(record)
+                .with_find_by_id_error(StorageError("db error".to_string())),
+        );
+        let med_repo = Arc::new(FakeMedicationRepository::new());
+        let service = make_service(repo.clone(), med_repo);
+
+        let req = MarkDoseTakenRequest {
+            record_id: record_id.to_string(),
+            scheduled_at: None,
+        };
+        let res = service.execute(req);
+        assert!(matches!(res, Err(ApplicationError::Storage(_))));
+    }
+
+    #[test]
+    fn execute_when_repository_save_fails_returns_storage_error() {
+        struct FailingSaveRepository {
+            records: std::sync::Mutex<Vec<DoseRecord>>,
+        }
+
+        impl DoseRecordRepository for FailingSaveRepository {
+            fn save(&self, _record: &DoseRecord) -> Result<(), StorageError> {
+                Err(StorageError("save failed".to_string()))
+            }
+            fn find_by_id(&self, id: &DoseRecordId) -> Result<Option<DoseRecord>, StorageError> {
+                let records = self.records.lock().unwrap();
+                Ok(records.iter().find(|r| r.id() == id).cloned())
+            }
+            fn find_all_by_medication(
+                &self,
+                _id: &MedicationId,
+            ) -> Result<Vec<DoseRecord>, StorageError> {
+                Ok(vec![])
+            }
+            fn delete(&self, _id: &DoseRecordId) -> Result<(), StorageError> {
+                Ok(())
+            }
+        }
+
+        let med_id = MedicationId::generate();
+        let record = DoseRecord::new(med_id.clone(), make_datetime(8, 0));
+        let record_id = record.id().clone();
+        let repo: Arc<FailingSaveRepository> = Arc::new(FailingSaveRepository {
+            records: std::sync::Mutex::new(vec![record]),
+        });
+        let med_repo = Arc::new(FakeMedicationRepository::new());
+        let service = MarkDoseTakenService::new(repo, med_repo);
+
+        let req = MarkDoseTakenRequest {
+            record_id: record_id.to_string(),
+            scheduled_at: None,
+        };
+        let res = service.execute(req);
+        assert!(matches!(res, Err(ApplicationError::Storage(_))));
     }
 }

@@ -7,6 +7,8 @@ use crate::domain::errors::DomainError;
 pub enum ApplicationError {
     #[error(transparent)]
     Domain(#[from] DomainError),
+    #[error("multiple validation errors")]
+    MultipleDomainErrors { errors: Vec<DomainError> },
     #[error(transparent)]
     Storage(#[from] StorageError),
     #[error(transparent)]
@@ -18,7 +20,7 @@ pub enum ApplicationError {
 }
 
 /// Generic infrastructure storage failure that can be reused by repository ports.
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Clone)]
 #[error("storage error: {0}")]
 pub struct StorageError(pub String);
 

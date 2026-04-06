@@ -11,7 +11,7 @@ pub use settings_state::SettingsState;
 use crate::{application::dtos::responses::DoseRecordDto, presentation::tui::screen::Screen};
 
 /// Central enum representing UI view state (struct-like variants for compatibility)
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum ViewState {
     // legacy name kept for compatibility with existing code
     HomeScreen,
@@ -69,7 +69,7 @@ pub enum ViewState {
     },
     /// Validation/modal to show input errors; holds the previous view to return to when dismissed.
     ValidationError {
-        message: String,
+        messages: Vec<String>,
         previous: Box<ViewState>,
     },
 }
