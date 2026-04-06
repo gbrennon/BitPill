@@ -53,18 +53,19 @@ pub fn render(f: &mut Frame, app: &App) {
     f.render_widget(Block::default().style(content_style()), f.area());
 
     match &app.current_screen {
-        Screen::ValidationError { message, previous } => {
+        Screen::ValidationError { messages, previous } => {
             // render underlying view then dim overlay and modal
             render_view(f, app, previous);
             use ratatui::style::Color;
             // dim the background by drawing a semi-transparent overlay (simulated)
             let dim = Block::default().style(content_style().fg(Color::DarkGray));
             f.render_widget(dim, f.area());
+            let content = messages.join("\n");
             crate::presentation::tui::components::modal::render_modal(
                 f,
                 f.area(),
                 "Validation error",
-                message,
+                &content,
             );
         }
         Screen::ConfirmQuit { previous } => {
@@ -182,7 +183,7 @@ mod tests {
                 previous: Box::new(Screen::HomeScreen),
             },
             Screen::ValidationError {
-                message: String::from("err"),
+                messages: vec![String::from("err")],
                 previous: Box::new(Screen::HomeScreen),
             },
         ];
@@ -257,7 +258,7 @@ mod tests {
 
         for prev in previous_screens {
             app.current_screen = Screen::ValidationError {
-                message: "e".into(),
+                messages: vec!["e".into()],
                 previous: prev,
             };
             terminal

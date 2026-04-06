@@ -6,7 +6,7 @@ use crate::{
         edit_medication_port::EditMedicationPort, get_medication_port::GetMedicationPort,
         get_settings_port::GetSettingsPort, list_all_medications_port::ListAllMedicationsPort,
         list_dose_records_port::ListDoseRecordsPort, mark_dose_taken_port::MarkDoseTakenPort,
-        save_settings_port::SaveSettingsPort,
+        save_settings_port::SaveSettingsPort, update_medication_port::UpdateMedicationPort,
     },
     infrastructure::container::Container,
 };
@@ -17,6 +17,7 @@ pub struct AppServices {
     pub list_all_medications: Arc<dyn ListAllMedicationsPort>,
     pub create_medication: Arc<dyn CreateMedicationPort>,
     pub edit_medication: Arc<dyn EditMedicationPort>,
+    pub update_medication: Arc<dyn UpdateMedicationPort>,
     pub delete_medication: Arc<dyn DeleteMedicationPort>,
     pub get_medication: Arc<dyn GetMedicationPort>,
     pub list_dose_records: Arc<dyn ListDoseRecordsPort>,
@@ -33,6 +34,7 @@ impl AppServices {
             list_all_medications: container.list_all_medications_service.clone(),
             create_medication: container.create_medication_service.clone(),
             edit_medication: container.edit_medication_service.clone(),
+            update_medication: container.update_medication_service.clone(),
             delete_medication: container.delete_medication_service.clone(),
             get_medication: container.get_medication_service.clone(),
             list_dose_records: container.list_dose_records_service.clone(),
@@ -52,11 +54,13 @@ impl AppServices {
             FakeCreateMedicationPort, FakeDeleteMedicationPort, FakeEditMedicationPort,
             FakeGetMedicationPort, FakeGetSettingsPort, FakeListAllMedicationsPort,
             FakeListDoseRecordsPort, FakeMarkDoseTakenPort, FakeSaveSettingsPort,
+            FakeUpdateMedicationPort,
         };
         Self {
             list_all_medications: Arc::new(FakeListAllMedicationsPort),
             create_medication: Arc::new(FakeCreateMedicationPort),
             edit_medication: Arc::new(FakeEditMedicationPort),
+            update_medication: Arc::new(FakeUpdateMedicationPort),
             delete_medication: Arc::new(FakeDeleteMedicationPort),
             get_medication: Arc::new(FakeGetMedicationPort),
             list_dose_records: Arc::new(FakeListDoseRecordsPort),
@@ -72,11 +76,13 @@ impl AppServices {
             FakeCreateMedicationPort, FakeDeleteMedicationPort, FakeEditMedicationPort,
             FakeGetMedicationPort, FakeGetSettingsPortWithMode, FakeListAllMedicationsPort,
             FakeListDoseRecordsPort, FakeMarkDoseTakenPort, FakeSaveSettingsPort,
+            FakeUpdateMedicationPort,
         };
         Self {
             list_all_medications: Arc::new(FakeListAllMedicationsPort),
             create_medication: Arc::new(FakeCreateMedicationPort),
             edit_medication: Arc::new(FakeEditMedicationPort),
+            update_medication: Arc::new(FakeUpdateMedicationPort),
             delete_medication: Arc::new(FakeDeleteMedicationPort),
             get_medication: Arc::new(FakeGetMedicationPort),
             list_dose_records: Arc::new(FakeListDoseRecordsPort),
@@ -97,6 +103,7 @@ mod tests {
         let _ = &services.list_all_medications;
         let _ = &services.create_medication;
         let _ = &services.edit_medication;
+        let _ = &services.update_medication;
         let _ = &services.delete_medication;
         let _ = &services.get_medication;
         let _ = &services.list_dose_records;
