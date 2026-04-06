@@ -21,7 +21,8 @@ fn delete_medication_success_removes_from_repo() {
         Dosage::new(10).unwrap(),
         vec![ScheduledTime::new(8, 0).unwrap()],
         DoseFrequency::OnceDaily,
-    );
+    )
+    .unwrap();
     let repo = Arc::new(FakeMedicationRepository::with(vec![med.clone()]));
     let svc = DeleteMedicationService::new(repo.clone());
     let req = DeleteMedicationRequest {

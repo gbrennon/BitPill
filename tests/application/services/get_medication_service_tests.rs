@@ -20,7 +20,8 @@ fn get_medication_returns_medication_dto_when_found() {
         Dosage::new(150).unwrap(),
         vec![ScheduledTime::new(9, 0).unwrap()],
         DoseFrequency::OnceDaily,
-    );
+    )
+    .unwrap();
     let repo = Arc::new(FakeMedicationRepository::with(vec![med.clone()]));
     let service = GetMedicationService::new(repo);
 
@@ -73,7 +74,8 @@ fn get_medication_handles_custom_and_everyxhours_frequency() {
         Dosage::new(50).unwrap(),
         custom_times.clone(),
         DoseFrequency::Custom(custom_times.clone()),
-    );
+    )
+    .unwrap();
 
     let id2 = MedicationId::generate();
     let med_every = Medication::new(
@@ -82,7 +84,8 @@ fn get_medication_handles_custom_and_everyxhours_frequency() {
         Dosage::new(25).unwrap(),
         vec![],
         DoseFrequency::EveryXHours(6),
-    );
+    )
+    .unwrap();
 
     let repo = Arc::new(FakeMedicationRepository::with(vec![med_custom, med_every]));
     let svc = GetMedicationService::new(repo);
@@ -111,7 +114,8 @@ fn get_medication_fixed_frequencies_map_to_strings() {
         Dosage::new(10).unwrap(),
         vec![ScheduledTime::new(8, 0).unwrap()],
         DoseFrequency::OnceDaily,
-    );
+    )
+    .unwrap();
     let id_twice = MedicationId::generate();
     let m_twice = Medication::new(
         id_twice.clone(),
@@ -122,7 +126,8 @@ fn get_medication_fixed_frequencies_map_to_strings() {
             ScheduledTime::new(20, 0).unwrap(),
         ],
         DoseFrequency::TwiceDaily,
-    );
+    )
+    .unwrap();
     let id_thrice = MedicationId::generate();
     let m_thrice = Medication::new(
         id_thrice.clone(),
@@ -134,7 +139,8 @@ fn get_medication_fixed_frequencies_map_to_strings() {
             ScheduledTime::new(20, 0).unwrap(),
         ],
         DoseFrequency::ThriceDaily,
-    );
+    )
+    .unwrap();
 
     let repo = Arc::new(FakeMedicationRepository::with(vec![
         m_once, m_twice, m_thrice,

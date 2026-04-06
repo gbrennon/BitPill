@@ -20,9 +20,10 @@ fn make_med() -> bitpill::domain::entities::medication::Medication {
         bitpill::domain::value_objects::medication_id::MedicationId::from(uuid::Uuid::nil()),
         bitpill::domain::value_objects::medication_name::MedicationName::new("TestMed").unwrap(),
         bitpill::domain::value_objects::dosage::Dosage::new(1).unwrap(),
-        Vec::new(),
+        vec![bitpill::domain::value_objects::scheduled_time::ScheduledTime::new(8, 0).unwrap()],
         bitpill::domain::value_objects::medication_frequency::DoseFrequency::OnceDaily,
     )
+    .unwrap()
 }
 
 #[test]
