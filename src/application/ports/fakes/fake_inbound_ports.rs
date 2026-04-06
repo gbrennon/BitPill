@@ -4,11 +4,13 @@ use crate::application::{
             CreateMedicationRequest, DeleteMedicationRequest, EditMedicationRequest,
             GetMedicationRequest, GetSettingsRequest, ListAllMedicationsRequest,
             ListDoseRecordsRequest, MarkDoseTakenRequest, SaveSettingsRequest,
+            UpdateMedicationRequest,
         },
         responses::{
             CreateMedicationResponse, DeleteMedicationResponse, EditMedicationResponse,
             GetMedicationResponse, GetSettingsResponse, ListAllMedicationsResponse,
             ListDoseRecordsResponse, MarkDoseTakenResponse, MedicationDto, SaveSettingsResponse,
+            UpdateMedicationResponse,
         },
     },
     errors::ApplicationError,
@@ -17,7 +19,7 @@ use crate::application::{
         edit_medication_port::EditMedicationPort, get_medication_port::GetMedicationPort,
         get_settings_port::GetSettingsPort, list_all_medications_port::ListAllMedicationsPort,
         list_dose_records_port::ListDoseRecordsPort, mark_dose_taken_port::MarkDoseTakenPort,
-        save_settings_port::SaveSettingsPort,
+        save_settings_port::SaveSettingsPort, update_medication_port::UpdateMedicationPort,
     },
 };
 
@@ -52,6 +54,18 @@ impl EditMedicationPort for FakeEditMedicationPort {
         _request: EditMedicationRequest,
     ) -> Result<EditMedicationResponse, ApplicationError> {
         Ok(EditMedicationResponse {
+            id: "fake-id".into(),
+        })
+    }
+}
+
+pub struct FakeUpdateMedicationPort;
+impl UpdateMedicationPort for FakeUpdateMedicationPort {
+    fn execute(
+        &self,
+        _request: UpdateMedicationRequest,
+    ) -> Result<UpdateMedicationResponse, ApplicationError> {
+        Ok(UpdateMedicationResponse {
             id: "fake-id".into(),
         })
     }

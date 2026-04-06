@@ -127,7 +127,8 @@ mod tests {
             Dosage::new(123).unwrap(),
             vec![ScheduledTime::new(8, 0).unwrap()],
             DoseFrequency::OnceDaily,
-        );
+        )
+        .unwrap();
         let repo = std::sync::Arc::new(FakeMedicationRepository::with(vec![med.clone()]));
         let dose_repo = std::sync::Arc::new(FakeDoseRecordRepository::new());
         let service = make_service(repo, dose_repo);

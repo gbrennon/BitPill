@@ -101,7 +101,9 @@ mod tests {
 
         let result = service.execute(request);
 
-        assert!(matches!(result, Err(ApplicationError::Domain(_))));
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(matches!(err, ApplicationError::MultipleDomainErrors { .. }));
     }
 
     #[test]
@@ -113,7 +115,9 @@ mod tests {
 
         let result = service.execute(request);
 
-        assert!(matches!(result, Err(ApplicationError::Domain(_))));
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(matches!(err, ApplicationError::MultipleDomainErrors { .. }));
     }
 
     #[test]

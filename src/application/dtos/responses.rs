@@ -27,12 +27,14 @@ mod test {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct CreateMedicationResponse {
     pub id: String,
 }
 
 pub struct DeleteMedicationResponse {}
 
+#[derive(Debug, PartialEq)]
 pub struct EditMedicationResponse {
     pub id: String,
 }
@@ -56,7 +58,7 @@ pub struct ListAllMedicationsResponse {
     pub medications: Vec<MedicationDto>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct DoseRecordDto {
     pub id: String,
     pub medication_id: String,
@@ -110,6 +112,7 @@ pub struct SettingsResponse {
     pub settings: Value,
 }
 
+#[derive(Debug)]
 pub struct UpdateMedicationResponse {
     pub id: String,
 }
