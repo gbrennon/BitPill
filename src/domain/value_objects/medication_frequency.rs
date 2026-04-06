@@ -5,42 +5,40 @@ pub enum DoseFrequency {
     OnceDaily,
     TwiceDaily,
     ThriceDaily,
-    EveryXHours(u32),           // e.g., Every 6 hours
-    Custom(Vec<ScheduledTime>), // Specific times of date
+    Custom(Vec<ScheduledTime>),
 }
 
 impl DoseFrequency {
-    /// Returns the scheduled times for this medication frequency.
-    /// For fixed frequencies, this returns a predefined set of times.
-    /// For `EveryXHours`, it returns an empty vector (as times are relative).
-    /// For `Custom`, it returns the user-defined times.
+    pub fn required_times_count(&self) -> Option<usize> {
+        match self {
+            DoseFrequency::OnceDaily => Some(1),
+            DoseFrequency::TwiceDaily => Some(2),
+            DoseFrequency::ThriceDaily => Some(3),
+            DoseFrequency::Custom(_) => None,
+        }
+    }
+
     pub fn scheduled_time(&self) -> Vec<ScheduledTime> {
         match self {
-            DoseFrequency::OnceDaily => vec![ScheduledTime::new(8, 0).unwrap()], // Default to 8:00 AM
+            DoseFrequency::OnceDaily => vec![ScheduledTime::new(8, 0).unwrap()],
             DoseFrequency::TwiceDaily => vec![
-                ScheduledTime::new(8, 0).unwrap(),  // 8:00 AM
-                ScheduledTime::new(20, 0).unwrap(), // 8:00 PM
+                ScheduledTime::new(8, 0).unwrap(),
+                ScheduledTime::new(20, 0).unwrap(),
             ],
             DoseFrequency::ThriceDaily => vec![
-                ScheduledTime::new(8, 0).unwrap(),  // 8:00 AM
-                ScheduledTime::new(14, 0).unwrap(), // 2:00 PM
-                ScheduledTime::new(20, 0).unwrap(), // 8:00 PM
+                ScheduledTime::new(8, 0).unwrap(),
+                ScheduledTime::new(14, 0).unwrap(),
+                ScheduledTime::new(20, 0).unwrap(),
             ],
-            DoseFrequency::EveryXHours(_) => vec![], // Times are relative, not fixed
             DoseFrequency::Custom(times) => times.clone(),
         }
     }
 
-    /// Returns the canonical string slice for this variant.
-    ///
-    /// Unlike [`Display`](std::fmt::Display), this is not human-readable; it matches
-    /// the strings expected by the application layer mappers and TUI handlers.
     pub fn as_str(&self) -> &'static str {
         match self {
             DoseFrequency::OnceDaily => "OnceDaily",
             DoseFrequency::TwiceDaily => "TwiceDaily",
             DoseFrequency::ThriceDaily => "ThriceDaily",
-            DoseFrequency::EveryXHours(_) => "EveryXHours",
             DoseFrequency::Custom(_) => "Custom",
         }
     }
@@ -52,7 +50,6 @@ impl std::fmt::Display for DoseFrequency {
             DoseFrequency::OnceDaily => write!(f, "Once Daily"),
             DoseFrequency::TwiceDaily => write!(f, "Twice Daily"),
             DoseFrequency::ThriceDaily => write!(f, "Thrice Daily"),
-            DoseFrequency::EveryXHours(hours) => write!(f, "Every {} Hours", hours),
             DoseFrequency::Custom(times) => {
                 let times_str = times
                     .iter()
@@ -93,10 +90,7 @@ mod tests {
     }
 
     #[test]
-    fn display_handles_every_x_hours_and_custom() {
-        let freq = DoseFrequency::EveryXHours(6);
-        assert_eq!(freq.to_string(), "Every 6 Hours");
-
+    fn display_handles_custom() {
         let custom_times = vec![
             ScheduledTime::new(9, 0).unwrap(),
             ScheduledTime::new(21, 0).unwrap(),
@@ -105,8 +99,51 @@ mod tests {
         assert!(freq_custom.to_string().contains("Custom"));
         assert!(freq_custom.to_string().contains("09:00"));
         assert!(freq_custom.to_string().contains("21:00"));
+    }
 
-        // scheduled_time for EveryXHours is empty
-        assert!(DoseFrequency::EveryXHours(4).scheduled_time().is_empty());
+    #[test]
+    fn required_times_count_returns_expected_values() {
+        assert_eq!(DoseFrequency::OnceDaily.required_times_count(), Some(1));
+        assert_eq!(DoseFrequency::TwiceDaily.required_times_count(), Some(2));
+        assert_eq!(DoseFrequency::ThriceDaily.required_times_count(), Some(3));
+        assert_eq!(DoseFrequency::Custom(vec![]).required_times_count(), None);
+    }
+
+    #[test]
+    fn custom_with_times_returns_times() {
+        let times = vec![
+            ScheduledTime::new(8, 0).unwrap(),
+            ScheduledTime::new(12, 0).unwrap(),
+            ScheduledTime::new(16, 0).unwrap(),
+            ScheduledTime::new(20, 0).unwrap(),
+        ];
+        let freq = DoseFrequency::Custom(times.clone());
+        assert_eq!(freq.scheduled_time(), times);
+    }
+
+    #[test]
+    fn as_str_returns_correct_string() {
+        assert_eq!(DoseFrequency::OnceDaily.as_str(), "OnceDaily");
+        assert_eq!(DoseFrequency::TwiceDaily.as_str(), "TwiceDaily");
+        assert_eq!(DoseFrequency::ThriceDaily.as_str(), "ThriceDaily");
+        assert_eq!(DoseFrequency::Custom(vec![]).as_str(), "Custom");
+    }
+
+    #[test]
+    fn display_formats_once_daily() {
+        let freq = DoseFrequency::OnceDaily;
+        assert_eq!(freq.to_string(), "Once Daily");
+    }
+
+    #[test]
+    fn display_formats_twice_daily() {
+        let freq = DoseFrequency::TwiceDaily;
+        assert_eq!(freq.to_string(), "Twice Daily");
+    }
+
+    #[test]
+    fn display_formats_thrice_daily() {
+        let freq = DoseFrequency::ThriceDaily;
+        assert_eq!(freq.to_string(), "Thrice Daily");
     }
 }
