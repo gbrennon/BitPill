@@ -4,6 +4,12 @@
 
 set -euo pipefail
 
+run() {
+  local cmd="$*"
+  echo ">>> $cmd" >&2
+  eval "$cmd"
+}
+
 # ========================================
 # Git Environment Helpers
 # ========================================
