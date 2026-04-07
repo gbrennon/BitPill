@@ -1,5 +1,27 @@
 use crate::domain::value_objects::scheduled_time::ScheduledTime;
 
+/// Specifies how often a medication dose should be taken.
+///
+/// `DoseFrequency` is a value object — two instances with the same frequency
+/// are considered equal. It defines both the dosage frequency (once, twice, thrice daily)
+/// and the default scheduled times for each frequency variant.
+///
+/// # Variants
+///
+/// - `OnceDaily` — One dose per day at 08:00.
+/// - `TwiceDaily` — Two doses per day at 08:00 and 20:00.
+/// - `ThriceDaily` — Three doses per day at 08:00, 14:00, and 20:00.
+/// - `Custom` — User-defined times (minimum 4 required).
+///
+/// # Examples
+///
+/// ```rust
+/// use bitpill::domain::value_objects::medication_frequency::DoseFrequency;
+///
+/// let freq = DoseFrequency::TwiceDaily;
+/// assert_eq!(freq.required_times_count(), Some(2));
+/// assert_eq!(freq.as_str(), "TwiceDaily");
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum DoseFrequency {
     OnceDaily,
@@ -9,6 +31,7 @@ pub enum DoseFrequency {
 }
 
 impl DoseFrequency {
+    /// Returns the required number of scheduled times, or `None` for `Custom`.
     pub fn required_times_count(&self) -> Option<usize> {
         match self {
             DoseFrequency::OnceDaily => Some(1),
@@ -18,6 +41,7 @@ impl DoseFrequency {
         }
     }
 
+    /// Returns the default scheduled times for this frequency.
     pub fn scheduled_time(&self) -> Vec<ScheduledTime> {
         match self {
             DoseFrequency::OnceDaily => vec![ScheduledTime::new(8, 0).unwrap()],
@@ -34,6 +58,7 @@ impl DoseFrequency {
         }
     }
 
+    /// Returns a string identifier for this frequency.
     pub fn as_str(&self) -> &'static str {
         match self {
             DoseFrequency::OnceDaily => "OnceDaily",
