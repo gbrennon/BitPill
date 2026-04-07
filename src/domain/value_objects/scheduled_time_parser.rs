@@ -1,9 +1,22 @@
+/// Result of parsing a list of scheduled time strings.
+///
+/// # Fields
+///
+/// - `times` — Parsed (hour, minute) tuples.
+/// - `normalized` — Zero-padded time strings in "HH:MM" format.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParsedScheduledTimes {
     pub times: Vec<(u32, u32)>,
     pub normalized: Vec<String>,
 }
 
+/// Error that occurs when parsing a scheduled time string.
+///
+/// # Fields
+///
+/// - `slot_index` — Position in the input array where the error occurred.
+/// - `found` — The problematic string that failed to parse.
+/// - `kind` — The specific kind of parse error.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ScheduledTimeParseError {
     pub slot_index: usize,
@@ -11,6 +24,7 @@ pub struct ScheduledTimeParseError {
     pub kind: ScheduledTimeParseErrorKind,
 }
 
+/// Specific kind of scheduled time parse error.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ScheduledTimeParseErrorKind {
     InvalidFormat,
@@ -40,6 +54,15 @@ impl std::fmt::Display for ScheduledTimeParseError {
 
 impl std::error::Error for ScheduledTimeParseError {}
 
+/// Parses a list of time strings into scheduled times.
+///
+/// Takes raw string inputs (e.g., ["8:00", "20:30"]) and parses them into
+/// (hour, minute) tuples with validation.
+///
+/// # Errors
+///
+/// Returns `ScheduledTimeParseError` if any string is malformed or contains
+/// out-of-range values.
 pub fn parse_scheduled_times(
     raw: &[String],
 ) -> Result<ParsedScheduledTimes, ScheduledTimeParseError> {

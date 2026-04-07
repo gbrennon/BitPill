@@ -67,6 +67,7 @@ impl DoseRecord {
     /// - `scheduled_at` — the datetime at which the dose was due.
     ///
     /// `taken_at` is initialised to `None`; the record is not yet taken.
+    /// Creates a new, untaken dose record.
     pub fn new(medication_id: MedicationId, scheduled_at: NaiveDateTime) -> Self {
         Self {
             id: DoseRecordId::generate(),
@@ -76,6 +77,7 @@ impl DoseRecord {
         }
     }
 
+    /// Reconstitutes a dose record from storage (with known `id` and `taken_at`).
     pub fn with_id(
         id: DoseRecordId,
         medication_id: MedicationId,
