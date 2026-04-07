@@ -23,39 +23,45 @@ pub struct AppPaths {
 }
 
 impl AppPaths {
-    /// Builds paths from env var overrides or XDG-standard defaults.
-    ///
-    /// When running in development mode (Cargo.toml present in current directory),
-    /// uses a temporary directory instead of the user's config directory.
+    fn is_development() -> bool {
+        std::path::Path::new("Cargo.toml").exists()
+    }
+
+    fn resolve_development_paths() -> (PathBuf, PathBuf, PathBuf, PathBuf) {
+        let dir = std::env::temp_dir().join("bitpill-dev");
+        (
+            dir.clone(),
+            dir.join("medications.json"),
+            dir.join("dose_records.json"),
+            dir.join("settings.json"),
+        )
+    }
+
+    fn resolve_production_paths() -> (PathBuf, PathBuf, PathBuf, PathBuf) {
+        let config_dir = dirs::config_dir()
+            .unwrap_or_else(|| PathBuf::from(".config"))
+            .join(APP_DIR_NAME);
+
+        let medications = std::env::var(ENV_MEDICATIONS)
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| config_dir.join("medications.json"));
+
+        let dose_records = std::env::var(ENV_DOSE_RECORDS)
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| config_dir.join("dose_records.json"));
+
+        let settings = std::env::var(ENV_SETTINGS)
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| config_dir.join("settings.json"));
+
+        (config_dir, medications, dose_records, settings)
+    }
+
     pub fn resolve() -> Self {
-        let is_development = std::path::Path::new("Cargo.toml").exists();
-
-        let (config_dir, medications, dose_records, settings) = if is_development {
-            let dir = std::env::temp_dir().join("bitpill-dev");
-            (
-                dir.clone(),
-                dir.join("medications.json"),
-                dir.join("dose_records.json"),
-                dir.join("settings.json"),
-            )
+        let (config_dir, medications, dose_records, settings) = if Self::is_development() {
+            Self::resolve_development_paths()
         } else {
-            let config_dir = dirs::config_dir()
-                .unwrap_or_else(|| PathBuf::from(".config"))
-                .join(APP_DIR_NAME);
-
-            let medications = std::env::var(ENV_MEDICATIONS)
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| config_dir.join("medications.json"));
-
-            let dose_records = std::env::var(ENV_DOSE_RECORDS)
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| config_dir.join("dose_records.json"));
-
-            let settings = std::env::var(ENV_SETTINGS)
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| config_dir.join("settings.json"));
-
-            (config_dir, medications, dose_records, settings)
+            Self::resolve_production_paths()
         };
 
         Self {
@@ -109,6 +115,7 @@ mod tests {
         let is_dev = std::path::Path::new("Cargo.toml").exists();
 
         if is_dev {
+            // Verifies development config dir contains 'bitpill-dev' segment
             assert!(
                 paths
                     .config_dir()
@@ -116,6 +123,7 @@ mod tests {
                     .any(|c| c.as_os_str() == "bitpill-dev")
             );
         } else {
+            // Verifies production config dir contains 'bitpill' segment
             assert!(
                 paths
                     .config_dir()
@@ -126,11 +134,12 @@ mod tests {
     }
 
     #[test]
-    fn resolve_returns_paths_ending_with_expected_filenames() {
+    fn resolve_returns_correct_filename_for_each_path() {
         let paths = AppPaths::resolve();
         let is_dev = std::path::Path::new("Cargo.toml").exists();
 
         if is_dev {
+            // Verifies development paths are in the temporary bitpill-dev directory
             assert!(
                 paths
                     .medications_path()
@@ -153,6 +162,7 @@ mod tests {
                     .contains("bitpill-dev")
             );
         } else {
+            // Verifies production paths end with expected filenames, unless overridden via env var
             assert!(
                 paths
                     .medications_path()
