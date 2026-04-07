@@ -1,5 +1,6 @@
 use crate::domain::errors::DomainError;
 
+/// Supported keyboard navigation modes.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum NavigationModeVariant {
@@ -8,6 +9,7 @@ pub enum NavigationModeVariant {
 }
 
 impl NavigationModeVariant {
+    /// Returns the string identifier for this variant.
     pub fn as_str(&self) -> &'static str {
         match self {
             NavigationModeVariant::Vi => "vi",
@@ -15,22 +17,27 @@ impl NavigationModeVariant {
         }
     }
 
+    /// Returns `true` if this is the vi variant.
     pub fn is_vi(&self) -> bool {
         matches!(self, NavigationModeVariant::Vi)
     }
 
+    /// Returns all supported navigation mode variants.
     pub fn variants() -> &'static [NavigationModeVariant] {
         &[NavigationModeVariant::Vi, NavigationModeVariant::Emacs]
     }
 
+    /// Returns the number of supported variants.
     pub fn count() -> usize {
         Self::variants().len()
     }
 
+    /// Gets a variant by index (0-based).
     pub fn from_index(index: usize) -> Option<Self> {
         Self::variants().get(index).cloned()
     }
 
+    /// Returns help text describing the key bindings for this mode.
     pub fn help_text(&self) -> &'static str {
         match self {
             NavigationModeVariant::Vi => {
