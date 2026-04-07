@@ -24,22 +24,39 @@ pub struct AppPaths {
 
 impl AppPaths {
     /// Builds paths from env var overrides or XDG-standard defaults.
+    ///
+    /// When running in development mode (Cargo.toml present in current directory),
+    /// uses a temporary directory instead of the user's config directory.
     pub fn resolve() -> Self {
-        let config_dir = dirs::config_dir()
-            .unwrap_or_else(|| PathBuf::from(".config"))
-            .join(APP_DIR_NAME);
+        let is_development = std::path::Path::new("Cargo.toml").exists();
 
-        let medications = std::env::var(ENV_MEDICATIONS)
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| config_dir.join("medications.json"));
+        let (config_dir, medications, dose_records, settings) = if is_development {
+            let dir = std::env::temp_dir().join("bitpill-dev");
+            (
+                dir.clone(),
+                dir.join("medications.json"),
+                dir.join("dose_records.json"),
+                dir.join("settings.json"),
+            )
+        } else {
+            let config_dir = dirs::config_dir()
+                .unwrap_or_else(|| PathBuf::from(".config"))
+                .join(APP_DIR_NAME);
 
-        let dose_records = std::env::var(ENV_DOSE_RECORDS)
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| config_dir.join("dose_records.json"));
+            let medications = std::env::var(ENV_MEDICATIONS)
+                .map(PathBuf::from)
+                .unwrap_or_else(|_| config_dir.join("medications.json"));
 
-        let settings = std::env::var(ENV_SETTINGS)
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| config_dir.join("settings.json"));
+            let dose_records = std::env::var(ENV_DOSE_RECORDS)
+                .map(PathBuf::from)
+                .unwrap_or_else(|_| config_dir.join("dose_records.json"));
+
+            let settings = std::env::var(ENV_SETTINGS)
+                .map(PathBuf::from)
+                .unwrap_or_else(|_| config_dir.join("settings.json"));
+
+            (config_dir, medications, dose_records, settings)
+        };
 
         Self {
             config_dir,
@@ -87,45 +104,80 @@ mod tests {
     use super::*;
 
     #[test]
-    fn resolve_returns_paths_ending_with_expected_filenames() {
+    fn config_dir_contains_bitpill_segment() {
         let paths = AppPaths::resolve();
+        let is_dev = std::path::Path::new("Cargo.toml").exists();
 
-        assert!(
-            paths
-                .medications_path()
-                .to_str()
-                .unwrap()
-                .ends_with("medications.json")
-                || std::env::var("BITPILL_MEDICATIONS_FILE").is_ok()
-        );
-        assert!(
-            paths
-                .dose_records_path()
-                .to_str()
-                .unwrap()
-                .ends_with("dose_records.json")
-                || std::env::var("BITPILL_DOSE_RECORDS_FILE").is_ok()
-        );
-        assert!(
-            paths
-                .settings_path()
-                .to_str()
-                .unwrap()
-                .ends_with("settings.json")
-                || std::env::var("BITPILL_SETTINGS_FILE").is_ok()
-        );
+        if is_dev {
+            assert!(
+                paths
+                    .config_dir()
+                    .components()
+                    .any(|c| c.as_os_str() == "bitpill-dev")
+            );
+        } else {
+            assert!(
+                paths
+                    .config_dir()
+                    .components()
+                    .any(|c| c.as_os_str() == APP_DIR_NAME)
+            );
+        }
     }
 
     #[test]
-    fn config_dir_contains_bitpill_segment() {
+    fn resolve_returns_paths_ending_with_expected_filenames() {
         let paths = AppPaths::resolve();
+        let is_dev = std::path::Path::new("Cargo.toml").exists();
 
-        assert!(
-            paths
-                .config_dir()
-                .components()
-                .any(|c| c.as_os_str() == APP_DIR_NAME)
-        );
+        if is_dev {
+            assert!(
+                paths
+                    .medications_path()
+                    .to_str()
+                    .unwrap()
+                    .contains("bitpill-dev")
+            );
+            assert!(
+                paths
+                    .dose_records_path()
+                    .to_str()
+                    .unwrap()
+                    .contains("bitpill-dev")
+            );
+            assert!(
+                paths
+                    .settings_path()
+                    .to_str()
+                    .unwrap()
+                    .contains("bitpill-dev")
+            );
+        } else {
+            assert!(
+                paths
+                    .medications_path()
+                    .to_str()
+                    .unwrap()
+                    .ends_with("medications.json")
+                    || std::env::var("BITPILL_MEDICATIONS_FILE").is_ok()
+            );
+            assert!(
+                paths
+                    .dose_records_path()
+                    .to_str()
+                    .unwrap()
+                    .ends_with("dose_records.json")
+                    || std::env::var("BITPILL_DOSE_RECORDS_FILE").is_ok()
+            );
+            assert!(
+                paths
+                    .settings_path()
+                    .to_str()
+                    .unwrap()
+                    .ends_with("settings.json")
+                    || std::env::var("BITPILL_SETTINGS_FILE").is_ok()
+            );
+        }
     }
 
     #[test]
