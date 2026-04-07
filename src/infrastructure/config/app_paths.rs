@@ -5,6 +5,48 @@ const ENV_MEDICATIONS: &str = "BITPILL_MEDICATIONS_FILE";
 const ENV_DOSE_RECORDS: &str = "BITPILL_DOSE_RECORDS_FILE";
 const ENV_SETTINGS: &str = "BITPILL_SETTINGS_FILE";
 
+trait PathResolver {
+    fn resolve(&self) -> (PathBuf, PathBuf, PathBuf, PathBuf);
+}
+
+struct DevelopmentPathResolver;
+
+impl PathResolver for DevelopmentPathResolver {
+    fn resolve(&self) -> (PathBuf, PathBuf, PathBuf, PathBuf) {
+        let dir = std::env::temp_dir().join("bitpill-dev");
+        (
+            dir.clone(),
+            dir.join("medications.json"),
+            dir.join("dose_records.json"),
+            dir.join("settings.json"),
+        )
+    }
+}
+
+struct ProductionPathResolver;
+
+impl PathResolver for ProductionPathResolver {
+    fn resolve(&self) -> (PathBuf, PathBuf, PathBuf, PathBuf) {
+        let config_dir = dirs::config_dir()
+            .unwrap_or_else(|| PathBuf::from(".config"))
+            .join(APP_DIR_NAME);
+
+        let medications = std::env::var(ENV_MEDICATIONS)
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| config_dir.join("medications.json"));
+
+        let dose_records = std::env::var(ENV_DOSE_RECORDS)
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| config_dir.join("dose_records.json"));
+
+        let settings = std::env::var(ENV_SETTINGS)
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| config_dir.join("settings.json"));
+
+        (config_dir, medications, dose_records, settings)
+    }
+}
+
 /// Resolves all file system paths for BitPill's persistent data.
 ///
 /// Default resolution (no env overrides):
@@ -23,40 +65,17 @@ pub struct AppPaths {
 }
 
 impl AppPaths {
-    /// Builds paths from env var overrides or XDG-standard defaults.
-    ///
-    /// When running in development mode (Cargo.toml present in current directory),
-    /// uses a temporary directory instead of the user's config directory.
+    fn is_development() -> bool {
+        std::path::Path::new("Cargo.toml").exists()
+    }
+
     pub fn resolve() -> Self {
-        let is_development = std::path::Path::new("Cargo.toml").exists();
-
-        let (config_dir, medications, dose_records, settings) = if is_development {
-            let dir = std::env::temp_dir().join("bitpill-dev");
-            (
-                dir.clone(),
-                dir.join("medications.json"),
-                dir.join("dose_records.json"),
-                dir.join("settings.json"),
-            )
+        let resolver: Box<dyn PathResolver> = if Self::is_development() {
+            Box::new(DevelopmentPathResolver)
         } else {
-            let config_dir = dirs::config_dir()
-                .unwrap_or_else(|| PathBuf::from(".config"))
-                .join(APP_DIR_NAME);
-
-            let medications = std::env::var(ENV_MEDICATIONS)
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| config_dir.join("medications.json"));
-
-            let dose_records = std::env::var(ENV_DOSE_RECORDS)
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| config_dir.join("dose_records.json"));
-
-            let settings = std::env::var(ENV_SETTINGS)
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| config_dir.join("settings.json"));
-
-            (config_dir, medications, dose_records, settings)
+            Box::new(ProductionPathResolver)
         };
+        let (config_dir, medications, dose_records, settings) = resolver.resolve();
 
         Self {
             config_dir,
@@ -103,12 +122,18 @@ impl AppPaths {
 mod tests {
     use super::*;
 
+    /// Tests path resolution, handling both development and production modes.
+    /// In development, Cargo.toml exists in the current directory.
+    /// In production, paths should use the XDG config directory.
     #[test]
     fn config_dir_contains_bitpill_segment() {
         let paths = AppPaths::resolve();
+
+        // Detects environment: development if Cargo.toml exists, otherwise production
         let is_dev = std::path::Path::new("Cargo.toml").exists();
 
         if is_dev {
+            // Development: config directory should use temporary directory with 'bitpill-dev' segment
             assert!(
                 paths
                     .config_dir()
@@ -116,6 +141,7 @@ mod tests {
                     .any(|c| c.as_os_str() == "bitpill-dev")
             );
         } else {
+            // Production: config directory should use XDG config path with 'bitpill' segment
             assert!(
                 paths
                     .config_dir()
@@ -125,12 +151,18 @@ mod tests {
         }
     }
 
+    /// Verifies each file path ends with the expected filename.
+    /// Development mode uses bitpill-dev temp directory.
+    /// Production mode uses XDG config directory, but env vars can override individual paths.
     #[test]
-    fn resolve_returns_paths_ending_with_expected_filenames() {
+    fn resolve_returns_correct_filename_for_each_path() {
         let paths = AppPaths::resolve();
+
+        // Determine environment to know expected path structure
         let is_dev = std::path::Path::new("Cargo.toml").exists();
 
         if is_dev {
+            // Development: all paths should be within the temporary bitpill-dev directory
             assert!(
                 paths
                     .medications_path()
@@ -153,6 +185,7 @@ mod tests {
                     .contains("bitpill-dev")
             );
         } else {
+            // Production: paths should end with expected filenames OR use env var overrides
             assert!(
                 paths
                     .medications_path()
