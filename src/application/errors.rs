@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use crate::domain::errors::DomainError;
 
-/// Top-level error type for application-layer use cases.
+/// Top-level error type for application use cases.
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
@@ -19,12 +19,12 @@ pub enum ApplicationError {
     InvalidInput(String),
 }
 
-/// Generic infrastructure storage failure that can be reused by repository ports.
+/// Generic storage failure for repository operations.
 #[derive(Debug, Error, Clone)]
 #[error("storage error: {0}")]
 pub struct StorageError(pub String);
 
-/// A required resource does not exist. Generic not-found error for shared use in the application layer.
+/// A required resource does not exist.
 #[derive(Debug, Error, PartialEq, Eq)]
 #[error("not found")]
 pub struct NotFoundError;
@@ -34,7 +34,7 @@ pub struct NotFoundError;
 #[error("conflict")]
 pub struct ConflictError;
 
-/// Notification delivery failure. Shared across all notification ports.
+/// Notification delivery failure.
 #[derive(Debug, Error)]
 #[error("delivery failed: {0}")]
 pub struct DeliveryError(pub String);
