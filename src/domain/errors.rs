@@ -44,18 +44,31 @@ pub enum DomainError {
     #[error("taken-at time cannot be in the future")]
     TakenAtInFuture,
 
+    /// Returned by
+    /// [`NavigationMode::try_from`](crate::domain::value_objects::navigation_mode::NavigationMode::try_from)
+    /// when the supplied string is not "vi" or "emacs".
     #[error("invalid navigation mode")]
     InvalidNavigationMode,
 
+    /// Returned by
+    /// [`Medication::new`](crate::domain::entities::medication::Medication::new)
+    /// when the number of scheduled times does not match the dose frequency.
     #[error("scheduled times count does not match dose frequency")]
     InvalidScheduledTimesCount,
 
+    /// Returned by
+    /// [`Medication::new`](crate::domain::entities::medication::Medication::new)
+    /// when using `Custom` frequency with fewer than 4 scheduled times.
     #[error("custom frequency requires at least 4 scheduled times")]
     CustomFrequencyRequiresMinimumFourTimes,
 
+    /// Returned by
+    /// [`Medication::new`](crate::domain::entities::medication::Medication::new)
+    /// when the scheduled times list contains duplicate entries.
     #[error("scheduled times must not contain duplicates")]
     DuplicateScheduledTime,
 
+    /// Returned when parsing a custom scheduled time that fails validation.
     #[error("invalid scheduled time: {0}")]
     InvalidScheduledTimeCustom(String),
 }

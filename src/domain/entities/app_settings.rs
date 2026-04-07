@@ -1,19 +1,40 @@
 use crate::domain::{errors::DomainError, value_objects::navigation_mode::NavigationMode};
 
+/// Application-wide settings configuration.
+///
+/// `AppSettings` is an entity that tracks user preferences such as
+/// keyboard navigation mode (vi or emacs). It follows an immutable-update
+/// pattern — mutating methods return a new instance rather than modifying
+/// the existing one.
+///
+/// # Examples
+///
+/// ```rust
+/// use bitpill::domain::{
+///     entities::app_settings::AppSettings,
+///     value_objects::navigation_mode::NavigationMode,
+/// };
+///
+/// let settings = AppSettings::new(NavigationMode::new(NavigationModeVariant::Vi).unwrap());
+/// assert_eq!(settings.navigation_mode().as_str(), "vi");
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct AppSettings {
     navigation_mode: NavigationMode,
 }
 
 impl AppSettings {
+    /// Creates new `AppSettings` with the given navigation mode.
     pub fn new(navigation_mode: NavigationMode) -> Self {
         Self { navigation_mode }
     }
 
+    /// Returns the current navigation mode.
     pub fn navigation_mode(&self) -> &NavigationMode {
         &self.navigation_mode
     }
 
+    /// Changes the navigation mode, returning new settings (immutable update).
     pub fn change_navigation_mode(
         &self,
         navigation_mode: NavigationMode,
