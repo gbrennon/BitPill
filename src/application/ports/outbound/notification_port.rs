@@ -5,7 +5,7 @@ use crate::{
 
 /// Abstracts the delivery of dose-reminder notifications to the user.
 ///
-/// Implement this trait in the infrastructure layer (console, push, email, …).
+/// Concrete implementations handle the actual notification delivery.
 /// Inject via `Arc<dyn NotificationPort>` into `ScheduleDoseService`.
 pub trait NotificationPort: Send + Sync {
     /// Notify the user that a dose of `medication` is due now.
