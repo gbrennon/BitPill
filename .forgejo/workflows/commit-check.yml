@@ -6,7 +6,7 @@ jobs:
   check-commits:
     runs-on: codeberg-medium
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Ensure full history
         run: bash scripts/ensure_full_history.sh
