@@ -40,9 +40,7 @@ jobs:
         uses: https://code.forgejo.org/actions/forgejo-release@v2
         with:
           direction: upload
-          url: ${{ secrets.FORGEJO_API_URL }}
-          repo: ${{ secrets.FORGEJO_OWNER }}/${{ secrets.FORGEJO_REPO }}
-          token: ${{ secrets.FORGEJO_TOKEN }}
+          repo: ${{ secrets.REPO_OWNER }}/${{ secrets.REPO_NAME }}
           tag: ${{ steps.tag.outputs.tag }}
           release-notes-file: ${{ steps.notes.outputs.file }}
 
