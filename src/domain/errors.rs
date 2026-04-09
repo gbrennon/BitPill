@@ -71,4 +71,10 @@ pub enum DomainError {
     /// Returned when parsing a custom scheduled time that fails validation.
     #[error("invalid scheduled time: {0}")]
     InvalidScheduledTimeCustom(String),
+
+    /// Returned by
+    /// [`StockQuantity::consume`](crate::domain::value_objects::stock_quantity::StockQuantity::consume)
+    /// when attempting to consume more than available.
+    #[error("quantity cannot be negative")]
+    QuantityCannotBeNegative,
 }
