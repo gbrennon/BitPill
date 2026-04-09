@@ -19,9 +19,7 @@ jobs:
     env:
       CARGO_TERM_COLOR: always
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: '0'
+      - uses: actions/checkout@v6
 
       - uses: ./.forgejo/actions/setup-rust
 
@@ -63,7 +61,7 @@ jobs:
     env:
       CARGO_TERM_COLOR: always
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: ./.forgejo/actions/setup-rust
 
@@ -92,7 +90,7 @@ jobs:
   validate:
     runs-on: codeberg-medium
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install shellcheck
         run: |

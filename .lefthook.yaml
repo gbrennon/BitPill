@@ -6,7 +6,7 @@ pre-commit:
   jobs:
     - name: Auto-fix staged files
       run: |
-        STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | tr '\n' ' ')
+        STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(rs|toml)$' | tr '\n' ' ')
         if [ -n "$STAGED_FILES" ]; then
           just fmt -- $STAGED_FILES
         fi

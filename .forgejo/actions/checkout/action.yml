@@ -1,0 +1,15 @@
+name: Checkout
+description: Checkout with Forgejo token and configurable fetch depth.
+
+inputs:
+  fetch-depth:
+    description: Number of commits to fetch. 0 = full history.
+    default: '1'
+
+runs:
+  using: composite
+  steps:
+    - uses: https://data.forgejo.org/actions/checkout@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: ${{ inputs.fetch-depth }}
