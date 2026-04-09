@@ -12,7 +12,7 @@ use crate::domain::{errors::DomainError, value_objects::navigation_mode::Navigat
 /// ```rust
 /// use bitpill::domain::{
 ///     entities::app_settings::AppSettings,
-///     value_objects::navigation_mode::NavigationMode,
+///     value_objects::navigation_mode::{NavigationMode, NavigationModeVariant},
 /// };
 ///
 /// let settings = AppSettings::new(NavigationMode::new(NavigationModeVariant::Vi).unwrap());
