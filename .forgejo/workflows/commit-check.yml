@@ -6,10 +6,7 @@ jobs:
   check-commits:
     runs-on: codeberg-medium
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Ensure full history
-        run: bash scripts/ensure_full_history.sh
+      - uses: actions/checkout@v6
 
       - name: Check commit messages
         env:

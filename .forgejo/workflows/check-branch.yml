@@ -6,8 +6,7 @@ jobs:
   check-branch:
     runs-on: codeberg-medium
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Check branch name
         env:

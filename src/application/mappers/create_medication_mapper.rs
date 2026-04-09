@@ -11,12 +11,10 @@ use crate::{
     },
 };
 
-/// Mapper that produces a `Medication` from a `CreateMedicationRequest`.
+/// Adapts `CreateMedicationRequest` to a domain `Medication`.
 ///
-/// Parses and validates DTO fields and constructs a domain `Medication`.
-/// Adapts the request type to domain constructors and value objects.
-///
-/// Returns a `DomainError` on validation failure.
+/// Parses request fields, validates them using domain value objects,
+/// and constructs a domain `Medication`.
 pub struct CreateMedicationMapper;
 
 impl Mapper<Medication> for CreateMedicationMapper {
