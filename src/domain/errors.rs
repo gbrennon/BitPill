@@ -77,4 +77,8 @@ pub enum DomainError {
     /// when attempting to consume more pills than available in stock.
     #[error("stock cannot be negative")]
     StockCannotBeNegative,
+
+    /// when attempting to consume more than available.
+    #[error("quantity cannot be negative")]
+    QuantityCannotBeNegative,
 }
