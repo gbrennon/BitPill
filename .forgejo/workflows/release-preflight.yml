@@ -12,7 +12,7 @@ jobs:
     runs-on: codeberg-medium
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: ./.forgejo/actions/checkout
 
       - uses: ./.forgejo/actions/setup-rust
 

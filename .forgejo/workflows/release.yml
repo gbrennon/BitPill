@@ -15,9 +15,11 @@ jobs:
     runs-on: codeberg-medium
 
     steps:
-      - uses: ./.forgejo/actions/setup-rust
+      - uses: ./.forgejo/actions/checkout
         with:
           fetch-depth: '0'
+
+      - uses: ./.forgejo/actions/setup-rust
 
       - uses: ./.forgejo/actions/install-git-cliff
 

@@ -6,8 +6,7 @@ jobs:
   check-branch:
     runs-on: codeberg-medium
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - uses: ./.forgejo/actions/checkout
 
       - name: Check branch name
         env:
