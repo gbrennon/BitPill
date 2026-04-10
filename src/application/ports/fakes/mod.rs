@@ -1,7 +1,9 @@
 mod fake_clock;
 mod fake_dose_record_repository;
 mod fake_inbound_ports;
+mod fake_medication_refill_repository;
 mod fake_medication_repository;
+mod fake_medication_stock_repository;
 mod fake_notification_port;
 mod fake_settings_repository;
 
@@ -13,6 +15,8 @@ pub use fake_inbound_ports::{
     FakeGetSettingsPortWithMode, FakeListAllMedicationsPort, FakeListDoseRecordsPort,
     FakeMarkDoseTakenPort, FakeSaveSettingsPort, FakeUpdateMedicationPort,
 };
+pub use fake_medication_refill_repository::FakeMedicationRefillRepository;
 pub use fake_medication_repository::FakeMedicationRepository;
+pub use fake_medication_stock_repository::FakeMedicationStockRepository;
 pub use fake_notification_port::FakeNotificationPort;
 pub use fake_settings_repository::FakeSettingsRepository;
