@@ -9,6 +9,7 @@ pub struct FakeMedicationRepository {
     medications: Mutex<Vec<Medication>>,
     fail_on_save: bool,
     deleted_count: Mutex<usize>,
+    custom_find_by_id: Mutex<Option<Medication>>,
 }
 
 impl Default for FakeMedicationRepository {
@@ -23,6 +24,7 @@ impl FakeMedicationRepository {
             medications: Mutex::new(Vec::new()),
             fail_on_save: false,
             deleted_count: Mutex::new(0),
+            custom_find_by_id: Mutex::new(None),
         }
     }
 
@@ -31,6 +33,7 @@ impl FakeMedicationRepository {
             medications: Mutex::new(medications),
             fail_on_save: false,
             deleted_count: Mutex::new(0),
+            custom_find_by_id: Mutex::new(None),
         }
     }
 
@@ -39,7 +42,12 @@ impl FakeMedicationRepository {
             medications: Mutex::new(Vec::new()),
             fail_on_save: true,
             deleted_count: Mutex::new(0),
+            custom_find_by_id: Mutex::new(None),
         }
+    }
+
+    pub fn set_find_by_id_result(&mut self, medication: Option<Medication>) {
+        *self.custom_find_by_id.lock().unwrap() = medication;
     }
 
     pub fn saved_count(&self) -> usize {
@@ -61,6 +69,9 @@ impl MedicationRepository for FakeMedicationRepository {
     }
 
     fn find_by_id(&self, id: &MedicationId) -> Result<Option<Medication>, StorageError> {
+        if let Some(med) = self.custom_find_by_id.lock().unwrap().take() {
+            return Ok(Some(med));
+        }
         Ok(self
             .medications
             .lock()
