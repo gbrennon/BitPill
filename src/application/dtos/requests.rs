@@ -167,3 +167,10 @@ pub struct ReplenishMedicationStockRequest {
     pub pills_per_box: u16,
     pub pill_dosage_mg: u16,
 }
+
+pub struct RegisterMedicationBoxRequest {
+    pub medication_id: String,
+    pub name: String,
+    pub pills_per_box: u16,
+    pub dosage_mg: u16,
+}

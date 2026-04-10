@@ -130,3 +130,12 @@ pub struct ReplenishMedicationStockResponse {
     pub total_pills: u32,
     pub pill_dosage_mg: u16,
 }
+
+#[derive(Debug, PartialEq)]
+pub struct RegisterMedicationBoxResponse {
+    pub id: String,
+    pub medication_id: String,
+    pub name: String,
+    pub pills_per_box: u16,
+    pub dosage_mg: u16,
+}
