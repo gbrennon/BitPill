@@ -10,9 +10,11 @@
 /// - [`dose_record::DoseRecord`] — Records whether a scheduled dose was taken.
 /// - [`medication_refill::MedicationRefill`] — Records a medication purchase.
 /// - [`medication_stock::MedicationStock`] — Maintains current stock level of a medication.
+/// - [`medication_box::MedicationBox`] — Represents a registered medication box type.
 /// - [`app_settings::AppSettings`] — Application configuration settings.
 pub mod app_settings;
 pub mod dose_record;
 pub mod medication;
+pub mod medication_box;
 pub mod medication_refill;
 pub mod medication_stock;
