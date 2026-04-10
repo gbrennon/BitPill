@@ -5,8 +5,9 @@ use crate::application::{
     errors::ApplicationError,
 };
 
-pub trait ReplenishMedicationStockPort {
+pub trait ReplenishMedicationStockPort: Send + Sync {
     fn execute(
+        &self,
         request: ReplenishMedicationStockRequest,
     ) -> Result<ReplenishMedicationStockResponse, ApplicationError>;
 }
