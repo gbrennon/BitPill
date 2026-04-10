@@ -1,9 +1,10 @@
 use std::sync::Mutex;
 
-use bitpill::application::errors::StorageError;
-use bitpill::application::ports::outbound::medication_repository_port::MedicationRepository;
-use bitpill::domain::{
-    entities::medication::Medication, value_objects::medication_id::MedicationId,
+use bitpill::{
+    application::{
+        errors::StorageError, ports::outbound::medication_repository_port::MedicationRepository,
+    },
+    domain::{entities::medication::Medication, value_objects::medication_id::MedicationId},
 };
 
 pub struct FakeMedicationRepository {
@@ -12,6 +13,7 @@ pub struct FakeMedicationRepository {
     fail_on_find_all: bool,
     fail_on_find_by_id: bool,
     fail_on_delete: bool,
+    custom_find_by_id: Mutex<Option<Medication>>,
 }
 
 impl FakeMedicationRepository {
@@ -72,7 +74,12 @@ impl FakeMedicationRepository {
             fail_on_find_all: false,
             fail_on_find_by_id: false,
             fail_on_delete: true,
+            custom_find_by_id: Mutex::new(None),
         }
+    }
+
+    pub fn set_find_by_id_result(&mut self, medication: Option<Medication>) {
+        *self.custom_find_by_id.lock().unwrap() = medication;
     }
 
     pub fn saved_count(&self) -> usize {
@@ -92,6 +99,9 @@ impl MedicationRepository for FakeMedicationRepository {
     fn find_by_id(&self, id: &MedicationId) -> Result<Option<Medication>, StorageError> {
         if self.fail_on_find_by_id {
             return Err(StorageError("forced find_by_id failure".into()));
+        }
+        if let Some(med) = self.custom_find_by_id.lock().unwrap().take() {
+            return Ok(Some(med));
         }
         Ok(self
             .medications
