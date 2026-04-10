@@ -126,5 +126,7 @@ pub struct SaveSettingsResponse {
 }
 
 pub struct ReplenishMedicationStockResponse {
-    pub id: String,
+    pub medication_id: String,
+    pub total_pills: u32,
+    pub pill_dosage_mg: u16,
 }

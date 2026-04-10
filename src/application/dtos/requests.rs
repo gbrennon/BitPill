@@ -163,5 +163,7 @@ impl SaveSettingsRequest {
 
 pub struct ReplenishMedicationStockRequest {
     pub medication_id: String,
-    pub quantity: u32,
+    pub box_count: u16,
+    pub pills_per_box: u16,
+    pub pill_dosage_mg: u16,
 }
