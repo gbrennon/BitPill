@@ -160,3 +160,8 @@ impl SaveSettingsRequest {
         }
     }
 }
+
+pub struct ReplenishMedicationStockRequest {
+    pub medication_id: String,
+    pub quantity: u32,
+}

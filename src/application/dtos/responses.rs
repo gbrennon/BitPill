@@ -124,3 +124,7 @@ pub struct GetSettingsResponse {
 pub struct SaveSettingsResponse {
     pub navigation_mode: String,
 }
+
+pub struct ReplenishMedicationStockResponse {
+    pub id: String,
+}
