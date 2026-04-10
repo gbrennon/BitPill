@@ -16,6 +16,9 @@ mod get_medication_service_tests;
 #[path = "get_settings_service_tests.rs"]
 mod get_settings_service_tests;
 
+#[path = "replenish_medication_stock_service_tests.rs"]
+mod replenish_medication_stock_service_tests;
+
 #[path = "schedule_dose_service_tests.rs"]
 mod schedule_dose_service_tests;
 
