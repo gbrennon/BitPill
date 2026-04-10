@@ -1,5 +1,6 @@
 pub mod dosage;
 pub mod dose_record_id;
+pub mod medication_box_id;
 pub mod medication_frequency;
 pub mod medication_id;
 pub mod medication_name;
@@ -13,6 +14,7 @@ pub mod taken_at;
 
 pub use dosage::Dosage;
 pub use dose_record_id::DoseRecordId;
+pub use medication_box_id::MedicationBoxId;
 pub use medication_frequency::DoseFrequency;
 pub use medication_id::MedicationId;
 pub use medication_name::MedicationName;
