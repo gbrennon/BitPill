@@ -36,6 +36,12 @@ mod tests {
     use super::*;
 
     #[test]
+    fn generate_returns_a_new_id() {
+        let id = MedicationBoxId::generate();
+        assert!(!id.0.is_nil());
+    }
+
+    #[test]
     fn generate_creates_unique_ids() {
         let a = MedicationBoxId::generate();
         let b = MedicationBoxId::generate();
@@ -45,14 +51,21 @@ mod tests {
     #[test]
     fn from_uuid_creates_correct_id() {
         let uuid = Uuid::parse_str("018f8a2e-1111-1111-1111-111111111111").unwrap();
-        let id = MedicationBoxId::from(uuid);
+        let id: MedicationBoxId = uuid.into();
         assert_eq!(id.0, uuid);
     }
 
     #[test]
     fn from_uuid_reference_creates_correct_id() {
         let uuid = Uuid::parse_str("018f8a2e-2222-2222-2222-222222222222").unwrap();
-        let id = MedicationBoxId::from(uuid);
+        let id: MedicationBoxId = (&uuid).into();
+        assert_eq!(id.0, uuid);
+    }
+
+    #[test]
+    fn from_owned_uuid_creates_correct_id() {
+        let uuid = Uuid::parse_str("018f8a2e-5555-5555-5555-555555555555").unwrap();
+        let id: MedicationBoxId = uuid.into();
         assert_eq!(id.0, uuid);
     }
 
@@ -91,5 +104,26 @@ mod tests {
         let id = MedicationBoxId::generate();
         let cloned = id.clone();
         assert_eq!(id, cloned);
+    }
+
+    #[test]
+    fn hash_is_consistent_for_same_id() {
+        use std::{
+            collections::hash_map::DefaultHasher,
+            hash::{Hash, Hasher},
+        };
+
+        let uuid = Uuid::parse_str("018f8a2e-4444-4444-4444-444444444444").unwrap();
+        let id = MedicationBoxId::from(uuid);
+
+        let mut hasher1 = DefaultHasher::new();
+        id.hash(&mut hasher1);
+        let hash1 = hasher1.finish();
+
+        let mut hasher2 = DefaultHasher::new();
+        id.hash(&mut hasher2);
+        let hash2 = hasher2.finish();
+
+        assert_eq!(hash1, hash2);
     }
 }
