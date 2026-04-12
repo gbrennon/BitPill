@@ -1,7 +1,9 @@
 pub mod create_dose_record_service;
 pub mod create_medication_service;
+pub mod delete_medication_box_service;
 pub mod delete_medication_service;
 pub mod edit_medication_service;
+pub mod get_medication_box_service;
 pub mod get_medication_service;
 pub mod get_settings_service;
 pub mod list_all_medications_service;
@@ -11,4 +13,5 @@ pub mod register_medication_box_service;
 pub mod replenish_medication_stock_service;
 pub mod save_settings_service;
 pub mod schedule_dose_service;
+pub mod update_medication_box_service;
 pub mod update_medication_service;
