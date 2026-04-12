@@ -1,7 +1,9 @@
 pub mod create_dose_record_port;
 pub mod create_medication_port;
+pub mod delete_medication_box_port;
 pub mod delete_medication_port;
 pub mod edit_medication_port;
+pub mod get_medication_box_port;
 pub mod get_medication_port;
 pub mod get_settings_port;
 pub mod list_all_medications_port;
@@ -11,4 +13,5 @@ pub mod register_medication_box_port;
 pub mod replenish_medication_stock_port;
 pub mod save_settings_port;
 pub mod schedule_dose_port;
+pub mod update_medication_box_port;
 pub mod update_medication_port;

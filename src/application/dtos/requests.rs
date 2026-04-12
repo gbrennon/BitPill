@@ -174,3 +174,18 @@ pub struct RegisterMedicationBoxRequest {
     pub pills_per_box: u16,
     pub dosage_mg: u16,
 }
+
+pub struct GetMedicationBoxRequest {
+    pub id: String,
+}
+
+pub struct UpdateMedicationBoxRequest {
+    pub id: String,
+    pub name: String,
+    pub pills_per_box: u16,
+    pub dosage_mg: u16,
+}
+
+pub struct DeleteMedicationBoxRequest {
+    pub id: String,
+}

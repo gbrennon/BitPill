@@ -139,3 +139,23 @@ pub struct RegisterMedicationBoxResponse {
     pub pills_per_box: u16,
     pub dosage_mg: u16,
 }
+
+#[derive(Debug, PartialEq)]
+pub struct GetMedicationBoxResponse {
+    pub id: String,
+    pub medication_id: String,
+    pub name: String,
+    pub pills_per_box: u16,
+    pub dosage_mg: u16,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct UpdateMedicationBoxResponse {
+    pub id: String,
+    pub medication_id: String,
+    pub name: String,
+    pub pills_per_box: u16,
+    pub dosage_mg: u16,
+}
+
+pub struct DeleteMedicationBoxResponse {}
