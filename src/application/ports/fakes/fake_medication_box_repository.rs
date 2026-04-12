@@ -10,6 +10,7 @@ use crate::{
 pub struct FakeMedicationBoxRepository {
     boxes: Mutex<Vec<MedicationBox>>,
     fail_on_save: bool,
+    fail_on_delete: bool,
 }
 
 impl Default for FakeMedicationBoxRepository {
@@ -23,6 +24,15 @@ impl FakeMedicationBoxRepository {
         Self {
             boxes: Mutex::new(Vec::new()),
             fail_on_save: false,
+            fail_on_delete: false,
+        }
+    }
+
+    pub fn with(r#box: MedicationBox) -> Self {
+        Self {
+            boxes: Mutex::new(vec![r#box]),
+            fail_on_save: false,
+            fail_on_delete: false,
         }
     }
 
@@ -30,6 +40,7 @@ impl FakeMedicationBoxRepository {
         Self {
             boxes: Mutex::new(Vec::new()),
             fail_on_save: true,
+            fail_on_delete: true,
         }
     }
 
@@ -67,6 +78,9 @@ impl MedicationBoxRepositoryPort for FakeMedicationBoxRepository {
     }
 
     fn delete(&self, id: &MedicationBoxId) -> Result<(), StorageError> {
+        if self.fail_on_delete {
+            return Err(StorageError("forced failure".into()));
+        }
         let mut boxes = self.boxes.lock().unwrap();
         boxes.retain(|b| b.id() != id);
         Ok(())
