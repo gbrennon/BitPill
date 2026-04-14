@@ -98,16 +98,6 @@ impl App {
         }
     }
 
-    #[cfg(test)]
-    pub fn new_fake() -> Self {
-        App::new(crate::presentation::tui::app_services::AppServices::fake())
-    }
-
-    #[cfg(test)]
-    pub fn new_fake_with_mode(mode: &'static str) -> Self {
-        App::new(crate::presentation::tui::app_services::AppServices::fake_with_mode(mode))
-    }
-
     /// Runs one iteration of the event loop. Returns `true` if the app should quit.
     /// If `event_source` is None, uses RealEventSource (requires TTY).
     pub fn tick<B: ratatui::backend::Backend>(
@@ -169,6 +159,17 @@ impl App {
         execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+impl App {
+    pub fn new_fake() -> Self {
+        App::new(crate::presentation::tui::app_services::AppServices::fake())
+    }
+
+    pub fn new_fake_with_mode(mode: &'static str) -> Self {
+        App::new(crate::presentation::tui::app_services::AppServices::fake_with_mode(mode))
     }
 }
 
