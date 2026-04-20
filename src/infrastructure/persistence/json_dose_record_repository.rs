@@ -97,7 +97,6 @@ impl DoseRecordRepository for JsonDoseRecordRepository {
             .iter()
             .filter(|r| r.medication_id() == medication_id)
             .cloned()
-            .rev()
             .collect())
     }
 
