@@ -64,6 +64,8 @@ jobs:
       - uses: actions/checkout@v6
 
       - uses: ./.forgejo/actions/setup-rust
+        with:
+          toolchain: nightly
 
       - name: Cache cargo bin
         uses: actions/cache@v4
