@@ -141,10 +141,8 @@ impl Handler for CreateMedicationHandler {
                         1 => {
                             new_amount.pop();
                         }
-                        3 => {
-                            if new_scheduled_time.len() > scheduled_idx {
-                                new_scheduled_time[scheduled_idx].pop();
-                            }
+                        3 if new_scheduled_time.len() > scheduled_idx => {
+                            new_scheduled_time[scheduled_idx].pop();
                         }
                         _ => {}
                     }
@@ -248,10 +246,8 @@ impl Handler for CreateMedicationHandler {
                     1 => {
                         new_amount.pop();
                     }
-                    3 => {
-                        if new_scheduled_time.len() > scheduled_idx {
-                            new_scheduled_time[scheduled_idx].pop();
-                        }
+                    3 if new_scheduled_time.len() > scheduled_idx => {
+                        new_scheduled_time[scheduled_idx].pop();
                     }
                     _ => {}
                 }

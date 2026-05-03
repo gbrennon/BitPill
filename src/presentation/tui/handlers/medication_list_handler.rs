@@ -52,17 +52,13 @@ impl Handler for MedicationListHandler {
 
         // Vim mode: j/k/l/h for navigation
         match key {
-            Key::Char('j') | Key::Char('l') => {
-                if !app.medications.is_empty() {
-                    app.selected_index =
-                        (app.selected_index + 1).min(app.medications.len().saturating_sub(1));
-                }
+            Key::Char('j') | Key::Char('l') if !app.medications.is_empty() => {
+                app.selected_index =
+                    (app.selected_index + 1).min(app.medications.len().saturating_sub(1));
             }
-            Key::Down => {
-                if !app.medications.is_empty() {
-                    app.selected_index =
-                        (app.selected_index + 1).min(app.medications.len().saturating_sub(1));
-                }
+            Key::Down if !app.medications.is_empty() => {
+                app.selected_index =
+                    (app.selected_index + 1).min(app.medications.len().saturating_sub(1));
             }
             Key::Char('k') | Key::Char('h') => {
                 app.selected_index = app.selected_index.saturating_sub(1);
@@ -96,16 +92,13 @@ impl Handler for MedicationListHandler {
                     selected_index,
                 };
             }
-            Key::Char('v') => {
-                if !app.medications.is_empty() {
-                    let med = &app.medications[app.selected_index];
-                    app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
-                }
+            Key::Char('v') if !app.medications.is_empty() => {
+                let med = &app.medications[app.selected_index];
+                app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
             }
-            Key::Char('m') => {
-                if !app.medications.is_empty() {
-                    let med = &app.medications[app.selected_index];
-                    match crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort::execute(
+            Key::Char('m') if !app.medications.is_empty() => {
+                let med = &app.medications[app.selected_index];
+                match crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort::execute(
                         &*app.services.list_dose_records,
                         crate::application::dtos::requests::ListDoseRecordsRequest {
                             medication_id: med.id.clone(),
@@ -122,44 +115,39 @@ impl Handler for MedicationListHandler {
                             app.status_message = Some(format!("Error listing records: {e}"));
                         }
                     }
-                }
             }
-            Key::Char('d') => {
-                if !app.medications.is_empty() {
-                    let med = &app.medications[app.selected_index];
-                    app.current_screen = Screen::ConfirmDelete {
-                        id: med.id.clone(),
-                        name: med.name.clone(),
-                    };
-                }
+            Key::Char('d') if !app.medications.is_empty() => {
+                let med = &app.medications[app.selected_index];
+                app.current_screen = Screen::ConfirmDelete {
+                    id: med.id.clone(),
+                    name: med.name.clone(),
+                };
             }
-            Key::Char('e') => {
-                if !app.medications.is_empty() {
-                    let med = &app.medications[app.selected_index];
-                    let times = med
-                        .scheduled_time
-                        .iter()
-                        .map(|(h, m)| format!("{:02}:{:02}", h, m))
-                        .collect::<Vec<_>>()
-                        .join(",");
-                    let selected_frequency = match med.dose_frequency.as_str() {
-                        "OnceDaily" => 0,
-                        "TwiceDaily" => 1,
-                        "ThriceDaily" => 2,
-                        "Custom" => 3,
-                        _ => 0,
-                    };
-                    app.current_screen = Screen::EditMedication {
-                        id: med.id.clone(),
-                        name: med.name.clone(),
-                        amount_mg: med.amount_mg.to_string(),
-                        selected_frequency,
-                        scheduled_time: times.split(',').map(|s| s.to_string()).collect(),
-                        scheduled_idx: 0,
-                        focused_field: 0,
-                        insert_mode: false,
-                    };
-                }
+            Key::Char('e') if !app.medications.is_empty() => {
+                let med = &app.medications[app.selected_index];
+                let times = med
+                    .scheduled_time
+                    .iter()
+                    .map(|(h, m)| format!("{:02}:{:02}", h, m))
+                    .collect::<Vec<_>>()
+                    .join(",");
+                let selected_frequency = match med.dose_frequency.as_str() {
+                    "OnceDaily" => 0,
+                    "TwiceDaily" => 1,
+                    "ThriceDaily" => 2,
+                    "Custom" => 3,
+                    _ => 0,
+                };
+                app.current_screen = Screen::EditMedication {
+                    id: med.id.clone(),
+                    name: med.name.clone(),
+                    amount_mg: med.amount_mg.to_string(),
+                    selected_frequency,
+                    scheduled_time: times.split(',').map(|s| s.to_string()).collect(),
+                    scheduled_idx: 0,
+                    focused_field: 0,
+                    insert_mode: false,
+                };
             }
             Key::Esc => {
                 app.load_medications();
@@ -169,11 +157,9 @@ impl Handler for MedicationListHandler {
                     previous: Box::new(app.current_screen.clone()),
                 };
             }
-            Key::Enter => {
-                if !app.medications.is_empty() {
-                    let med = &app.medications[app.selected_index];
-                    app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
-                }
+            Key::Enter if !app.medications.is_empty() => {
+                let med = &app.medications[app.selected_index];
+                app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
             }
             _ => {}
         }
