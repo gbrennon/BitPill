@@ -21,51 +21,56 @@ use bitpill::{
 
 use crate::fakes::FakeMedicationRepository;
 
-#[test]
-fn delete_medication_success_removes_from_repo() {
-    let med = Medication::new(
-        MedicationId::generate(),
-        MedicationName::new("DelMed").unwrap(),
-        Dosage::new(10).unwrap(),
-        vec![ScheduledTime::new(8, 0).unwrap()],
-        DoseFrequency::OnceDaily,
-    )
-    .unwrap();
-    let repo = Arc::new(FakeMedicationRepository::with(vec![med.clone()]));
-    let svc = DeleteMedicationService::new(repo.clone());
-    let req = DeleteMedicationRequest {
-        id: med.id().to_string(),
-    };
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    svc.execute(req).expect("should delete");
+    #[test]
+    fn delete_medication_success_removes_from_repo() {
+        let med = Medication::new(
+            MedicationId::generate(),
+            MedicationName::new("DelMed").unwrap(),
+            Dosage::new(10).unwrap(),
+            vec![ScheduledTime::new(8, 0).unwrap()],
+            DoseFrequency::OnceDaily,
+        )
+        .unwrap();
+        let repo = Arc::new(FakeMedicationRepository::with(vec![med.clone()]));
+        let svc = DeleteMedicationService::new(repo.clone());
+        let req = DeleteMedicationRequest {
+            id: med.id().to_string(),
+        };
 
-    let found = repo.find_by_id(med.id()).unwrap();
-    assert!(found.is_none());
-}
+        svc.execute(req).expect("should delete");
 
-#[test]
-fn delete_medication_invalid_id_returns_error() {
-    let repo = Arc::new(FakeMedicationRepository::new());
-    let svc = DeleteMedicationService::new(repo);
-    let req = DeleteMedicationRequest {
-        id: "not-a-uuid".into(),
-    };
+        let found = repo.find_by_id(med.id()).unwrap();
+        assert!(found.is_none());
+    }
 
-    let res = svc.execute(req);
+    #[test]
+    fn delete_medication_invalid_id_returns_error() {
+        let repo = Arc::new(FakeMedicationRepository::new());
+        let svc = DeleteMedicationService::new(repo);
+        let req = DeleteMedicationRequest {
+            id: "not-a-uuid".into(),
+        };
 
-    assert!(matches!(res, Err(ApplicationError::InvalidInput(_))));
-}
+        let res = svc.execute(req);
 
-#[test]
-fn delete_medication_when_repository_delete_fails_returns_storage_error() {
-    use bitpill::domain::value_objects::medication_id::MedicationId;
-    let repo = Arc::new(FakeMedicationRepository::failing_on_delete());
-    let svc = DeleteMedicationService::new(repo);
-    let req = DeleteMedicationRequest {
-        id: MedicationId::generate().to_string(),
-    };
+        assert!(matches!(res, Err(ApplicationError::InvalidInput(_))));
+    }
 
-    let res = svc.execute(req);
+    #[test]
+    fn delete_medication_when_repository_delete_fails_returns_storage_error() {
+        use bitpill::domain::value_objects::medication_id::MedicationId;
+        let repo = Arc::new(FakeMedicationRepository::failing_on_delete());
+        let svc = DeleteMedicationService::new(repo);
+        let req = DeleteMedicationRequest {
+            id: MedicationId::generate().to_string(),
+        };
 
-    assert!(matches!(res, Err(ApplicationError::Storage(_))));
+        let res = svc.execute(req);
+
+        assert!(matches!(res, Err(ApplicationError::Storage(_))));
+    }
 }
