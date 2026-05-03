@@ -1,58 +1,65 @@
-use crate::fakes::FakeDoseRecordRepository;
+use std::sync::Arc;
+
 use bitpill::application::{
     dtos::requests::CreateDoseRecordRequest, ports::create_dose_record_port::CreateDoseRecordPort,
     services::create_dose_record_service::CreateDoseRecordService,
 };
 use chrono::NaiveDate;
-use std::sync::Arc;
 
-#[test]
-fn execute_with_invalid_medication_id_returns_invalid_input() {
-    let repo = Arc::new(FakeDoseRecordRepository::new());
-    let service = CreateDoseRecordService::new(repo);
-    let scheduled_at = NaiveDate::from_ymd_opt(2020, 1, 1)
-        .unwrap()
-        .and_hms_opt(9, 0, 0)
-        .unwrap();
-    let req = CreateDoseRecordRequest::new("not-a-valid-uuid".to_string(), scheduled_at);
+use crate::fakes::FakeDoseRecordRepository;
 
-    let result = service.execute(req);
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    assert!(matches!(
-        result,
-        Err(bitpill::application::errors::ApplicationError::InvalidInput(_))
-    ));
-}
+    #[test]
+    fn execute_with_invalid_medication_id_returns_invalid_input() {
+        let repo = Arc::new(FakeDoseRecordRepository::new());
+        let service = CreateDoseRecordService::new(repo);
+        let scheduled_at = NaiveDate::from_ymd_opt(2020, 1, 1)
+            .unwrap()
+            .and_hms_opt(9, 0, 0)
+            .unwrap();
+        let req = CreateDoseRecordRequest::new("not-a-valid-uuid".to_string(), scheduled_at);
 
-#[test]
-fn create_dose_records_saves_to_repository() {
-    let repo = Arc::new(FakeDoseRecordRepository::new());
-    let service = CreateDoseRecordService::new(repo.clone());
-    let med_id = uuid::Uuid::nil().to_string();
-    let scheduled_at = NaiveDate::from_ymd_opt(2020, 1, 1)
-        .unwrap()
-        .and_hms_opt(9, 0, 0)
-        .unwrap();
-    let req = CreateDoseRecordRequest::new(med_id.clone(), scheduled_at);
+        let result = service.execute(req);
 
-    let res = service.execute(req).expect("execute should succeed");
+        assert!(matches!(
+            result,
+            Err(bitpill::application::errors::ApplicationError::InvalidInput(_))
+        ));
+    }
 
-    assert!(!res.id.is_empty());
-    assert_eq!(repo.saved_count(), 1);
-}
+    #[test]
+    fn create_dose_records_saves_to_repository() {
+        let repo = Arc::new(FakeDoseRecordRepository::new());
+        let service = CreateDoseRecordService::new(repo.clone());
+        let med_id = uuid::Uuid::nil().to_string();
+        let scheduled_at = NaiveDate::from_ymd_opt(2020, 1, 1)
+            .unwrap()
+            .and_hms_opt(9, 0, 0)
+            .unwrap();
+        let req = CreateDoseRecordRequest::new(med_id.clone(), scheduled_at);
 
-#[test]
-fn execute_when_repository_fails_returns_storage_error() {
-    use bitpill::application::errors::ApplicationError;
-    let repo = Arc::new(FakeDoseRecordRepository::failing());
-    let service = CreateDoseRecordService::new(repo);
-    let scheduled_at = NaiveDate::from_ymd_opt(2020, 1, 1)
-        .unwrap()
-        .and_hms_opt(9, 0, 0)
-        .unwrap();
-    let req = CreateDoseRecordRequest::new(uuid::Uuid::nil().to_string(), scheduled_at);
+        let res = service.execute(req).expect("execute should succeed");
 
-    let result = service.execute(req);
+        assert!(!res.id.is_empty());
+        assert_eq!(repo.saved_count(), 1);
+    }
 
-    assert!(matches!(result, Err(ApplicationError::Storage(_))));
+    #[test]
+    fn execute_when_repository_fails_returns_storage_error() {
+        use bitpill::application::errors::ApplicationError;
+        let repo = Arc::new(FakeDoseRecordRepository::failing());
+        let service = CreateDoseRecordService::new(repo);
+        let scheduled_at = NaiveDate::from_ymd_opt(2020, 1, 1)
+            .unwrap()
+            .and_hms_opt(9, 0, 0)
+            .unwrap();
+        let req = CreateDoseRecordRequest::new(uuid::Uuid::nil().to_string(), scheduled_at);
+
+        let result = service.execute(req);
+
+        assert!(matches!(result, Err(ApplicationError::Storage(_))));
+    }
 }

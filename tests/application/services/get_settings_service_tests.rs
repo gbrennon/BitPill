@@ -1,41 +1,52 @@
-use bitpill::application::dtos::requests::GetSettingsRequest;
-use bitpill::application::errors::ApplicationError;
-use bitpill::application::ports::fakes::FakeSettingsRepository;
-use bitpill::application::ports::inbound::get_settings_port::GetSettingsPort;
-use bitpill::application::services::get_settings_service::GetSettingsService;
-use bitpill::domain::entities::app_settings::AppSettings;
-use bitpill::domain::value_objects::navigation_mode::{NavigationMode, NavigationModeVariant};
 use std::sync::Arc;
 
-#[test]
-fn get_settings_returns_settings_response_when_found() {
-    let settings = AppSettings::new(NavigationMode::new(NavigationModeVariant::Vi).unwrap());
-    let repo = Arc::new(FakeSettingsRepository::new(settings));
-    let service = GetSettingsService::new(repo);
+use bitpill::{
+    application::{
+        dtos::requests::GetSettingsRequest,
+        errors::ApplicationError,
+        ports::{fakes::FakeSettingsRepository, inbound::get_settings_port::GetSettingsPort},
+        services::get_settings_service::GetSettingsService,
+    },
+    domain::{
+        entities::app_settings::AppSettings,
+        value_objects::navigation_mode::{NavigationMode, NavigationModeVariant},
+    },
+};
 
-    let res = service
-        .execute(GetSettingsRequest {})
-        .expect("should return settings");
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    assert_eq!(res.navigation_mode, "vi");
-}
+    #[test]
+    fn get_settings_returns_settings_response_when_found() {
+        let settings = AppSettings::new(NavigationMode::new(NavigationModeVariant::Vi).unwrap());
+        let repo = Arc::new(FakeSettingsRepository::new(settings));
+        let service = GetSettingsService::new(repo);
 
-#[test]
-fn get_settings_returns_not_found_when_empty() {
-    let repo = Arc::new(FakeSettingsRepository::empty());
-    let service = GetSettingsService::new(repo);
+        let res = service
+            .execute(GetSettingsRequest {})
+            .expect("should return settings");
 
-    let res = service.execute(GetSettingsRequest {});
+        assert_eq!(res.navigation_mode, "vi");
+    }
 
-    assert!(matches!(res, Err(ApplicationError::NotFound(_))));
-}
+    #[test]
+    fn get_settings_returns_not_found_when_empty() {
+        let repo = Arc::new(FakeSettingsRepository::empty());
+        let service = GetSettingsService::new(repo);
 
-#[test]
-fn get_settings_returns_error_when_repository_fails() {
-    let repo = Arc::new(FakeSettingsRepository::failing_load());
-    let service = GetSettingsService::new(repo);
+        let res = service.execute(GetSettingsRequest {});
 
-    let res = service.execute(GetSettingsRequest {});
+        assert!(matches!(res, Err(ApplicationError::NotFound(_))));
+    }
 
-    assert!(matches!(res, Err(ApplicationError::Storage(_))));
+    #[test]
+    fn get_settings_returns_error_when_repository_fails() {
+        let repo = Arc::new(FakeSettingsRepository::failing_load());
+        let service = GetSettingsService::new(repo);
+
+        let res = service.execute(GetSettingsRequest {});
+
+        assert!(matches!(res, Err(ApplicationError::Storage(_))));
+    }
 }
