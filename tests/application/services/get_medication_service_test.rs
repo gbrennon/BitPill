@@ -15,7 +15,7 @@ use bitpill::{
     },
 };
 
-use crate::fakes::FakeMedicationRepository;
+use crate::fakes::{FakeDoseRecordRepository, FakeMedicationRepository};
 
 #[cfg(test)]
 mod tests {
@@ -32,7 +32,7 @@ mod tests {
         )
         .unwrap();
         let repo = Arc::new(FakeMedicationRepository::with(vec![med.clone()]));
-        let service = GetMedicationService::new(repo);
+        let service = GetMedicationService::new(repo, Arc::new(FakeDoseRecordRepository::new()));
 
         let res = service
             .execute(GetMedicationRequest {
@@ -49,7 +49,7 @@ mod tests {
     #[test]
     fn get_medication_returns_not_found_for_missing() {
         let repo = Arc::new(FakeMedicationRepository::new());
-        let service = GetMedicationService::new(repo);
+        let service = GetMedicationService::new(repo, Arc::new(FakeDoseRecordRepository::new()));
 
         let res = service.execute(GetMedicationRequest {
             id: MedicationId::generate().to_string(),
@@ -61,7 +61,7 @@ mod tests {
     #[test]
     fn get_medication_invalid_id_returns_invalid_input() {
         let repo = Arc::new(FakeMedicationRepository::new());
-        let service = GetMedicationService::new(repo);
+        let service = GetMedicationService::new(repo, Arc::new(FakeDoseRecordRepository::new()));
 
         let res = service.execute(GetMedicationRequest {
             id: "not-a-uuid".into(),
@@ -74,8 +74,10 @@ mod tests {
     fn get_medication_handles_custom_and_everyxhours_frequency() {
         let id1 = MedicationId::generate();
         let custom_times = vec![
-            ScheduledTime::new(9, 0).unwrap(),
-            ScheduledTime::new(21, 0).unwrap(),
+            ScheduledTime::new(8, 0).unwrap(),
+            ScheduledTime::new(12, 0).unwrap(),
+            ScheduledTime::new(16, 0).unwrap(),
+            ScheduledTime::new(20, 0).unwrap(),
         ];
         let med_custom = Medication::new(
             id1.clone(),
@@ -87,17 +89,21 @@ mod tests {
         .unwrap();
 
         let id2 = MedicationId::generate();
-        let med_every = Medication::new(
+        let med_thrice = Medication::new(
             id2.clone(),
-            MedicationName::new("EveryMed").unwrap(),
+            MedicationName::new("ThriceMed").unwrap(),
             Dosage::new(25).unwrap(),
-            vec![],
-            DoseFrequency::EveryXHours(6),
+            vec![
+                ScheduledTime::new(8, 0).unwrap(),
+                ScheduledTime::new(14, 0).unwrap(),
+                ScheduledTime::new(20, 0).unwrap(),
+            ],
+            DoseFrequency::ThriceDaily,
         )
         .unwrap();
 
-        let repo = Arc::new(FakeMedicationRepository::with(vec![med_custom, med_every]));
-        let svc = GetMedicationService::new(repo);
+        let repo = Arc::new(FakeMedicationRepository::with(vec![med_custom, med_thrice]));
+        let svc = GetMedicationService::new(repo, Arc::new(FakeDoseRecordRepository::new()));
 
         let res_custom = svc
             .execute(GetMedicationRequest {
@@ -106,12 +112,12 @@ mod tests {
             .unwrap();
         assert_eq!(res_custom.medication.dose_frequency, "Custom");
 
-        let res_every = svc
+        let res_thrice = svc
             .execute(GetMedicationRequest {
                 id: id2.to_string(),
             })
             .unwrap();
-        assert_eq!(res_every.medication.dose_frequency, "EveryXHours");
+        assert_eq!(res_thrice.medication.dose_frequency, "ThriceDaily");
     }
 
     #[test]
@@ -154,7 +160,7 @@ mod tests {
         let repo = Arc::new(FakeMedicationRepository::with(vec![
             m_once, m_twice, m_thrice,
         ]));
-        let svc = GetMedicationService::new(repo);
+        let svc = GetMedicationService::new(repo, Arc::new(FakeDoseRecordRepository::new()));
 
         let r1 = svc
             .execute(GetMedicationRequest {
@@ -180,7 +186,7 @@ mod tests {
     fn get_medication_when_repository_fails_returns_storage_error() {
         use bitpill::application::errors::ApplicationError;
         let repo = Arc::new(FakeMedicationRepository::failing_on_find_by_id());
-        let service = GetMedicationService::new(repo);
+        let service = GetMedicationService::new(repo, Arc::new(FakeDoseRecordRepository::new()));
         let id =
             bitpill::domain::value_objects::medication_id::MedicationId::generate().to_string();
 

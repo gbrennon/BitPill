@@ -44,6 +44,14 @@ impl FakeMedicationBoxRepository {
         }
     }
 
+    pub fn failing_on_delete(r#box: MedicationBox) -> Self {
+        Self {
+            boxes: Mutex::new(vec![r#box]),
+            fail_on_save: false,
+            fail_on_delete: true,
+        }
+    }
+
     pub fn saved_count(&self) -> usize {
         self.boxes.lock().unwrap().len()
     }

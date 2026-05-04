@@ -1,12 +1,9 @@
 use std::sync::Arc;
 
-use bitpill::{
-    application::{
-        dtos::requests::CreateMedicationRequest, errors::ApplicationError,
-        ports::inbound::create_medication_port::CreateMedicationPort,
-        services::create_medication_service::CreateMedicationService,
-    },
-    domain::errors::DomainError,
+use bitpill::application::{
+    dtos::requests::CreateMedicationRequest, errors::ApplicationError,
+    ports::inbound::create_medication_port::CreateMedicationPort,
+    services::create_medication_service::CreateMedicationService,
 };
 
 use crate::fakes::FakeMedicationRepository;
@@ -27,7 +24,7 @@ mod tests {
     fn execute_with_valid_inputs_returns_response() {
         let service = CreateMedicationService::new(Arc::new(FakeMedicationRepository::new()));
 
-        let result = service.execute(make_request("Levetiracetam", 500, vec![(8, 0), (20, 0)]));
+        let result = service.execute(make_request("Levetiracetam", 500, vec![(8, 0)]));
 
         assert!(result.is_ok());
         assert!(!result.unwrap().id.is_empty());
@@ -53,7 +50,7 @@ mod tests {
 
         assert!(matches!(
             result,
-            Err(ApplicationError::Domain(DomainError::EmptyMedicationName))
+            Err(ApplicationError::MultipleDomainErrors { .. })
         ));
     }
 
@@ -65,7 +62,7 @@ mod tests {
 
         assert!(matches!(
             result,
-            Err(ApplicationError::Domain(DomainError::InvalidDosage))
+            Err(ApplicationError::MultipleDomainErrors { .. })
         ));
     }
 
@@ -77,7 +74,7 @@ mod tests {
 
         assert!(matches!(
             result,
-            Err(ApplicationError::Domain(DomainError::InvalidScheduledTime))
+            Err(ApplicationError::MultipleDomainErrors { .. })
         ));
     }
 
@@ -114,7 +111,12 @@ mod tests {
     #[test]
     fn execute_with_custom_frequency() {
         let service = CreateMedicationService::new(Arc::new(FakeMedicationRepository::new()));
-        let req = CreateMedicationRequest::new("Med", 100, vec![(9, 0), (21, 0)], "Custom");
+        let req = CreateMedicationRequest::new(
+            "Med",
+            100,
+            vec![(8, 0), (12, 0), (16, 0), (20, 0)],
+            "Custom",
+        );
 
         let result = service.execute(req);
 
