@@ -1,10 +1,13 @@
 use std::sync::Mutex;
 
-use bitpill::application::errors::StorageError;
-use bitpill::application::ports::outbound::dose_record_repository_port::DoseRecordRepository;
-use bitpill::domain::{
-    entities::dose_record::DoseRecord,
-    value_objects::{dose_record_id::DoseRecordId, medication_id::MedicationId},
+use crate::{
+    application::{
+        errors::StorageError, ports::outbound::dose_record_repository_port::DoseRecordRepository,
+    },
+    domain::{
+        entities::dose_record::DoseRecord,
+        value_objects::{dose_record_id::DoseRecordId, medication_id::MedicationId},
+    },
 };
 
 pub struct FakeDoseRecordRepository {
@@ -12,8 +15,10 @@ pub struct FakeDoseRecordRepository {
     fail_on_save: bool,
     fail_on_find_by_id: bool,
     fail_on_find_all_by_medication: bool,
+    find_by_id_error: Mutex<Option<StorageError>>,
 }
 
+#[allow(dead_code)]
 impl FakeDoseRecordRepository {
     pub fn new() -> Self {
         Self {
@@ -21,6 +26,7 @@ impl FakeDoseRecordRepository {
             fail_on_save: false,
             fail_on_find_by_id: false,
             fail_on_find_all_by_medication: false,
+            find_by_id_error: Mutex::new(None),
         }
     }
 
@@ -30,6 +36,17 @@ impl FakeDoseRecordRepository {
             fail_on_save: false,
             fail_on_find_by_id: false,
             fail_on_find_all_by_medication: false,
+            find_by_id_error: Mutex::new(None),
+        }
+    }
+
+    pub fn with_records(records: Vec<DoseRecord>) -> Self {
+        Self {
+            records: Mutex::new(records),
+            fail_on_save: false,
+            fail_on_find_by_id: false,
+            fail_on_find_all_by_medication: false,
+            find_by_id_error: Mutex::new(None),
         }
     }
 
@@ -39,6 +56,7 @@ impl FakeDoseRecordRepository {
             fail_on_save: true,
             fail_on_find_by_id: false,
             fail_on_find_all_by_medication: false,
+            find_by_id_error: Mutex::new(None),
         }
     }
 
@@ -48,6 +66,7 @@ impl FakeDoseRecordRepository {
             fail_on_save: true,
             fail_on_find_by_id: false,
             fail_on_find_all_by_medication: false,
+            find_by_id_error: Mutex::new(None),
         }
     }
 
@@ -57,6 +76,7 @@ impl FakeDoseRecordRepository {
             fail_on_save: false,
             fail_on_find_by_id: true,
             fail_on_find_all_by_medication: false,
+            find_by_id_error: Mutex::new(None),
         }
     }
 
@@ -66,7 +86,13 @@ impl FakeDoseRecordRepository {
             fail_on_save: false,
             fail_on_find_by_id: false,
             fail_on_find_all_by_medication: true,
+            find_by_id_error: Mutex::new(None),
         }
+    }
+
+    pub fn with_find_by_id_error(self, err: StorageError) -> Self {
+        *self.find_by_id_error.lock().unwrap() = Some(err);
+        self
     }
 
     pub fn saved_count(&self) -> usize {
@@ -74,6 +100,9 @@ impl FakeDoseRecordRepository {
     }
 
     pub fn find_by_id(&self, id: &DoseRecordId) -> Result<Option<DoseRecord>, StorageError> {
+        if let Some(err) = self.find_by_id_error.lock().unwrap().as_ref() {
+            return Err(err.clone());
+        }
         Ok(self
             .records
             .lock()
@@ -81,6 +110,12 @@ impl FakeDoseRecordRepository {
             .iter()
             .find(|r| r.id() == id)
             .cloned())
+    }
+}
+
+impl Default for FakeDoseRecordRepository {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -99,6 +134,9 @@ impl DoseRecordRepository for FakeDoseRecordRepository {
     }
 
     fn find_by_id(&self, id: &DoseRecordId) -> Result<Option<DoseRecord>, StorageError> {
+        if let Some(err) = self.find_by_id_error.lock().unwrap().as_ref() {
+            return Err(err.clone());
+        }
         if self.fail_on_find_by_id {
             return Err(StorageError("forced find_by_id failure".into()));
         }

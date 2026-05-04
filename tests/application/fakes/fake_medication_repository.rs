@@ -1,9 +1,7 @@
 use std::sync::Mutex;
 
-use bitpill::{
-    application::{
-        errors::StorageError, ports::outbound::medication_repository_port::MedicationRepository,
-    },
+use crate::{
+    application::{errors::StorageError, ports::medication_repository_port::MedicationRepository},
     domain::{entities::medication::Medication, value_objects::medication_id::MedicationId},
 };
 
@@ -13,7 +11,14 @@ pub struct FakeMedicationRepository {
     fail_on_find_all: bool,
     fail_on_find_by_id: bool,
     fail_on_delete: bool,
+    deleted_count: Mutex<usize>,
     custom_find_by_id: Mutex<Option<Medication>>,
+}
+
+impl Default for FakeMedicationRepository {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl FakeMedicationRepository {
@@ -24,6 +29,8 @@ impl FakeMedicationRepository {
             fail_on_find_all: false,
             fail_on_find_by_id: false,
             fail_on_delete: false,
+            deleted_count: Mutex::new(0),
+            custom_find_by_id: Mutex::new(None),
         }
     }
 
@@ -34,6 +41,8 @@ impl FakeMedicationRepository {
             fail_on_find_all: false,
             fail_on_find_by_id: false,
             fail_on_delete: false,
+            deleted_count: Mutex::new(0),
+            custom_find_by_id: Mutex::new(None),
         }
     }
 
@@ -44,6 +53,8 @@ impl FakeMedicationRepository {
             fail_on_find_all: false,
             fail_on_find_by_id: false,
             fail_on_delete: false,
+            deleted_count: Mutex::new(0),
+            custom_find_by_id: Mutex::new(None),
         }
     }
 
@@ -54,6 +65,8 @@ impl FakeMedicationRepository {
             fail_on_find_all: true,
             fail_on_find_by_id: false,
             fail_on_delete: false,
+            deleted_count: Mutex::new(0),
+            custom_find_by_id: Mutex::new(None),
         }
     }
 
@@ -64,6 +77,8 @@ impl FakeMedicationRepository {
             fail_on_find_all: false,
             fail_on_find_by_id: true,
             fail_on_delete: false,
+            deleted_count: Mutex::new(0),
+            custom_find_by_id: Mutex::new(None),
         }
     }
 
@@ -74,6 +89,7 @@ impl FakeMedicationRepository {
             fail_on_find_all: false,
             fail_on_find_by_id: false,
             fail_on_delete: true,
+            deleted_count: Mutex::new(0),
             custom_find_by_id: Mutex::new(None),
         }
     }
@@ -84,6 +100,10 @@ impl FakeMedicationRepository {
 
     pub fn saved_count(&self) -> usize {
         self.medications.lock().unwrap().len()
+    }
+
+    pub fn deleted_count(&self) -> usize {
+        *self.deleted_count.lock().unwrap()
     }
 }
 
@@ -124,7 +144,14 @@ impl MedicationRepository for FakeMedicationRepository {
             return Err(StorageError("forced delete failure".into()));
         }
         let mut meds = self.medications.lock().unwrap();
+        let before = meds.len();
         meds.retain(|m| m.id() != id);
+        let after = meds.len();
+        let removed = before.saturating_sub(after);
+        if removed > 0 {
+            let mut cnt = self.deleted_count.lock().unwrap();
+            *cnt += removed;
+        }
         Ok(())
     }
 }
