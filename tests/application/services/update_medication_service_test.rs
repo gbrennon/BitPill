@@ -49,7 +49,7 @@ mod tests {
                 &id,
                 "Updated",
                 200,
-                vec![(10, 30)],
+                vec![(10, 30), (22, 0)],
                 "TwiceDaily",
             ))
             .expect("update should succeed");
@@ -105,7 +105,10 @@ mod tests {
             "Custom",
         ));
 
-        assert!(matches!(res, Err(ApplicationError::Domain(_))));
+        assert!(matches!(
+            res,
+            Err(ApplicationError::MultipleDomainErrors { .. })
+        ));
     }
 
     #[test]
@@ -142,7 +145,10 @@ mod tests {
             "OnceDaily",
         ));
 
-        assert!(matches!(res, Err(ApplicationError::Domain(_))));
+        assert!(matches!(
+            res,
+            Err(ApplicationError::MultipleDomainErrors { .. })
+        ));
     }
 
     #[test]
@@ -155,7 +161,7 @@ mod tests {
             &id,
             "CustomName",
             123,
-            vec![(9, 0), (21, 0)],
+            vec![(8, 0), (12, 0), (16, 0), (20, 0)],
             "Custom",
         ))
         .expect("should save");
@@ -168,9 +174,11 @@ mod tests {
             .expect("not found");
         assert!(matches!(saved.dose_frequency(), DoseFrequency::Custom(_)));
         let times = saved.scheduled_time();
-        assert_eq!(times.len(), 2);
-        assert_eq!(times[0].hour(), 9);
-        assert_eq!(times[1].hour(), 21);
+        assert_eq!(times.len(), 4);
+        assert_eq!(times[0].hour(), 8);
+        assert_eq!(times[1].hour(), 12);
+        assert_eq!(times[2].hour(), 16);
+        assert_eq!(times[3].hour(), 20);
     }
 
     #[test]

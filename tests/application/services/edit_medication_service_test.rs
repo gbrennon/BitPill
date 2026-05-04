@@ -55,7 +55,7 @@ mod tests {
                 &id,
                 "UpdatedName",
                 250,
-                vec![(10, 30)],
+                vec![(10, 30), (22, 0)],
                 "TwiceDaily",
             ))
             .unwrap();
@@ -130,7 +130,7 @@ mod tests {
             &id,
             "Med",
             100,
-            vec![(9, 0), (21, 0)],
+            vec![(8, 0), (12, 0), (16, 0), (20, 0)],
             "Custom",
         ));
 

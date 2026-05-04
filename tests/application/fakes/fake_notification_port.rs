@@ -7,6 +7,7 @@ use crate::{
 
 pub struct FakeNotificationPort {
     calls: Mutex<Vec<String>>,
+    should_fail: bool,
 }
 
 impl Default for FakeNotificationPort {
@@ -19,6 +20,14 @@ impl FakeNotificationPort {
     pub fn new() -> Self {
         Self {
             calls: Mutex::new(Vec::new()),
+            should_fail: false,
+        }
+    }
+
+    pub fn failing() -> Self {
+        Self {
+            calls: Mutex::new(Vec::new()),
+            should_fail: true,
         }
     }
 
@@ -33,6 +42,9 @@ impl NotificationPort for FakeNotificationPort {
         medication: &Medication,
         _record: &DoseRecord,
     ) -> Result<(), DeliveryError> {
+        if self.should_fail {
+            return Err(DeliveryError("simulated failure".into()));
+        }
         self.calls
             .lock()
             .unwrap()

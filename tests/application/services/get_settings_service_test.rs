@@ -2,9 +2,8 @@ use std::sync::Arc;
 
 use bitpill::{
     application::{
-        dtos::requests::GetSettingsRequest,
-        errors::ApplicationError,
-        ports::{fakes::FakeSettingsRepository, inbound::get_settings_port::GetSettingsPort},
+        dtos::requests::GetSettingsRequest, errors::ApplicationError,
+        ports::inbound::get_settings_port::GetSettingsPort,
         services::get_settings_service::GetSettingsService,
     },
     domain::{
@@ -12,6 +11,8 @@ use bitpill::{
         value_objects::navigation_mode::{NavigationMode, NavigationModeVariant},
     },
 };
+
+use crate::fakes::FakeSettingsRepository;
 
 #[cfg(test)]
 mod tests {

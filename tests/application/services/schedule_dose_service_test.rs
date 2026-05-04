@@ -141,8 +141,8 @@ mod tests {
             MedicationId::generate(),
             MedicationName::new("On-demand").unwrap(),
             Dosage::new(100).unwrap(),
-            vec![],
-            DoseFrequency::EveryXHours(4),
+            vec![ScheduledTime::new(20, 0).unwrap()],
+            DoseFrequency::OnceDaily,
         )
         .unwrap();
         let (service, dose_repo, notif) = make_service(vec![medication], FakeClock::at(8, 0));
