@@ -39,16 +39,37 @@ mod tests {
     }
 
     #[test]
-    fn return_records_for_medication_in_reverse_order() {
+    fn list_dose_records_returns_newest_first() {
         let med_id = MedicationId::generate();
-        let record = DoseRecord::new(
+
+        let oldest = DoseRecord::new(
             med_id.clone(),
             NaiveDate::from_ymd_opt(2025, 1, 1)
                 .unwrap()
-                .and_hms_opt(9, 0, 0)
+                .and_hms_opt(8, 0, 0)
                 .unwrap(),
         );
-        let repo = Arc::new(FakeDoseRecordRepository::with(record.clone()));
+        let middle = DoseRecord::new(
+            med_id.clone(),
+            NaiveDate::from_ymd_opt(2025, 1, 1)
+                .unwrap()
+                .and_hms_opt(12, 0, 0)
+                .unwrap(),
+        );
+        let newest = DoseRecord::new(
+            med_id.clone(),
+            NaiveDate::from_ymd_opt(2025, 1, 1)
+                .unwrap()
+                .and_hms_opt(18, 0, 0)
+                .unwrap(),
+        );
+
+        // Pushed in chronological order (oldest first) — the fake repo preserves insertion order.
+        let repo = Arc::new(FakeDoseRecordRepository::with_records(vec![
+            oldest.clone(),
+            middle.clone(),
+            newest.clone(),
+        ]));
         let service = ListDoseRecordsService::new(repo);
 
         let req = ListDoseRecordsRequest {
@@ -56,8 +77,23 @@ mod tests {
         };
         let res = service.execute(req).expect("should list records");
 
-        assert_eq!(res.records.len(), 1);
-        assert_eq!(res.records[0].id, record.id().to_string());
+        assert_eq!(res.records.len(), 3, "should return all 3 records");
+        // Service reverses repository order: newest (last pushed) must be first.
+        assert_eq!(
+            res.records[0].scheduled_at,
+            newest.scheduled_at(),
+            "first record must be the most recent dose"
+        );
+        assert_eq!(
+            res.records[1].scheduled_at,
+            middle.scheduled_at(),
+            "second record must be the middle dose"
+        );
+        assert_eq!(
+            res.records[2].scheduled_at,
+            oldest.scheduled_at(),
+            "third record must be the oldest dose"
+        );
     }
 
     #[test]
