@@ -458,3 +458,619 @@ fn submit_form(
     }
     HandlerResult::Continue
 }
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use super::*;
+    use crate::{application::dtos::responses::MedicationDto, presentation::tui::input::Key};
+
+    struct FakeSettings(&'static str);
+    impl crate::application::ports::inbound::get_settings_port::GetSettingsPort for FakeSettings {
+        fn execute(
+            &self,
+            _: crate::application::dtos::requests::GetSettingsRequest,
+        ) -> Result<
+            crate::application::dtos::responses::GetSettingsResponse,
+            crate::application::errors::ApplicationError,
+        > {
+            Ok(crate::application::dtos::responses::GetSettingsResponse {
+                navigation_mode: self.0.into(),
+            })
+        }
+    }
+
+    struct FakeUpdateOk;
+    impl crate::application::ports::inbound::update_medication_port::UpdateMedicationPort
+        for FakeUpdateOk
+    {
+        fn execute(
+            &self,
+            _: crate::application::dtos::requests::UpdateMedicationRequest,
+        ) -> Result<
+            crate::application::dtos::responses::UpdateMedicationResponse,
+            crate::application::errors::ApplicationError,
+        > {
+            Ok(crate::application::dtos::responses::UpdateMedicationResponse { id: "ok".into() })
+        }
+    }
+
+    struct FakeUpdateErr;
+    impl crate::application::ports::inbound::update_medication_port::UpdateMedicationPort
+        for FakeUpdateErr
+    {
+        fn execute(
+            &self,
+            _: crate::application::dtos::requests::UpdateMedicationRequest,
+        ) -> Result<
+            crate::application::dtos::responses::UpdateMedicationResponse,
+            crate::application::errors::ApplicationError,
+        > {
+            Err(crate::application::errors::ApplicationError::NotFound(
+                crate::application::errors::NotFoundError,
+            ))
+        }
+    }
+
+    struct FakeGetOk;
+    impl crate::application::ports::inbound::get_medication_port::GetMedicationPort for FakeGetOk {
+        fn execute(
+            &self,
+            _: crate::application::dtos::requests::GetMedicationRequest,
+        ) -> Result<
+            crate::application::dtos::responses::GetMedicationResponse,
+            crate::application::errors::ApplicationError,
+        > {
+            Ok(crate::application::dtos::responses::GetMedicationResponse {
+                medication: MedicationDto {
+                    id: "e1".into(),
+                    name: "Original".into(),
+                    amount_mg: 100,
+                    scheduled_time: vec![(8, 0)],
+                    dose_frequency: "OnceDaily".into(),
+                    taken_today: 0,
+                    scheduled_today: 1,
+                },
+            })
+        }
+    }
+
+    struct FakeGetErr;
+    impl crate::application::ports::inbound::get_medication_port::GetMedicationPort for FakeGetErr {
+        fn execute(
+            &self,
+            _: crate::application::dtos::requests::GetMedicationRequest,
+        ) -> Result<
+            crate::application::dtos::responses::GetMedicationResponse,
+            crate::application::errors::ApplicationError,
+        > {
+            Err(crate::application::errors::ApplicationError::NotFound(
+                crate::application::errors::NotFoundError,
+            ))
+        }
+    }
+
+    fn make_app_emacs(screen: Screen) -> App {
+        let mut app = App::default();
+        app.services.get_settings = Arc::new(FakeSettings("emacs"));
+        app.services.update_medication = Arc::new(FakeUpdateOk);
+        app.current_screen = screen;
+        app
+    }
+
+    fn make_app_vim(screen: Screen) -> App {
+        let mut app = App::default();
+        app.services.get_settings = Arc::new(FakeSettings("vi"));
+        app.services.update_medication = Arc::new(FakeUpdateOk);
+        app.current_screen = screen;
+        app
+    }
+
+    fn edit_screen() -> Screen {
+        Screen::EditMedication {
+            id: "e1".into(),
+            name: String::new(),
+            amount_mg: String::new(),
+            selected_frequency: 0,
+            scheduled_time: vec![String::new()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        }
+    }
+
+    fn edit_screen_with_values(name: &str, amount: &str) -> Screen {
+        Screen::EditMedication {
+            id: "e1".into(),
+            name: name.into(),
+            amount_mg: amount.into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["12:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        }
+    }
+
+    #[test]
+    fn default_constructs() {
+        let _h = EditMedicationHandler::default();
+    }
+
+    #[test]
+    fn non_edit_screen_returns_continue() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(Screen::HomeScreen);
+        let r = h.handle(&mut a, Key::Char('x'));
+        assert!(matches!(r, HandlerResult::Continue));
+        assert!(matches!(a.current_screen, Screen::HomeScreen));
+    }
+
+    // --- Emacs mode ---
+    #[test]
+    fn emacs_n_navigates() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_emacs(edit_screen());
+        h.handle(&mut a, Key::Char('n'));
+        assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+    }
+    #[test]
+    fn emacs_p_navigates() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_emacs(edit_screen());
+        h.handle(&mut a, Key::Char('p'));
+        assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+    }
+    #[test]
+    fn emacs_f_navigates() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_emacs(edit_screen());
+        h.handle(&mut a, Key::Char('f'));
+        assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+    }
+    #[test]
+    fn emacs_b_navigates() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_emacs(edit_screen());
+        h.handle(&mut a, Key::Char('b'));
+        assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+    }
+    #[test]
+    fn emacs_skip_vim_keys() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_emacs(edit_screen());
+        for key in [
+            Key::Char('j'),
+            Key::Char('k'),
+            Key::Char('h'),
+            Key::Char('l'),
+        ] {
+            assert!(matches!(h.handle(&mut a, key), HandlerResult::Continue));
+        }
+    }
+    #[test]
+    fn emacs_char_focused_name() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_emacs(Screen::EditMedication {
+            id: "e1".into(),
+            name: String::new(),
+            amount_mg: String::new(),
+            selected_frequency: 0,
+            scheduled_time: vec![String::new()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        });
+        h.handle(&mut a, Key::Char('A'));
+        if let Screen::EditMedication { name, .. } = &a.current_screen {
+            assert_eq!(name, "A");
+        }
+    }
+    #[test]
+    fn emacs_char_focused_amount() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_emacs(Screen::EditMedication {
+            id: "e1".into(),
+            name: String::new(),
+            amount_mg: String::new(),
+            selected_frequency: 0,
+            scheduled_time: vec![String::new()],
+            scheduled_idx: 0,
+            focused_field: 1,
+            insert_mode: false,
+        });
+        h.handle(&mut a, Key::Char('5'));
+        if let Screen::EditMedication { amount_mg, .. } = &a.current_screen {
+            assert_eq!(amount_mg, "5");
+        }
+    }
+    #[test]
+    fn emacs_char_scheduled_time() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_emacs(Screen::EditMedication {
+            id: "e1".into(),
+            name: String::new(),
+            amount_mg: String::new(),
+            selected_frequency: 0,
+            scheduled_time: vec![String::new()],
+            scheduled_idx: 0,
+            focused_field: 3,
+            insert_mode: false,
+        });
+        h.handle(&mut a, Key::Char('1'));
+        if let Screen::EditMedication { scheduled_time, .. } = &a.current_screen {
+            assert_eq!(scheduled_time[0], "1");
+        }
+    }
+    #[test]
+    fn emacs_backspace_name() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_emacs(Screen::EditMedication {
+            id: "e1".into(),
+            name: "AB".into(),
+            amount_mg: String::new(),
+            selected_frequency: 0,
+            scheduled_time: vec![String::new()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        });
+        h.handle(&mut a, Key::Backspace);
+        if let Screen::EditMedication { name, .. } = &a.current_screen {
+            assert_eq!(name, "A");
+        }
+    }
+    #[test]
+    fn emacs_backspace_amount() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_emacs(Screen::EditMedication {
+            id: "e1".into(),
+            name: String::new(),
+            amount_mg: "12".into(),
+            selected_frequency: 0,
+            scheduled_time: vec![String::new()],
+            scheduled_idx: 0,
+            focused_field: 1,
+            insert_mode: false,
+        });
+        h.handle(&mut a, Key::Backspace);
+        if let Screen::EditMedication { amount_mg, .. } = &a.current_screen {
+            assert_eq!(amount_mg, "1");
+        }
+    }
+    #[test]
+    fn emacs_backspace_scheduled_time() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_emacs(Screen::EditMedication {
+            id: "e1".into(),
+            name: String::new(),
+            amount_mg: String::new(),
+            selected_frequency: 0,
+            scheduled_time: vec!["12:3".into()],
+            scheduled_idx: 0,
+            focused_field: 3,
+            insert_mode: false,
+        });
+        h.handle(&mut a, Key::Backspace);
+        if let Screen::EditMedication { scheduled_time, .. } = &a.current_screen {
+            assert_eq!(scheduled_time[0], "12:");
+        }
+    }
+    #[test]
+    fn emacs_enter_submit() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_emacs(edit_screen_with_values("Test", "100"));
+        h.handle(&mut a, Key::Enter);
+        assert!(matches!(a.current_screen, Screen::HomeScreen));
+    }
+
+    // --- Vim normal mode ---
+    #[test]
+    fn vim_normal_esc_unchanged_returns_home() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(Screen::EditMedication {
+            id: "e1".into(),
+            name: "Original".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["08:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        });
+        a.services.get_medication = Arc::new(FakeGetOk);
+        h.handle(&mut a, Key::Esc);
+        assert!(matches!(a.current_screen, Screen::HomeScreen));
+    }
+    #[test]
+    fn vim_normal_esc_changed_shows_confirm_cancel() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(edit_screen_with_values("Changed", "200"));
+        a.services.get_medication = Arc::new(FakeGetOk);
+        h.handle(&mut a, Key::Esc);
+        assert!(matches!(a.current_screen, Screen::ConfirmCancel { .. }));
+    }
+    #[test]
+    fn vim_normal_esc_get_err_shows_confirm_cancel() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(edit_screen_with_values("X", "100"));
+        a.services.get_medication = Arc::new(FakeGetErr);
+        h.handle(&mut a, Key::Esc);
+        assert!(matches!(a.current_screen, Screen::ConfirmCancel { .. }));
+    }
+    #[test]
+    fn vim_normal_tab_navigates() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(edit_screen());
+        h.handle(&mut a, Key::Tab);
+        assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+    }
+    #[test]
+    fn vim_normal_right_navigates() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(edit_screen());
+        h.handle(&mut a, Key::Right);
+        assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+    }
+    #[test]
+    fn vim_normal_l_navigates() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(edit_screen());
+        h.handle(&mut a, Key::Char('l'));
+        assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+    }
+    #[test]
+    fn vim_normal_j_navigates() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(edit_screen());
+        h.handle(&mut a, Key::Char('j'));
+        assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+    }
+    #[test]
+    fn vim_normal_down_navigates() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(edit_screen());
+        h.handle(&mut a, Key::Down);
+        assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+    }
+    #[test]
+    fn vim_normal_h_navigates() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(edit_screen());
+        h.handle(&mut a, Key::Char('h'));
+        assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+    }
+    #[test]
+    fn vim_normal_left_navigates() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(edit_screen());
+        h.handle(&mut a, Key::Left);
+        assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+    }
+    #[test]
+    fn vim_normal_k_navigates() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(edit_screen());
+        h.handle(&mut a, Key::Char('k'));
+        assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+    }
+    #[test]
+    fn vim_normal_up_navigates() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(edit_screen());
+        h.handle(&mut a, Key::Up);
+        assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+    }
+    #[test]
+    fn vim_normal_d_removes_custom_slot() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(Screen::EditMedication {
+            id: "e1".into(),
+            name: String::new(),
+            amount_mg: String::new(),
+            selected_frequency: 3,
+            scheduled_time: vec!["08:00".into(), "12:00".into()],
+            scheduled_idx: 0,
+            focused_field: 3,
+            insert_mode: false,
+        });
+        h.handle(&mut a, Key::Char('d'));
+        if let Screen::EditMedication { scheduled_time, .. } = &a.current_screen {
+            assert_eq!(scheduled_time.len(), 1);
+        }
+    }
+    #[test]
+    fn vim_normal_i_enters_insert_mode() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(edit_screen());
+        h.handle(&mut a, Key::Char('i'));
+        if let Screen::EditMedication { insert_mode, .. } = &a.current_screen {
+            assert!(insert_mode);
+        }
+    }
+    #[test]
+    fn vim_normal_enter_submit() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(edit_screen_with_values("Test", "100"));
+        h.handle(&mut a, Key::Enter);
+        assert!(matches!(a.current_screen, Screen::HomeScreen));
+    }
+
+    // --- Vim insert mode ---
+    #[test]
+    fn vim_insert_esc_exits() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(Screen::EditMedication {
+            id: "e1".into(),
+            name: String::new(),
+            amount_mg: String::new(),
+            selected_frequency: 0,
+            scheduled_time: vec![String::new()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: true,
+        });
+        h.handle(&mut a, Key::Esc);
+        if let Screen::EditMedication { insert_mode, .. } = &a.current_screen {
+            assert!(!insert_mode);
+        }
+    }
+    #[test]
+    fn vim_insert_backspace_name() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(Screen::EditMedication {
+            id: "e1".into(),
+            name: "AB".into(),
+            amount_mg: String::new(),
+            selected_frequency: 0,
+            scheduled_time: vec![String::new()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: true,
+        });
+        h.handle(&mut a, Key::Backspace);
+        if let Screen::EditMedication { name, .. } = &a.current_screen {
+            assert_eq!(name, "A");
+        }
+    }
+    #[test]
+    fn vim_insert_backspace_amount() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(Screen::EditMedication {
+            id: "e1".into(),
+            name: String::new(),
+            amount_mg: "12".into(),
+            selected_frequency: 0,
+            scheduled_time: vec![String::new()],
+            scheduled_idx: 0,
+            focused_field: 1,
+            insert_mode: true,
+        });
+        h.handle(&mut a, Key::Backspace);
+        if let Screen::EditMedication { amount_mg, .. } = &a.current_screen {
+            assert_eq!(amount_mg, "1");
+        }
+    }
+    #[test]
+    fn vim_insert_char_name() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(Screen::EditMedication {
+            id: "e1".into(),
+            name: String::new(),
+            amount_mg: String::new(),
+            selected_frequency: 0,
+            scheduled_time: vec![String::new()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: true,
+        });
+        h.handle(&mut a, Key::Char('X'));
+        if let Screen::EditMedication { name, .. } = &a.current_screen {
+            assert_eq!(name, "X");
+        }
+    }
+    #[test]
+    fn vim_insert_char_amount() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(Screen::EditMedication {
+            id: "e1".into(),
+            name: String::new(),
+            amount_mg: String::new(),
+            selected_frequency: 0,
+            scheduled_time: vec![String::new()],
+            scheduled_idx: 0,
+            focused_field: 1,
+            insert_mode: true,
+        });
+        h.handle(&mut a, Key::Char('9'));
+        if let Screen::EditMedication { amount_mg, .. } = &a.current_screen {
+            assert_eq!(amount_mg, "9");
+        }
+    }
+    #[test]
+    fn vim_insert_char_scheduled_time() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(Screen::EditMedication {
+            id: "e1".into(),
+            name: String::new(),
+            amount_mg: String::new(),
+            selected_frequency: 0,
+            scheduled_time: vec![String::new()],
+            scheduled_idx: 0,
+            focused_field: 3,
+            insert_mode: true,
+        });
+        h.handle(&mut a, Key::Char('0'));
+        if let Screen::EditMedication { scheduled_time, .. } = &a.current_screen {
+            assert_eq!(scheduled_time[0], "0");
+        }
+    }
+    #[test]
+    fn vim_insert_enter_submit() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(Screen::EditMedication {
+            id: "e1".into(),
+            name: "Test".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["12:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: true,
+        });
+        h.handle(&mut a, Key::Enter);
+        assert!(matches!(a.current_screen, Screen::HomeScreen));
+    }
+
+    // --- Error paths ---
+    #[test]
+    fn submit_invalid_amount_shows_error() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(Screen::EditMedication {
+            id: "e1".into(),
+            name: "Test".into(),
+            amount_mg: "abc".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["12:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        });
+        h.handle(&mut a, Key::Enter);
+        assert!(matches!(a.current_screen, Screen::ValidationError { .. }));
+    }
+    #[test]
+    fn submit_invalid_time_shows_error() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(Screen::EditMedication {
+            id: "e1".into(),
+            name: "Test".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["bad".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        });
+        h.handle(&mut a, Key::Enter);
+        assert!(matches!(a.current_screen, Screen::ValidationError { .. }));
+    }
+    #[test]
+    fn submit_service_error_shows_error() {
+        let mut h = EditMedicationHandler;
+        let mut a = make_app_vim(Screen::EditMedication {
+            id: "e1".into(),
+            name: "Test".into(),
+            amount_mg: "100".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["12:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        });
+        a.services.update_medication = Arc::new(FakeUpdateErr);
+        h.handle(&mut a, Key::Enter);
+        assert!(matches!(a.current_screen, Screen::ValidationError { .. }));
+    }
+}

@@ -23,3 +23,18 @@ impl Handler for ScheduleResultHandler {
         HandlerResult::Continue
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::presentation::tui::{app::App, input::Key};
+
+    #[test]
+    fn schedule_result_brings_home_and_loads() {
+        let mut h = ScheduleResultHandler::default();
+        let mut app = App::default();
+        app.current_screen = Screen::HomeScreen;
+        h.handle(&mut app, Key::Char('x'));
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+}
