@@ -118,3 +118,67 @@ pub fn render(f: &mut Frame, app: &App) {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use ratatui::{Terminal, backend::TestBackend};
+
+    use super::*;
+
+    fn make_app(screen: Screen) -> App {
+        App {
+            current_screen: screen,
+            ..App::default()
+        }
+    }
+
+    #[test]
+    fn render_validation_error_does_not_panic() {
+        let mut t = Terminal::new(TestBackend::new(80, 24)).unwrap();
+        let app = make_app(Screen::ValidationError {
+            messages: vec!["err".into()],
+            previous: Box::new(Screen::HomeScreen),
+        });
+        t.draw(|f| render(f, &app)).unwrap();
+    }
+
+    #[test]
+    fn render_confirm_quit_does_not_panic() {
+        let mut t = Terminal::new(TestBackend::new(80, 24)).unwrap();
+        let app = make_app(Screen::ConfirmQuit {
+            previous: Box::new(Screen::HomeScreen),
+        });
+        t.draw(|f| render(f, &app)).unwrap();
+    }
+
+    #[test]
+    fn render_confirm_cancel_does_not_panic() {
+        let mut t = Terminal::new(TestBackend::new(80, 24)).unwrap();
+        let app = make_app(Screen::ConfirmCancel {
+            previous: Box::new(Screen::HomeScreen),
+        });
+        t.draw(|f| render(f, &app)).unwrap();
+    }
+
+    #[test]
+    fn render_confirm_delete_does_not_panic() {
+        let mut t = Terminal::new(TestBackend::new(80, 24)).unwrap();
+        let app = make_app(Screen::ConfirmDelete {
+            id: "x".into(),
+            name: "n".into(),
+        });
+        t.draw(|f| render(f, &app)).unwrap();
+    }
+
+    #[test]
+    fn render_settings_help_does_not_panic() {
+        let mut t = Terminal::new(TestBackend::new(80, 24)).unwrap();
+        let app = make_app(Screen::SettingsHelp {
+            vim_enabled: true,
+            selected_index: 0,
+            help_text: "help".into(),
+            previous: Box::new(Screen::HomeScreen),
+        });
+        t.draw(|f| render(f, &app)).unwrap();
+    }
+}

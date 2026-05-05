@@ -41,6 +41,18 @@ pub struct ErrorBody {
     pub error: String,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_error_body() {
+        let err = ErrorBody {
+            error: "fail".to_string(),
+        };
+        assert_eq!(err.error, "fail");
+    }
+}
+
 pub async fn list_all(data: web::Data<Arc<Container>>) -> HttpResponse {
     match data
         .list_all_medications_service

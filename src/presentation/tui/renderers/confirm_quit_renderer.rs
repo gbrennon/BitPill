@@ -12,3 +12,26 @@ impl ScreenRenderer for ConfirmQuitRenderer {
         let _ = app;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use ratatui::prelude::*;
+
+    use super::*;
+    use crate::presentation::tui::app::App;
+
+    #[test]
+    fn test_render_does_not_panic() {
+        let renderer = ConfirmQuitRenderer;
+        let app = App::default();
+
+        use ratatui::{Terminal, backend::TestBackend};
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|f| {
+                renderer.render(f, &app);
+            })
+            .unwrap();
+    }
+}

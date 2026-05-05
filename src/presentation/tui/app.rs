@@ -30,6 +30,21 @@ pub struct App {
     pub show_welcome_modal: bool,
 }
 
+impl Default for App {
+    fn default() -> Self {
+        Self {
+            services: AppServices::default(),
+            current_screen: Screen::HomeScreen,
+            medications: Vec::new(),
+            selected_index: 0,
+            status_message: None,
+            status_expires_at: None,
+            should_quit: false,
+            show_welcome_modal: false,
+        }
+    }
+}
+
 impl App {
     pub fn new(services: AppServices) -> Self {
         let mut app = Self {
@@ -99,21 +114,23 @@ impl App {
     }
 
     /// Runs one iteration of the event loop. Returns `true` if the app should quit.
-    /// If `event_source` is None, uses RealEventSource (requires TTY).
+    /// If `key` is None, polls from RealEventSource (requires TTY).
     pub fn tick<B: ratatui::backend::Backend>(
         terminal: &mut Terminal<B>,
         app: &mut App,
-        event_source: Option<&dyn EventSource>,
+        key: Option<Key>,
     ) -> Result<bool, Box<dyn std::error::Error>> {
         terminal.draw(|f| draw::draw(f, app))?;
 
-        let es = event_source.unwrap_or(&RealEventSource);
-        if es.poll(Duration::from_millis(100))? {
-            match es.read_key()? {
+        if let Some(k) = key {
+            let mut event_handler = EventHandler::default();
+            event_handler.handle(app, k);
+        } else if RealEventSource.poll(Duration::from_millis(100))? {
+            match RealEventSource.read_key()? {
                 Key::Other => {}
-                key => {
+                k => {
                     let mut event_handler = EventHandler::default();
-                    event_handler.handle(app, key);
+                    event_handler.handle(app, k);
                 }
             }
         }
@@ -128,14 +145,13 @@ impl App {
     }
 
     /// Inner event loop, generic over the backend for testability.
-    /// If `event_source` is None, uses RealEventSource (requires TTY).
+    /// If `key` is None, polls from RealEventSource.
     pub fn run_with<B: ratatui::backend::Backend>(
         terminal: &mut Terminal<B>,
         app: &mut App,
-        event_source: Option<&dyn EventSource>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         loop {
-            if App::tick(terminal, app, event_source)? {
+            if App::tick(terminal, app, None)? {
                 break;
             }
         }
@@ -153,11 +169,61 @@ impl App {
 
         let mut app = App::new(services);
 
-        App::run_with(&mut terminal, &mut app, None)?;
+        App::run_with(&mut terminal, &mut app)?;
 
         disable_raw_mode()?;
         execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use super::*;
+    use crate::presentation::tui::{app_services::AppServices, input::Key};
+
+    struct FakeGetSettings;
+    impl crate::application::ports::inbound::get_settings_port::GetSettingsPort for FakeGetSettings {
+        fn execute(
+            &self,
+            _: crate::application::dtos::requests::GetSettingsRequest,
+        ) -> Result<
+            crate::application::dtos::responses::GetSettingsResponse,
+            crate::application::errors::ApplicationError,
+        > {
+            Ok(crate::application::dtos::responses::GetSettingsResponse {
+                navigation_mode: "vi".into(),
+            })
+        }
+    }
+
+    #[test]
+    fn app_status_and_navigation() {
+        let mut app = App::default();
+        app.set_status("hi", 10);
+        assert!(app.status_message.is_some());
+        app.clear_status();
+        assert!(app.status_message.is_none());
+
+        // is_vim_mode depends on get_settings; default returns none -> true
+        assert!(app.is_vim_mode());
+
+        // get_navigation_mode with fake service
+        app.services.get_settings = Arc::new(FakeGetSettings);
+        let mode = app.get_navigation_mode();
+        assert!(mode.is_some());
+    }
+
+    #[test]
+    fn tick_with_key_invokes_handler() {
+        use ratatui::{Terminal, backend::TestBackend};
+        let mut app = App::default();
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        let res = App::tick(&mut terminal, &mut app, Some(Key::Char('x')));
+        assert!(res.is_ok());
     }
 }

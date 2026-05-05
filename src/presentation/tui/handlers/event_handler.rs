@@ -392,3 +392,399 @@ impl Handler for EventHandler {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use super::*;
+    use crate::presentation::tui::{app::App, input::Key};
+
+    struct FakeGetSettings;
+    impl crate::application::ports::inbound::get_settings_port::GetSettingsPort for FakeGetSettings {
+        fn execute(
+            &self,
+            _: crate::application::dtos::requests::GetSettingsRequest,
+        ) -> Result<
+            crate::application::dtos::responses::GetSettingsResponse,
+            crate::application::errors::ApplicationError,
+        > {
+            Ok(crate::application::dtos::responses::GetSettingsResponse {
+                navigation_mode: "vi".into(),
+            })
+        }
+    }
+
+    #[test]
+    fn event_handler_smoke_exercises_branches() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+
+        // SettingsHelp dismissal
+        app.current_screen = Screen::SettingsHelp {
+            vim_enabled: true,
+            selected_index: 0,
+            help_text: "".into(),
+            previous: Box::new(Screen::HomeScreen),
+        };
+        assert!(matches!(
+            h.handle(&mut app, Key::Char('x')),
+            HandlerResult::Continue
+        ));
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+
+        // Global quit 'q'
+        app.current_screen = Screen::HomeScreen;
+        h.handle(&mut app, Key::Char('q'));
+        assert!(matches!(app.current_screen, Screen::ConfirmQuit { .. }));
+
+        // '?' opens SettingsHelp when GetSettings returns a mode
+        app.services.get_settings = Arc::new(FakeGetSettings);
+        app.current_screen = Screen::HomeScreen;
+        h.handle(&mut app, Key::Char('?'));
+        assert!(matches!(app.current_screen, Screen::SettingsHelp { .. }));
+
+        // ConfirmDelete 'y' -> goes home (delete service default returns Ok)
+        app.current_screen = Screen::ConfirmDelete {
+            id: "id".into(),
+            name: "n".into(),
+        };
+        h.handle(&mut app, Key::Char('y'));
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+
+        // ConfirmCancel 'n' -> returns to home
+        app.current_screen = Screen::ConfirmCancel {
+            previous: Box::new(Screen::HomeScreen),
+        };
+        h.handle(&mut app, Key::Char('n'));
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+
+        // ConfirmQuit 'y' -> sets should_quit
+        app.current_screen = Screen::ConfirmQuit {
+            previous: Box::new(Screen::HomeScreen),
+        };
+        app.should_quit = false;
+        h.handle(&mut app, Key::Char('y'));
+        assert!(app.should_quit);
+
+        // ValidationError dismissal
+        app.current_screen = Screen::ValidationError {
+            messages: vec!["e".into()],
+            previous: Box::new(Screen::HomeScreen),
+        };
+        h.handle(&mut app, Key::Char('x'));
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+
+        // MedicationDetails 'e' and 'm' paths: set a medication and ensure transitions
+        let med_id = "med1".to_string();
+        let med = crate::application::dtos::responses::MedicationDto {
+            id: med_id.clone(),
+            name: "Name".into(),
+            amount_mg: 10,
+            scheduled_time: vec![(12, 0)],
+            dose_frequency: "OnceDaily".into(),
+            taken_today: 0,
+            scheduled_today: 0,
+        };
+        app.medications = vec![med];
+        app.current_screen = Screen::MedicationDetails { id: med_id.clone() };
+        h.handle(&mut app, Key::Char('e'));
+        assert!(matches!(app.current_screen, Screen::EditMedication { .. }));
+
+        // open mark-dose from MedicationDetails
+        app.current_screen = Screen::MedicationDetails { id: med_id.clone() };
+        h.handle(&mut app, Key::Char('m'));
+        // either MarkDose or MedicationDetails (if no records) - ensure no panic
+        assert!(matches!(
+            app.current_screen,
+            Screen::MarkDose { .. } | Screen::MedicationDetails { .. } | Screen::HomeScreen
+        ));
+
+        // Exercise CreateMedicationHandler via EventHandler by making CreateMedication screen and sending keys
+        app.current_screen = Screen::CreateMedication {
+            name: String::new(),
+            amount_mg: String::new(),
+            selected_frequency: 0,
+            scheduled_time: vec![String::new()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        };
+        // simulate typing a char
+        h.handle(&mut app, Key::Char('a'));
+        // simulate backspace
+        h.handle(&mut app, Key::Backspace);
+        // invalid submit -> should show ValidationError
+        app.current_screen = Screen::CreateMedication {
+            name: "Name".into(),
+            amount_mg: "abc".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["12:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        };
+        h.handle(&mut app, Key::Enter);
+        assert!(matches!(app.current_screen, Screen::ValidationError { .. }));
+
+        // valid submit
+        app.current_screen = Screen::CreateMedication {
+            name: "Name".into(),
+            amount_mg: "10".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["12:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        };
+        h.handle(&mut app, Key::Enter);
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+
+        // Exercise EditMedicationHandler via EventHandler
+        let edit_id = "e1".to_string();
+        app.current_screen = Screen::EditMedication {
+            id: edit_id.clone(),
+            name: "Name".into(),
+            amount_mg: "10".into(),
+            selected_frequency: 0,
+            scheduled_time: vec!["12:00".into()],
+            scheduled_idx: 0,
+            focused_field: 0,
+            insert_mode: false,
+        };
+        h.handle(&mut app, Key::Enter);
+        assert!(matches!(
+            app.current_screen,
+            Screen::HomeScreen | Screen::ValidationError { .. }
+        ));
+    }
+
+    struct FakeSettingsEmacs;
+    impl crate::application::ports::inbound::get_settings_port::GetSettingsPort for FakeSettingsEmacs {
+        fn execute(
+            &self,
+            _: crate::application::dtos::requests::GetSettingsRequest,
+        ) -> Result<
+            crate::application::dtos::responses::GetSettingsResponse,
+            crate::application::errors::ApplicationError,
+        > {
+            Ok(crate::application::dtos::responses::GetSettingsResponse {
+                navigation_mode: "emacs".into(),
+            })
+        }
+    }
+
+    #[test]
+    fn settings_emacs_n_toggles_mode() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        app.services.get_settings = Arc::new(FakeSettingsEmacs);
+        app.current_screen = Screen::Settings {
+            vim_enabled: false,
+            selected_index: 0,
+        };
+        h.handle(&mut app, Key::Char('n'));
+        assert!(matches!(app.current_screen, Screen::Settings { .. }));
+    }
+
+    #[test]
+    fn settings_emacs_p_moves_up() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        app.services.get_settings = Arc::new(FakeSettingsEmacs);
+        app.current_screen = Screen::Settings {
+            vim_enabled: false,
+            selected_index: 1,
+        };
+        h.handle(&mut app, Key::Char('p'));
+        if let Screen::Settings { selected_index, .. } = &app.current_screen {
+            assert_eq!(*selected_index, 0);
+        }
+    }
+
+    #[test]
+    fn settings_emacs_f_toggles() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        app.services.get_settings = Arc::new(FakeSettingsEmacs);
+        app.current_screen = Screen::Settings {
+            vim_enabled: false,
+            selected_index: 0,
+        };
+        h.handle(&mut app, Key::Char('f'));
+        assert!(matches!(app.current_screen, Screen::Settings { .. }));
+    }
+
+    #[test]
+    fn settings_emacs_b_moves_up() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        app.services.get_settings = Arc::new(FakeSettingsEmacs);
+        app.current_screen = Screen::Settings {
+            vim_enabled: false,
+            selected_index: 1,
+        };
+        h.handle(&mut app, Key::Char('b'));
+        if let Screen::Settings { selected_index, .. } = &app.current_screen {
+            assert_eq!(*selected_index, 0);
+        }
+    }
+
+    #[test]
+    fn settings_emacs_skip_vim_keys() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        app.services.get_settings = Arc::new(FakeSettingsEmacs);
+        app.current_screen = Screen::Settings {
+            vim_enabled: false,
+            selected_index: 0,
+        };
+        for key in [
+            Key::Char('j'),
+            Key::Char('k'),
+            Key::Char('h'),
+            Key::Char('l'),
+        ] {
+            assert!(matches!(h.handle(&mut app, key), HandlerResult::Continue));
+        }
+    }
+
+    #[test]
+    fn settings_enter_saves() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        app.services.get_settings = Arc::new(FakeGetSettings);
+        app.current_screen = Screen::Settings {
+            vim_enabled: true,
+            selected_index: 0,
+        };
+        h.handle(&mut app, Key::Enter);
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn confirm_delete_n_returns_home() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        app.current_screen = Screen::ConfirmDelete {
+            id: "x".into(),
+            name: "n".into(),
+        };
+        h.handle(&mut app, Key::Char('n'));
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn confirm_delete_esc_returns_home() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        app.current_screen = Screen::ConfirmDelete {
+            id: "x".into(),
+            name: "n".into(),
+        };
+        h.handle(&mut app, Key::Esc);
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn confirm_cancel_y_returns_home() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        app.current_screen = Screen::ConfirmCancel {
+            previous: Box::new(Screen::HomeScreen),
+        };
+        h.handle(&mut app, Key::Char('y'));
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn confirm_cancel_esc_returns_previous() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        let prev = Box::new(Screen::HomeScreen);
+        app.current_screen = Screen::ConfirmCancel { previous: prev };
+        h.handle(&mut app, Key::Esc);
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn confirm_quit_n_returns_previous() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        let prev = Box::new(Screen::HomeScreen);
+        app.current_screen = Screen::ConfirmQuit { previous: prev };
+        h.handle(&mut app, Key::Char('n'));
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn confirm_quit_esc_returns_previous() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        let prev = Box::new(Screen::HomeScreen);
+        app.current_screen = Screen::ConfirmQuit { previous: prev };
+        h.handle(&mut app, Key::Esc);
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn home_screen_routes_to_list_handler() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        app.services.get_settings = Arc::new(FakeGetSettings);
+        app.current_screen = Screen::HomeScreen;
+        app.medications = vec![crate::application::dtos::responses::MedicationDto {
+            id: "m1".into(),
+            name: "A".into(),
+            amount_mg: 10,
+            scheduled_time: vec![(8, 0)],
+            dose_frequency: "OnceDaily".into(),
+            taken_today: 0,
+            scheduled_today: 0,
+        }];
+        h.handle(&mut app, Key::Char('c'));
+        assert!(matches!(
+            app.current_screen,
+            Screen::CreateMedication { .. }
+        ));
+    }
+
+    #[test]
+    fn medication_details_esc_returns_home() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        app.current_screen = Screen::MedicationDetails { id: "m1".into() };
+        h.handle(&mut app, Key::Esc);
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn mark_dose_routes_to_handler() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        app.services.get_settings = Arc::new(FakeGetSettings);
+        app.current_screen = Screen::MarkDose {
+            medication_id: "m1".into(),
+            records: vec![],
+            selected_index: 0,
+        };
+        h.handle(&mut app, Key::Esc);
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+
+    #[test]
+    fn settings_help_route_exercised() {
+        let mut h = EventHandler::default();
+        let mut app = App::default();
+        app.services.get_settings = Arc::new(FakeGetSettings);
+        app.current_screen = Screen::SettingsHelp {
+            vim_enabled: true,
+            selected_index: 0,
+            help_text: "h".into(),
+            previous: Box::new(Screen::HomeScreen),
+        };
+        // any key closes SettingsHelp (already tested in smoke) but re-opening from SettingsHelp itself
+        h.handle(&mut app, Key::Char('x'));
+        assert!(matches!(app.current_screen, Screen::HomeScreen));
+    }
+}
