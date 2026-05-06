@@ -197,7 +197,6 @@ mod tests {
     }
 }
 
-
 struct FakeSettings(&'static str);
 impl crate::application::ports::inbound::get_settings_port::GetSettingsPort for FakeSettings {
     fn execute(
