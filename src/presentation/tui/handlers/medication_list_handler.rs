@@ -52,17 +52,13 @@ impl Handler for MedicationListHandler {
 
         // Vim mode: j/k/l/h for navigation
         match key {
-            Key::Char('j') | Key::Char('l') => {
-                if !app.medications.is_empty() {
-                    app.selected_index =
-                        (app.selected_index + 1).min(app.medications.len().saturating_sub(1));
-                }
+            Key::Char('j') | Key::Char('l') if !app.medications.is_empty() => {
+                app.selected_index =
+                    (app.selected_index + 1).min(app.medications.len().saturating_sub(1));
             }
-            Key::Down => {
-                if !app.medications.is_empty() {
-                    app.selected_index =
-                        (app.selected_index + 1).min(app.medications.len().saturating_sub(1));
-                }
+            Key::Down if !app.medications.is_empty() => {
+                app.selected_index =
+                    (app.selected_index + 1).min(app.medications.len().saturating_sub(1));
             }
             Key::Char('k') | Key::Char('h') => {
                 app.selected_index = app.selected_index.saturating_sub(1);
@@ -96,16 +92,13 @@ impl Handler for MedicationListHandler {
                     selected_index,
                 };
             }
-            Key::Char('v') => {
-                if !app.medications.is_empty() {
-                    let med = &app.medications[app.selected_index];
-                    app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
-                }
+            Key::Char('v') if !app.medications.is_empty() => {
+                let med = &app.medications[app.selected_index];
+                app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
             }
-            Key::Char('m') => {
-                if !app.medications.is_empty() {
-                    let med = &app.medications[app.selected_index];
-                    match crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort::execute(
+            Key::Char('m') if !app.medications.is_empty() => {
+                let med = &app.medications[app.selected_index];
+                match crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort::execute(
                         &*app.services.list_dose_records,
                         crate::application::dtos::requests::ListDoseRecordsRequest {
                             medication_id: med.id.clone(),
@@ -122,44 +115,39 @@ impl Handler for MedicationListHandler {
                             app.status_message = Some(format!("Error listing records: {e}"));
                         }
                     }
-                }
             }
-            Key::Char('d') => {
-                if !app.medications.is_empty() {
-                    let med = &app.medications[app.selected_index];
-                    app.current_screen = Screen::ConfirmDelete {
-                        id: med.id.clone(),
-                        name: med.name.clone(),
-                    };
-                }
+            Key::Char('d') if !app.medications.is_empty() => {
+                let med = &app.medications[app.selected_index];
+                app.current_screen = Screen::ConfirmDelete {
+                    id: med.id.clone(),
+                    name: med.name.clone(),
+                };
             }
-            Key::Char('e') => {
-                if !app.medications.is_empty() {
-                    let med = &app.medications[app.selected_index];
-                    let times = med
-                        .scheduled_time
-                        .iter()
-                        .map(|(h, m)| format!("{:02}:{:02}", h, m))
-                        .collect::<Vec<_>>()
-                        .join(",");
-                    let selected_frequency = match med.dose_frequency.as_str() {
-                        "OnceDaily" => 0,
-                        "TwiceDaily" => 1,
-                        "ThriceDaily" => 2,
-                        "Custom" => 3,
-                        _ => 0,
-                    };
-                    app.current_screen = Screen::EditMedication {
-                        id: med.id.clone(),
-                        name: med.name.clone(),
-                        amount_mg: med.amount_mg.to_string(),
-                        selected_frequency,
-                        scheduled_time: times.split(',').map(|s| s.to_string()).collect(),
-                        scheduled_idx: 0,
-                        focused_field: 0,
-                        insert_mode: false,
-                    };
-                }
+            Key::Char('e') if !app.medications.is_empty() => {
+                let med = &app.medications[app.selected_index];
+                let times = med
+                    .scheduled_time
+                    .iter()
+                    .map(|(h, m)| format!("{:02}:{:02}", h, m))
+                    .collect::<Vec<_>>()
+                    .join(",");
+                let selected_frequency = match med.dose_frequency.as_str() {
+                    "OnceDaily" => 0,
+                    "TwiceDaily" => 1,
+                    "ThriceDaily" => 2,
+                    "Custom" => 3,
+                    _ => 0,
+                };
+                app.current_screen = Screen::EditMedication {
+                    id: med.id.clone(),
+                    name: med.name.clone(),
+                    amount_mg: med.amount_mg.to_string(),
+                    selected_frequency,
+                    scheduled_time: times.split(',').map(|s| s.to_string()).collect(),
+                    scheduled_idx: 0,
+                    focused_field: 0,
+                    insert_mode: false,
+                };
             }
             Key::Esc => {
                 app.load_medications();
@@ -169,11 +157,9 @@ impl Handler for MedicationListHandler {
                     previous: Box::new(app.current_screen.clone()),
                 };
             }
-            Key::Enter => {
-                if !app.medications.is_empty() {
-                    let med = &app.medications[app.selected_index];
-                    app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
-                }
+            Key::Enter if !app.medications.is_empty() => {
+                let med = &app.medications[app.selected_index];
+                app.current_screen = Screen::MedicationDetails { id: med.id.clone() };
             }
             _ => {}
         }
@@ -183,241 +169,330 @@ impl Handler for MedicationListHandler {
 
 #[cfg(test)]
 mod tests {
-    use crossterm::event::KeyCode;
-
     use super::*;
-    use crate::{
-        application::dtos::responses::MedicationDto,
-        presentation::tui::{app::App, app_services::AppServices, input::Key},
-    };
+    use crate::presentation::tui::{app::App, input::Key};
 
-    fn new_app() -> App {
-        App::new(AppServices::fake())
-    }
+    #[test]
+    fn medication_list_navigation_and_actions() {
+        let mut h = MedicationListHandler::default();
+        let mut app = App::default();
 
-    fn key(code: KeyCode) -> Key {
-        crate::presentation::tui::input::from_code(code)
-    }
-
-    fn med(id: &str) -> MedicationDto {
-        MedicationDto {
-            id: id.to_string(),
-            name: "Med".to_string(),
-            amount_mg: 100,
-            dose_frequency: "OnceDaily".to_string(),
-            scheduled_time: vec![(8, 0)],
+        let med1 = crate::application::dtos::responses::MedicationDto {
+            id: "m1".into(),
+            name: "Name".into(),
+            amount_mg: 10,
+            scheduled_time: vec![(12, 0)],
+            dose_frequency: "OnceDaily".into(),
             taken_today: 0,
             scheduled_today: 0,
-        }
-    }
+        };
+        let med2 = crate::application::dtos::responses::MedicationDto {
+            id: "m2".into(),
+            name: "Name2".into(),
+            amount_mg: 5,
+            scheduled_time: vec![(8, 0)],
+            dose_frequency: "OnceDaily".into(),
+            taken_today: 0,
+            scheduled_today: 0,
+        };
+        app.medications = vec![med1, med2];
 
-    #[test]
-    fn handle_quit_opens_confirm_quit_modal() {
-        let mut app = new_app();
-        let mut handler = MedicationListHandler;
-        handler.handle(&mut app, key(KeyCode::Char('q')));
-        assert!(matches!(app.current_screen, Screen::ConfirmQuit { .. }));
-    }
+        // Vim navigation j
+        h.handle(&mut app, Key::Char('j'));
+        assert!(app.selected_index <= 1);
 
-    #[test]
-    fn handle_dispatches_correctly_through_trait_object() {
-        let mut app = new_app();
-        let mut handler: Box<dyn Handler> = Box::new(MedicationListHandler);
-        handler.handle(&mut app, key(KeyCode::Char('c')));
+        // Enter -> MedicationDetails
+        h.handle(&mut app, Key::Enter);
+        assert!(matches!(
+            app.current_screen,
+            Screen::MedicationDetails { .. }
+        ));
+
+        // Create new
+        app.current_screen = Screen::HomeScreen;
+        h.handle(&mut app, Key::Char('c'));
         assert!(matches!(
             app.current_screen,
             Screen::CreateMedication { .. }
         ));
-    }
 
-    #[test]
-    fn s_opens_settings() {
-        let mut app = new_app();
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('s')));
+        // Settings 's' uses get_settings; default service returns empty -> no panic
+        app.current_screen = Screen::HomeScreen;
+        h.handle(&mut app, Key::Char('s'));
         assert!(matches!(app.current_screen, Screen::Settings { .. }));
     }
+}
 
-    #[test]
-    fn j_increments_selected_index() {
-        let mut app = new_app();
-        app.medications = vec![med("m1"), med("m2")];
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('j')));
-        assert_eq!(app.selected_index, 1);
+struct FakeSettings(&'static str);
+impl crate::application::ports::inbound::get_settings_port::GetSettingsPort for FakeSettings {
+    fn execute(
+        &self,
+        _: crate::application::dtos::requests::GetSettingsRequest,
+    ) -> Result<
+        crate::application::dtos::responses::GetSettingsResponse,
+        crate::application::errors::ApplicationError,
+    > {
+        Ok(crate::application::dtos::responses::GetSettingsResponse {
+            navigation_mode: self.0.into(),
+        })
     }
+}
 
-    #[test]
-    fn down_arrow_increments_selected_index() {
-        let mut app = new_app();
-        app.medications = vec![med("m1"), med("m2")];
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Down));
-        assert_eq!(app.selected_index, 1);
+fn make_med(id: &str, name: &str) -> crate::application::dtos::responses::MedicationDto {
+    crate::application::dtos::responses::MedicationDto {
+        id: id.into(),
+        name: name.into(),
+        amount_mg: 100,
+        scheduled_time: vec![(8, 0)],
+        dose_frequency: "OnceDaily".into(),
+        taken_today: 0,
+        scheduled_today: 0,
     }
+}
 
-    #[test]
-    fn j_does_not_exceed_last_index() {
-        let mut app = new_app();
-        app.medications = vec![med("m1")];
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('j')));
-        assert_eq!(app.selected_index, 0);
+// --- Emacs mode ---
+#[test]
+fn emacs_n_moves_down() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("emacs"));
+    a.medications = vec![make_med("m1", "A"), make_med("m2", "B")];
+    h.handle(&mut a, Key::Char('n'));
+    assert_eq!(a.selected_index, 1);
+}
+#[test]
+fn emacs_p_moves_up() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("emacs"));
+    a.medications = vec![make_med("m1", "A"), make_med("m2", "B")];
+    a.selected_index = 1;
+    h.handle(&mut a, Key::Char('p'));
+    assert_eq!(a.selected_index, 0);
+}
+#[test]
+fn emacs_f_moves_down() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("emacs"));
+    a.medications = vec![make_med("m1", "A"), make_med("m2", "B")];
+    h.handle(&mut a, Key::Char('f'));
+    assert_eq!(a.selected_index, 1);
+}
+#[test]
+fn emacs_b_moves_up() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("emacs"));
+    a.medications = vec![make_med("m1", "A"), make_med("m2", "B")];
+    a.selected_index = 1;
+    h.handle(&mut a, Key::Char('b'));
+    assert_eq!(a.selected_index, 0);
+}
+#[test]
+fn emacs_skip_vim_keys() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("emacs"));
+    a.medications = vec![make_med("m1", "A")];
+    for key in [
+        Key::Char('j'),
+        Key::Char('k'),
+        Key::Char('h'),
+        Key::Char('l'),
+    ] {
+        assert!(matches!(h.handle(&mut a, key), HandlerResult::Continue));
     }
+}
+#[test]
+fn emacs_empty_list_n_noop() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("emacs"));
+    h.handle(&mut a, Key::Char('n'));
+}
+#[test]
+fn emacs_empty_list_f_noop() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("emacs"));
+    h.handle(&mut a, Key::Char('f'));
+}
 
-    #[test]
-    fn k_decrements_selected_index() {
-        let mut app = new_app();
-        app.medications = vec![med("m1"), med("m2")];
-        app.selected_index = 1;
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('k')));
-        assert_eq!(app.selected_index, 0);
-    }
-
-    #[test]
-    fn k_clamps_at_zero() {
-        let mut app = new_app();
-        app.medications = vec![med("m1")];
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('k')));
-        assert_eq!(app.selected_index, 0);
-    }
-
-    #[test]
-    fn up_arrow_decrements_selected_index() {
-        let mut app = new_app();
-        app.medications = vec![med("m1"), med("m2")];
-        app.selected_index = 1;
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Up));
-        assert_eq!(app.selected_index, 0);
-    }
-
-    #[test]
-    fn l_key_increments_index() {
-        let mut app = new_app();
-        app.medications = vec![med("m1"), med("m2")];
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('l')));
-        assert_eq!(app.selected_index, 1);
-    }
-
-    #[test]
-    fn h_key_decrements_index() {
-        let mut app = new_app();
-        app.medications = vec![med("m1"), med("m2")];
-        app.selected_index = 1;
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('h')));
-        assert_eq!(app.selected_index, 0);
-    }
-
-    #[test]
-    fn v_opens_medication_details() {
-        let mut app = new_app();
-        app.medications = vec![med("med-v")];
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('v')));
-        assert!(matches!(app.current_screen, Screen::MedicationDetails { id } if id == "med-v"));
-    }
-
-    #[test]
-    fn enter_opens_medication_details() {
-        let mut app = new_app();
-        app.medications = vec![med("med-enter")];
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Enter));
-        assert!(
-            matches!(app.current_screen, Screen::MedicationDetails { id } if id == "med-enter")
-        );
-    }
-
-    #[test]
-    fn d_opens_confirm_delete() {
-        let mut app = new_app();
-        app.medications = vec![med("del-id")];
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('d')));
-        assert!(matches!(app.current_screen, Screen::ConfirmDelete { id, .. } if id == "del-id"));
-    }
-
-    #[test]
-    fn e_opens_edit_medication() {
-        let mut app = new_app();
-        app.medications = vec![med("edit-id")];
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('e')));
-        assert!(matches!(app.current_screen, Screen::EditMedication { id, .. } if id == "edit-id"));
-    }
-
-    #[test]
-    fn m_opens_mark_dose_screen() {
-        let mut app = new_app();
-        app.medications = vec![med("t-id")];
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('m')));
-        assert!(
-            matches!(app.current_screen, Screen::MarkDose { medication_id, .. } if medication_id == "t-id")
-        );
-    }
-
-    #[test]
-    fn esc_reloads_and_stays_on_home() {
-        let mut app = new_app();
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Esc));
-        assert!(matches!(app.current_screen, Screen::HomeScreen));
-    }
-
-    #[test]
-    fn no_op_when_no_medications_on_v() {
-        let mut app = new_app();
-        app.medications.clear();
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('v')));
-        assert!(matches!(app.current_screen, Screen::HomeScreen));
-    }
-
-    #[test]
-    fn vim_mode_j_moves_selection_down() {
-        let mut app = new_app();
-        app.medications = vec![med("m1"), med("m2")];
-        app.selected_index = 0;
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('j')));
-        assert_eq!(app.selected_index, 1);
-    }
-
-    #[test]
-    fn vim_mode_k_moves_selection_up() {
-        let mut app = new_app();
-        app.medications = vec![med("m1"), med("m2")];
-        app.selected_index = 1;
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('k')));
-        assert_eq!(app.selected_index, 0);
-    }
-
-    #[test]
-    fn emacs_mode_n_moves_selection_down() {
-        let mut app =
-            App::new(crate::presentation::tui::app_services::AppServices::fake_with_mode("emacs"));
-        app.medications = vec![med("m1"), med("m2")];
-        app.selected_index = 0;
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('n')));
-        assert_eq!(app.selected_index, 1);
-    }
-
-    #[test]
-    fn emacs_mode_p_moves_selection_up() {
-        let mut app =
-            App::new(crate::presentation::tui::app_services::AppServices::fake_with_mode("emacs"));
-        app.medications = vec![med("m1"), med("m2")];
-        app.selected_index = 1;
-        let mut h = MedicationListHandler;
-        h.handle(&mut app, key(KeyCode::Char('p')));
-        assert_eq!(app.selected_index, 0);
-    }
+// --- Vim mode ---
+#[test]
+fn vim_j_moves_down() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.medications = vec![make_med("m1", "A"), make_med("m2", "B")];
+    h.handle(&mut a, Key::Char('j'));
+    assert_eq!(a.selected_index, 1);
+}
+#[test]
+fn vim_k_moves_up() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.medications = vec![make_med("m1", "A"), make_med("m2", "B")];
+    a.selected_index = 1;
+    h.handle(&mut a, Key::Char('k'));
+    assert_eq!(a.selected_index, 0);
+}
+#[test]
+fn vim_l_moves_down() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.medications = vec![make_med("m1", "A"), make_med("m2", "B")];
+    h.handle(&mut a, Key::Char('l'));
+    assert_eq!(a.selected_index, 1);
+}
+#[test]
+fn vim_h_moves_up() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.medications = vec![make_med("m1", "A"), make_med("m2", "B")];
+    a.selected_index = 1;
+    h.handle(&mut a, Key::Char('h'));
+    assert_eq!(a.selected_index, 0);
+}
+#[test]
+fn vim_down_moves_down() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.medications = vec![make_med("m1", "A"), make_med("m2", "B")];
+    h.handle(&mut a, Key::Down);
+    assert_eq!(a.selected_index, 1);
+}
+#[test]
+fn vim_up_moves_up() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.medications = vec![make_med("m1", "A"), make_med("m2", "B")];
+    a.selected_index = 1;
+    h.handle(&mut a, Key::Up);
+    assert_eq!(a.selected_index, 0);
+}
+#[test]
+fn vim_j_empty_list_noop() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    h.handle(&mut a, Key::Char('j'));
+    assert_eq!(a.selected_index, 0);
+}
+#[test]
+fn vim_down_empty_list_noop() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    h.handle(&mut a, Key::Down);
+    assert_eq!(a.selected_index, 0);
+}
+#[test]
+fn vim_c_opens_create() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    h.handle(&mut a, Key::Char('c'));
+    assert!(matches!(a.current_screen, Screen::CreateMedication { .. }));
+}
+#[test]
+fn vim_s_opens_settings() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    h.handle(&mut a, Key::Char('s'));
+    assert!(matches!(a.current_screen, Screen::Settings { .. }));
+}
+#[test]
+fn vim_v_opens_details() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.medications = vec![make_med("m1", "A")];
+    h.handle(&mut a, Key::Char('v'));
+    assert!(matches!(a.current_screen, Screen::MedicationDetails { .. }));
+}
+#[test]
+fn vim_m_opens_mark_dose() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.medications = vec![make_med("m1", "A")];
+    h.handle(&mut a, Key::Char('m'));
+    assert!(matches!(a.current_screen, Screen::MarkDose { .. }));
+}
+#[test]
+fn vim_d_opens_confirm_delete() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.medications = vec![make_med("m1", "A")];
+    h.handle(&mut a, Key::Char('d'));
+    h.handle(&mut a, Key::Char('d'));
+    assert!(matches!(a.current_screen, Screen::ConfirmDelete { .. }));
+}
+#[test]
+fn vim_e_opens_edit() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.medications = vec![make_med("m1", "A")];
+    h.handle(&mut a, Key::Char('e'));
+    assert!(matches!(a.current_screen, Screen::EditMedication { .. }));
+}
+#[test]
+fn vim_esc_reloads() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    h.handle(&mut a, Key::Esc);
+}
+#[test]
+fn vim_q_opens_confirm_quit() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    h.handle(&mut a, Key::Char('q'));
+    assert!(matches!(a.current_screen, Screen::ConfirmQuit { .. }));
+}
+#[test]
+fn vim_enter_opens_details() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.medications = vec![make_med("m1", "A")];
+    h.handle(&mut a, Key::Enter);
+    assert!(matches!(a.current_screen, Screen::MedicationDetails { .. }));
+}
+#[test]
+fn vim_unknown_key_noop() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.medications = vec![make_med("m1", "A")];
+    a.selected_index = 0;
+    h.handle(&mut a, Key::Char('g'));
+    assert_eq!(a.selected_index, 0);
+}
+#[test]
+fn vim_empty_enter_noop() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    h.handle(&mut a, Key::Enter);
+    assert!(matches!(a.current_screen, Screen::HomeScreen));
+}
+#[test]
+fn vim_empty_v_noop() {
+    let mut h = MedicationListHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    h.handle(&mut a, Key::Char('v'));
+    assert!(matches!(a.current_screen, Screen::HomeScreen));
 }

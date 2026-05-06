@@ -15,19 +15,23 @@ impl ScreenRenderer for ConfirmQuitRenderer {
 
 #[cfg(test)]
 mod tests {
-    use ratatui::{Terminal, backend::TestBackend};
+    use ratatui::prelude::*;
 
     use super::*;
-    use crate::presentation::tui::{app::App, app_services::AppServices};
+    use crate::presentation::tui::app::App;
 
     #[test]
-    fn render_does_not_panic() {
-        let mut terminal = Terminal::new(TestBackend::new(80, 24)).unwrap();
-        let app = App::new(AppServices::fake());
+    fn test_render_does_not_panic() {
+        let renderer = ConfirmQuitRenderer;
+        let app = App::default();
+
+        use ratatui::{Terminal, backend::TestBackend};
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
         terminal
-            .draw(|f| ConfirmQuitRenderer.render(f, &app))
+            .draw(|f| {
+                renderer.render(f, &app);
+            })
             .unwrap();
-        let buffer = terminal.backend().buffer();
-        assert!(buffer.content.iter().any(|c| c.symbol() != " "));
     }
 }

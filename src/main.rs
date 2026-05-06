@@ -24,3 +24,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     run()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_run_returns_ok() {
+        // This test will call run(), but since main() returns early in test mode, it should be safe.
+        assert!(run().is_ok());
+    }
+}

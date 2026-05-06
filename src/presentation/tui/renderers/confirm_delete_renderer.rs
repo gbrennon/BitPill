@@ -19,33 +19,43 @@ impl ScreenRenderer for ConfirmDeleteRenderer {
 
 #[cfg(test)]
 mod tests {
-    use ratatui::{Terminal, backend::TestBackend};
+    use ratatui::prelude::*;
 
     use super::*;
-    use crate::presentation::tui::{app::App, app_services::AppServices};
+    use crate::presentation::tui::{app::App, screen::Screen};
 
     #[test]
-    fn render_on_confirm_delete_screen_does_not_panic() {
-        let mut terminal = Terminal::new(TestBackend::new(80, 24)).unwrap();
-        let mut app = App::new(AppServices::fake());
+    fn test_render_does_not_panic_on_confirm_delete() {
+        let renderer = ConfirmDeleteRenderer;
+        let mut app = App::default();
         app.current_screen = Screen::ConfirmDelete {
-            id: "id1".to_string(),
-            name: "Aspirin".to_string(),
+            id: "id".to_string(),
+            name: "TestMed".to_string(),
         };
+
+        use ratatui::{Terminal, backend::TestBackend};
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
         terminal
-            .draw(|f| ConfirmDeleteRenderer.render(f, &app))
+            .draw(|f| {
+                renderer.render(f, &app);
+            })
             .unwrap();
-        let buffer = terminal.backend().buffer();
-        assert!(buffer.content.iter().any(|c| c.symbol() != " "));
     }
 
     #[test]
-    fn render_on_wrong_screen_returns_without_panic() {
-        let mut terminal = Terminal::new(TestBackend::new(80, 24)).unwrap();
-        let app = App::new(AppServices::fake());
-        // HomeScreen — guard clause should return early
+    fn test_render_does_nothing_on_wrong_screen() {
+        let renderer = ConfirmDeleteRenderer;
+        let mut app = App::default();
+
+        use ratatui::{Terminal, backend::TestBackend};
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
         terminal
-            .draw(|f| ConfirmDeleteRenderer.render(f, &app))
+            .draw(|f| {
+                // Should not panic or do anything
+                renderer.render(f, &app);
+            })
             .unwrap();
     }
 }

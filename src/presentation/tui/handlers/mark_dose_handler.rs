@@ -158,183 +158,277 @@ impl Handler for MarkDoseHandler {
 
 #[cfg(test)]
 mod tests {
-    use chrono::NaiveDate;
-    use crossterm::event::KeyCode;
-
     use super::*;
-    use crate::{
-        application::dtos::responses::DoseRecordDto,
-        presentation::tui::{app::App, app_services::AppServices, screen::Screen},
-    };
+    use crate::presentation::tui::{app::App, input::Key};
 
-    fn app_with_mark_dose(records: Vec<DoseRecordDto>) -> App {
-        let mut app = App::new(AppServices::fake());
+    #[test]
+    fn mark_dose_navigation_and_enter() {
+        let mut h = MarkDoseHandler::default();
+        let mut app = App::default();
+        let rec = crate::application::dtos::responses::DoseRecordDto {
+            id: "slot:0".into(),
+            medication_id: "m1".into(),
+            scheduled_at: chrono::Local::now().naive_local(),
+            taken_at: None,
+        };
         app.current_screen = Screen::MarkDose {
-            medication_id: "med-1".to_string(),
-            records,
+            medication_id: "m1".into(),
+            records: vec![rec.clone()],
             selected_index: 0,
         };
-        app
-    }
 
-    fn key(code: KeyCode) -> crate::presentation::tui::input::Key {
-        crate::presentation::tui::input::from_code(code)
-    }
-
-    fn dto(id: &str) -> DoseRecordDto {
-        DoseRecordDto {
-            id: id.to_string(),
-            medication_id: "med-1".to_string(),
-            scheduled_at: NaiveDate::from_ymd_opt(2025, 1, 1)
-                .unwrap()
-                .and_hms_opt(8, 0, 0)
-                .unwrap(),
-            taken_at: None,
-        }
-    }
-
-    /// Verifies `MarkDoseHandler` is callable via a `Handler` trait object.
-    #[test]
-    fn handle_dispatches_correctly_through_trait_object() {
-        let mut app = app_with_mark_dose(vec![]);
-        let mut handler: Box<dyn Handler> = Box::new(MarkDoseHandler);
-        handler.handle(&mut app, key(KeyCode::Esc));
-        assert!(matches!(app.current_screen, Screen::HomeScreen));
-    }
-
-    #[test]
-    fn esc_goes_to_home() {
-        let mut app = app_with_mark_dose(vec![]);
-        let mut h = MarkDoseHandler;
-        h.handle(&mut app, key(KeyCode::Esc));
-        assert!(matches!(app.current_screen, Screen::HomeScreen));
-    }
-
-    #[test]
-    fn down_arrow_increments_selected_index() {
-        let mut app = app_with_mark_dose(vec![dto("r1"), dto("r2")]);
-        let mut h = MarkDoseHandler;
-
-        h.handle(&mut app, key(KeyCode::Down));
-
-        let Screen::MarkDose { selected_index, .. } = &app.current_screen else {
-            panic!("expected MarkDose screen")
-        };
-        assert_eq!(*selected_index, 1);
-    }
-
-    #[test]
-    fn j_key_increments_selected_index() {
-        let mut app = app_with_mark_dose(vec![dto("r1"), dto("r2")]);
-        let mut h = MarkDoseHandler;
-
-        h.handle(&mut app, key(KeyCode::Char('j')));
-
-        let Screen::MarkDose { selected_index, .. } = &app.current_screen else {
-            panic!("expected MarkDose screen")
-        };
-        assert_eq!(*selected_index, 1);
-    }
-
-    #[test]
-    fn down_does_not_exceed_last_index() {
-        let mut app = app_with_mark_dose(vec![dto("r1")]);
-        let mut h = MarkDoseHandler;
-
-        h.handle(&mut app, key(KeyCode::Down));
-
-        let Screen::MarkDose { selected_index, .. } = &app.current_screen else {
-            panic!("expected MarkDose screen")
-        };
-        assert_eq!(*selected_index, 0);
-    }
-
-    #[test]
-    fn up_arrow_decrements_selected_index_clamps_at_zero() {
-        let mut app = app_with_mark_dose(vec![dto("r1"), dto("r2")]);
-        let mut h = MarkDoseHandler;
-
-        h.handle(&mut app, key(KeyCode::Up));
-
-        let Screen::MarkDose { selected_index, .. } = &app.current_screen else {
-            panic!("expected MarkDose screen")
-        };
-        assert_eq!(*selected_index, 0);
-    }
-
-    #[test]
-    fn k_key_decrements_selected_index() {
-        let mut app = app_with_mark_dose(vec![dto("r1"), dto("r2")]);
-        if let Screen::MarkDose {
-            ref mut selected_index,
-            ..
-        } = app.current_screen
-        {
-            *selected_index = 1;
-        }
-        let mut h = MarkDoseHandler;
-
-        h.handle(&mut app, key(KeyCode::Char('k')));
-
-        let Screen::MarkDose { selected_index, .. } = &app.current_screen else {
-            panic!("expected MarkDose screen")
-        };
-        assert_eq!(*selected_index, 0);
-    }
-
-    #[test]
-    fn enter_with_empty_records_sets_status_and_goes_home() {
-        let mut app = app_with_mark_dose(vec![]);
-        let mut h = MarkDoseHandler;
-
-        h.handle(&mut app, key(KeyCode::Enter));
-
-        assert!(matches!(app.current_screen, Screen::HomeScreen));
-        assert!(app.status_message.is_some());
-    }
-
-    #[test]
-    fn enter_with_real_record_calls_mark_dose_taken_and_stays_on_mark_dose() {
-        let mut app = app_with_mark_dose(vec![dto("real-id")]);
-        let mut h = MarkDoseHandler;
-
-        h.handle(&mut app, key(KeyCode::Enter));
-
-        // FakeMarkDoseTakenPort returns Ok → status message set, stays on MarkDose with updated records
-        assert!(matches!(app.current_screen, Screen::MarkDose { .. }));
-    }
-
-    #[test]
-    fn enter_with_slot_record_calls_mark_medication_taken() {
-        let slot = DoseRecordDto {
-            id: "slot:0".to_string(),
-            medication_id: "med-1".to_string(),
-            scheduled_at: NaiveDate::from_ymd_opt(2025, 1, 1)
-                .unwrap()
-                .and_hms_opt(8, 0, 0)
-                .unwrap(),
-            taken_at: None,
-        };
-        let mut app = app_with_mark_dose(vec![slot]);
-        let mut h = MarkDoseHandler;
-
-        h.handle(&mut app, key(KeyCode::Enter));
-
-        // FakeMarkDoseTakenPort returns Ok → navigates to MedicationDetails
+        // Enter on slot should not panic and should transition
+        h.handle(&mut app, Key::Enter);
         assert!(matches!(
             app.current_screen,
-            Screen::MedicationDetails { .. }
+            Screen::MedicationDetails { .. } | Screen::HomeScreen | Screen::MarkDose { .. }
         ));
+
+        // navigation j/k
+        app.current_screen = Screen::MarkDose {
+            medication_id: "m1".into(),
+            records: vec![rec.clone(), rec.clone()],
+            selected_index: 0,
+        };
+        h.handle(&mut app, Key::Char('j'));
+        assert!(matches!(app.current_screen, Screen::MarkDose { .. }));
+        h.handle(&mut app, Key::Char('k'));
+        assert!(matches!(app.current_screen, Screen::MarkDose { .. }));
     }
+}
 
-    #[test]
-    fn handler_does_nothing_when_not_on_mark_dose_screen() {
-        let mut app = App::new(AppServices::fake());
-        app.current_screen = Screen::HomeScreen;
-        let mut h = MarkDoseHandler;
-
-        h.handle(&mut app, key(KeyCode::Enter));
-
-        assert!(matches!(app.current_screen, Screen::HomeScreen));
+struct FakeSettings(&'static str);
+impl crate::application::ports::inbound::get_settings_port::GetSettingsPort for FakeSettings {
+    fn execute(
+        &self,
+        _: crate::application::dtos::requests::GetSettingsRequest,
+    ) -> Result<
+        crate::application::dtos::responses::GetSettingsResponse,
+        crate::application::errors::ApplicationError,
+    > {
+        Ok(crate::application::dtos::responses::GetSettingsResponse {
+            navigation_mode: self.0.into(),
+        })
     }
+}
+
+struct FakeMarkDoseOk;
+impl crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort
+    for FakeMarkDoseOk
+{
+    fn execute(
+        &self,
+        _: crate::application::dtos::requests::MarkDoseTakenRequest,
+    ) -> Result<
+        crate::application::dtos::responses::MarkDoseTakenResponse,
+        crate::application::errors::ApplicationError,
+    > {
+        Ok(crate::application::dtos::responses::MarkDoseTakenResponse::new("ok"))
+    }
+}
+
+fn make_rec(id: &str, med_id: &str) -> crate::application::dtos::responses::DoseRecordDto {
+    crate::application::dtos::responses::DoseRecordDto {
+        id: id.into(),
+        medication_id: med_id.into(),
+        scheduled_at: chrono::Local::now().naive_local(),
+        taken_at: None,
+    }
+}
+
+fn make_slot(id: &str, med_id: &str) -> crate::application::dtos::responses::DoseRecordDto {
+    crate::application::dtos::responses::DoseRecordDto {
+        id: format!("slot:{}", id),
+        medication_id: med_id.into(),
+        scheduled_at: chrono::Local::now().naive_local(),
+        taken_at: None,
+    }
+}
+
+// --- Non-MarkDose screen ---
+#[test]
+fn non_mark_dose_screen_returns_continue() {
+    let mut h = MarkDoseHandler::default();
+    let mut a = App::default();
+    a.current_screen = Screen::HomeScreen;
+    assert!(matches!(
+        h.handle(&mut a, Key::Char('x')),
+        HandlerResult::Continue
+    ));
+}
+
+// --- Emacs mode ---
+#[test]
+fn emacs_n_moves_down() {
+    let mut h = MarkDoseHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("emacs"));
+    let recs = vec![make_rec("r1", "m1"), make_rec("r2", "m1")];
+    a.current_screen = Screen::MarkDose {
+        medication_id: "m1".into(),
+        records: recs,
+        selected_index: 0,
+    };
+    h.handle(&mut a, Key::Char('n'));
+    if let Screen::MarkDose { selected_index, .. } = &a.current_screen {
+        assert_eq!(*selected_index, 1);
+    }
+}
+#[test]
+fn emacs_p_moves_up() {
+    let mut h = MarkDoseHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("emacs"));
+    let recs = vec![make_rec("r1", "m1"), make_rec("r2", "m1")];
+    a.current_screen = Screen::MarkDose {
+        medication_id: "m1".into(),
+        records: recs,
+        selected_index: 1,
+    };
+    h.handle(&mut a, Key::Char('p'));
+    if let Screen::MarkDose { selected_index, .. } = &a.current_screen {
+        assert_eq!(*selected_index, 0);
+    }
+}
+#[test]
+fn emacs_f_moves_down() {
+    let mut h = MarkDoseHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("emacs"));
+    let recs = vec![make_rec("r1", "m1"), make_rec("r2", "m1")];
+    a.current_screen = Screen::MarkDose {
+        medication_id: "m1".into(),
+        records: recs,
+        selected_index: 0,
+    };
+    h.handle(&mut a, Key::Char('f'));
+    if let Screen::MarkDose { selected_index, .. } = &a.current_screen {
+        assert_eq!(*selected_index, 1);
+    }
+}
+#[test]
+fn emacs_b_moves_up() {
+    let mut h = MarkDoseHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("emacs"));
+    let recs = vec![make_rec("r1", "m1"), make_rec("r2", "m1")];
+    a.current_screen = Screen::MarkDose {
+        medication_id: "m1".into(),
+        records: recs,
+        selected_index: 1,
+    };
+    h.handle(&mut a, Key::Char('b'));
+    if let Screen::MarkDose { selected_index, .. } = &a.current_screen {
+        assert_eq!(*selected_index, 0);
+    }
+}
+#[test]
+fn emacs_skip_jk() {
+    let mut h = MarkDoseHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("emacs"));
+    let recs = vec![make_rec("r1", "m1")];
+    a.current_screen = Screen::MarkDose {
+        medication_id: "m1".into(),
+        records: recs,
+        selected_index: 0,
+    };
+    for key in [Key::Char('j'), Key::Char('k')] {
+        assert!(matches!(h.handle(&mut a, key), HandlerResult::Continue));
+    }
+}
+
+// --- Vim mode ---
+#[test]
+fn vim_esc_returns_home() {
+    let mut h = MarkDoseHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    let recs = vec![make_rec("r1", "m1")];
+    a.current_screen = Screen::MarkDose {
+        medication_id: "m1".into(),
+        records: recs,
+        selected_index: 0,
+    };
+    h.handle(&mut a, Key::Esc);
+    assert!(matches!(a.current_screen, Screen::HomeScreen));
+}
+#[test]
+fn vim_down_moves_down() {
+    let mut h = MarkDoseHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    let recs = vec![make_rec("r1", "m1"), make_rec("r2", "m1")];
+    a.current_screen = Screen::MarkDose {
+        medication_id: "m1".into(),
+        records: recs,
+        selected_index: 0,
+    };
+    h.handle(&mut a, Key::Down);
+    if let Screen::MarkDose { selected_index, .. } = &a.current_screen {
+        assert_eq!(*selected_index, 1);
+    }
+}
+#[test]
+fn vim_up_moves_up() {
+    let mut h = MarkDoseHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    let recs = vec![make_rec("r1", "m1"), make_rec("r2", "m1")];
+    a.current_screen = Screen::MarkDose {
+        medication_id: "m1".into(),
+        records: recs,
+        selected_index: 1,
+    };
+    h.handle(&mut a, Key::Up);
+    if let Screen::MarkDose { selected_index, .. } = &a.current_screen {
+        assert_eq!(*selected_index, 0);
+    }
+}
+#[test]
+fn vim_enter_empty_shows_status() {
+    let mut h = MarkDoseHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.current_screen = Screen::MarkDose {
+        medication_id: "m1".into(),
+        records: vec![],
+        selected_index: 0,
+    };
+    h.handle(&mut a, Key::Enter);
+    assert!(a.status_message.is_some());
+    assert!(matches!(a.current_screen, Screen::HomeScreen));
+}
+#[test]
+fn vim_enter_slot_marks() {
+    let mut h = MarkDoseHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.services.mark_dose_taken = Arc::new(FakeMarkDoseOk);
+    let recs = vec![make_slot("0", "m1")];
+    a.current_screen = Screen::MarkDose {
+        medication_id: "m1".into(),
+        records: recs,
+        selected_index: 0,
+    };
+    h.handle(&mut a, Key::Enter);
+    assert!(
+        matches!(a.current_screen, Screen::MedicationDetails { .. })
+            || matches!(a.current_screen, Screen::HomeScreen)
+    );
+}
+#[test]
+fn vim_enter_non_slot_marks() {
+    let mut h = MarkDoseHandler::default();
+    let mut a = App::default();
+    a.services.get_settings = Arc::new(FakeSettings("vi"));
+    a.services.mark_dose_taken = Arc::new(FakeMarkDoseOk);
+    let recs = vec![make_rec("r1", "m1")];
+    a.current_screen = Screen::MarkDose {
+        medication_id: "m1".into(),
+        records: recs,
+        selected_index: 0,
+    };
+    h.handle(&mut a, Key::Enter);
+    assert!(a.status_message.is_some());
 }

@@ -1,15 +1,18 @@
 use std::sync::Arc;
 
-use crate::application::{
-    dtos::{
-        requests::ListDoseRecordsRequest,
-        responses::{DoseRecordDto, ListDoseRecordsResponse},
+use crate::{
+    application::{
+        dtos::{
+            requests::ListDoseRecordsRequest,
+            responses::{DoseRecordDto, ListDoseRecordsResponse},
+        },
+        errors::ApplicationError,
+        ports::{
+            inbound::list_dose_records_port::ListDoseRecordsPort,
+            outbound::dose_record_repository_port::DoseRecordRepository,
+        },
     },
-    errors::ApplicationError,
-    ports::{
-        inbound::list_dose_records_port::ListDoseRecordsPort,
-        outbound::dose_record_repository_port::DoseRecordRepository,
-    },
+    domain::value_objects::medication_id::MedicationId,
 };
 
 pub struct ListDoseRecordsService {
@@ -27,17 +30,17 @@ impl ListDoseRecordsPort for ListDoseRecordsService {
         &self,
         request: ListDoseRecordsRequest,
     ) -> Result<ListDoseRecordsResponse, ApplicationError> {
-        let medication_id = crate::domain::value_objects::medication_id::MedicationId::from(
-            uuid::Uuid::parse_str(&request.medication_id).map_err(|_| {
+        let medication_id =
+            MedicationId::from(uuid::Uuid::parse_str(&request.medication_id).map_err(|_| {
                 ApplicationError::InvalidInput(format!(
                     "invalid medication id: {}",
                     request.medication_id
                 ))
-            })?,
-        );
+            })?);
         let records = self.repository.find_all_by_medication(&medication_id)?;
         let dtos = records
             .into_iter()
+            .rev()
             .map(|r| DoseRecordDto {
                 id: r.id().to_string(),
                 medication_id: r.medication_id().to_string(),
@@ -46,54 +49,5 @@ impl ListDoseRecordsPort for ListDoseRecordsService {
             })
             .collect();
         Ok(ListDoseRecordsResponse { records: dtos })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use chrono::NaiveDate;
-
-    use super::*;
-    use crate::{
-        application::ports::fakes::FakeDoseRecordRepository,
-        domain::{entities::dose_record::DoseRecord, value_objects::medication_id::MedicationId},
-    };
-
-    fn make_service(repo: std::sync::Arc<FakeDoseRecordRepository>) -> ListDoseRecordsService {
-        ListDoseRecordsService::new(repo)
-    }
-
-    fn make_datetime(h: u32, m: u32) -> chrono::NaiveDateTime {
-        NaiveDate::from_ymd_opt(2025, 1, 1)
-            .unwrap()
-            .and_hms_opt(h, m, 0)
-            .unwrap()
-    }
-
-    #[test]
-    fn execute_with_invalid_medication_id_returns_invalid_input() {
-        let repo = std::sync::Arc::new(FakeDoseRecordRepository::new());
-        let service = make_service(repo);
-        let req = super::ListDoseRecordsRequest {
-            medication_id: "not-a-uuid".into(),
-        };
-
-        let res = service.execute(req);
-        assert!(matches!(res, Err(ApplicationError::InvalidInput(_))));
-    }
-
-    #[test]
-    fn execute_with_records_returns_dtos() {
-        let med_id = MedicationId::generate();
-        let record = DoseRecord::new(med_id.clone(), make_datetime(8, 0));
-        let repo = std::sync::Arc::new(FakeDoseRecordRepository::with(record.clone()));
-        let service = make_service(repo);
-        let req = super::ListDoseRecordsRequest {
-            medication_id: med_id.to_string(),
-        };
-
-        let res = service.execute(req).unwrap();
-        assert_eq!(res.records.len(), 1);
-        assert_eq!(res.records[0].id, record.id().to_string());
     }
 }

@@ -91,6 +91,7 @@ impl DoseRecordRepository for JsonDoseRecordRepository {
         &self,
         medication_id: &MedicationId,
     ) -> Result<Vec<DoseRecord>, StorageError> {
+        // This will list DoseReord in the inverse order
         let records = self.records.lock().unwrap();
         Ok(records
             .iter()

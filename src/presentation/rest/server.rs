@@ -9,6 +9,16 @@ use crate::{
 
 pub struct RestServer;
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_server_struct_exists() {
+        let _ = RestServer;
+    }
+    // Additional tests can be added here
+}
+
 impl RestServer {
     /// Run the REST server on the default address 0.0.0.0:8080
     pub fn run(container: Arc<Container>) -> impl Future<Output = std::io::Result<()>> {
