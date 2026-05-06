@@ -1,0 +1,135 @@
+use std::sync::Arc;
+
+use bitpill::application::{
+    dtos::requests::CreateMedicationRequest, errors::ApplicationError,
+    ports::inbound::create_medication_port::CreateMedicationPort,
+    services::create_medication_service::CreateMedicationService,
+};
+
+use crate::fakes::FakeMedicationRepository;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_request(
+        name: &str,
+        amount_mg: u32,
+        scheduled_time: Vec<(u32, u32)>,
+    ) -> CreateMedicationRequest {
+        CreateMedicationRequest::new(name, amount_mg, scheduled_time, "OnceDaily")
+    }
+
+    #[test]
+    fn execute_with_valid_inputs_returns_response() {
+        let service = CreateMedicationService::new(Arc::new(FakeMedicationRepository::new()));
+
+        let result = service.execute(make_request("Levetiracetam", 500, vec![(8, 0)]));
+
+        assert!(result.is_ok());
+        assert!(!result.unwrap().id.is_empty());
+    }
+
+    #[test]
+    fn execute_saves_medication_to_repository() {
+        let repo = Arc::new(FakeMedicationRepository::new());
+        let service = CreateMedicationService::new(repo.clone());
+
+        service
+            .execute(make_request("Ibuprofen", 200, vec![(8, 0)]))
+            .unwrap();
+
+        assert_eq!(repo.saved_count(), 1);
+    }
+
+    #[test]
+    fn execute_with_empty_name_returns_domain_error() {
+        let service = CreateMedicationService::new(Arc::new(FakeMedicationRepository::new()));
+
+        let result = service.execute(make_request("", 500, vec![(8, 0)]));
+
+        assert!(matches!(
+            result,
+            Err(ApplicationError::MultipleDomainErrors { .. })
+        ));
+    }
+
+    #[test]
+    fn execute_with_zero_dosage_returns_domain_error() {
+        let service = CreateMedicationService::new(Arc::new(FakeMedicationRepository::new()));
+
+        let result = service.execute(make_request("Levetiracetam", 0, vec![(8, 0)]));
+
+        assert!(matches!(
+            result,
+            Err(ApplicationError::MultipleDomainErrors { .. })
+        ));
+    }
+
+    #[test]
+    fn execute_with_invalid_scheduled_time_returns_domain_error() {
+        let service = CreateMedicationService::new(Arc::new(FakeMedicationRepository::new()));
+
+        let result = service.execute(make_request("Levetiracetam", 500, vec![(25, 0)]));
+
+        assert!(matches!(
+            result,
+            Err(ApplicationError::MultipleDomainErrors { .. })
+        ));
+    }
+
+    #[test]
+    fn execute_when_repository_fails_returns_storage_error() {
+        let service = CreateMedicationService::new(Arc::new(FakeMedicationRepository::failing()));
+
+        let result = service.execute(make_request("Levetiracetam", 500, vec![(8, 0)]));
+
+        assert!(matches!(result, Err(ApplicationError::Storage(_))));
+    }
+
+    #[test]
+    fn execute_with_twice_daily_frequency() {
+        let service = CreateMedicationService::new(Arc::new(FakeMedicationRepository::new()));
+        let req = CreateMedicationRequest::new("Med", 100, vec![(8, 0), (20, 0)], "TwiceDaily");
+
+        let result = service.execute(req);
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn execute_with_thrice_daily_frequency() {
+        let service = CreateMedicationService::new(Arc::new(FakeMedicationRepository::new()));
+        let req =
+            CreateMedicationRequest::new("Med", 100, vec![(8, 0), (14, 0), (20, 0)], "ThriceDaily");
+
+        let result = service.execute(req);
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn execute_with_custom_frequency() {
+        let service = CreateMedicationService::new(Arc::new(FakeMedicationRepository::new()));
+        let req = CreateMedicationRequest::new(
+            "Med",
+            100,
+            vec![(8, 0), (12, 0), (16, 0), (20, 0)],
+            "Custom",
+        );
+
+        let result = service.execute(req);
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn execute_with_unknown_frequency_defaults_to_once_daily() {
+        let service = CreateMedicationService::new(Arc::new(FakeMedicationRepository::new()));
+        let req = CreateMedicationRequest::new("Med", 100, vec![(8, 0)], "UnknownFrequency");
+
+        let result = service.execute(req);
+
+        assert!(result.is_ok());
+    }
+}

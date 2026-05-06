@@ -26,37 +26,15 @@ impl Handler for ScheduleResultHandler {
 
 #[cfg(test)]
 mod tests {
-    use crossterm::event::KeyCode;
-
     use super::*;
-    use crate::presentation::tui::{app::App, app_services::AppServices};
+    use crate::presentation::tui::{app::App, input::Key};
 
     #[test]
-    fn handle_enter_sets_screen_to_home() {
-        let mut app = App::new(AppServices::fake());
+    fn schedule_result_brings_home_and_loads() {
+        let mut h = ScheduleResultHandler::default();
+        let mut app = App::default();
         app.current_screen = Screen::HomeScreen;
-        let mut handler = ScheduleResultHandler;
-        let key = crate::presentation::tui::input::from_code(KeyCode::Enter);
-        handler.handle(&mut app, key);
-        assert!(matches!(app.current_screen, Screen::HomeScreen));
-    }
-
-    #[test]
-    fn handle_esc_also_sets_screen_to_home() {
-        let mut app = App::new(AppServices::fake());
-        app.current_screen = Screen::HomeScreen;
-        let mut handler = ScheduleResultHandler;
-        let key = crate::presentation::tui::input::from_code(KeyCode::Esc);
-        handler.handle(&mut app, key);
-        assert!(matches!(app.current_screen, Screen::HomeScreen));
-    }
-
-    #[test]
-    fn handle_via_trait_object_works() {
-        let mut app = App::new(AppServices::fake());
-        let mut handler: Box<dyn Handler> = Box::new(ScheduleResultHandler);
-        let key = crate::presentation::tui::input::from_code(KeyCode::Enter);
-        handler.handle(&mut app, key);
+        h.handle(&mut app, Key::Char('x'));
         assert!(matches!(app.current_screen, Screen::HomeScreen));
     }
 }

@@ -86,7 +86,6 @@ impl AppPaths {
     }
 
     /// Constructs paths from explicit values. Intended for tests only.
-    #[cfg(any(test, feature = "test-helpers"))]
     pub fn with_paths(
         config_dir: PathBuf,
         medications: PathBuf,

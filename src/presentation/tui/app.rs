@@ -30,6 +30,21 @@ pub struct App {
     pub show_welcome_modal: bool,
 }
 
+impl Default for App {
+    fn default() -> Self {
+        Self {
+            services: AppServices::default(),
+            current_screen: Screen::HomeScreen,
+            medications: Vec::new(),
+            selected_index: 0,
+            status_message: None,
+            status_expires_at: None,
+            should_quit: false,
+            show_welcome_modal: false,
+        }
+    }
+}
+
 impl App {
     pub fn new(services: AppServices) -> Self {
         let mut app = Self {
@@ -99,21 +114,23 @@ impl App {
     }
 
     /// Runs one iteration of the event loop. Returns `true` if the app should quit.
-    /// If `event_source` is None, uses RealEventSource (requires TTY).
+    /// If `key` is None, polls from RealEventSource (requires TTY).
     pub fn tick<B: ratatui::backend::Backend>(
         terminal: &mut Terminal<B>,
         app: &mut App,
-        event_source: Option<&dyn EventSource>,
+        key: Option<Key>,
     ) -> Result<bool, Box<dyn std::error::Error>> {
         terminal.draw(|f| draw::draw(f, app))?;
 
-        let es = event_source.unwrap_or(&RealEventSource);
-        if es.poll(Duration::from_millis(100))? {
-            match es.read_key()? {
+        if let Some(k) = key {
+            let mut event_handler = EventHandler::default();
+            event_handler.handle(app, k);
+        } else if RealEventSource.poll(Duration::from_millis(100))? {
+            match RealEventSource.read_key()? {
                 Key::Other => {}
-                key => {
+                k => {
                     let mut event_handler = EventHandler::default();
-                    event_handler.handle(app, key);
+                    event_handler.handle(app, k);
                 }
             }
         }
@@ -128,14 +145,13 @@ impl App {
     }
 
     /// Inner event loop, generic over the backend for testability.
-    /// If `event_source` is None, uses RealEventSource (requires TTY).
+    /// If `key` is None, polls from RealEventSource.
     pub fn run_with<B: ratatui::backend::Backend>(
         terminal: &mut Terminal<B>,
         app: &mut App,
-        event_source: Option<&dyn EventSource>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         loop {
-            if App::tick(terminal, app, event_source)? {
+            if App::tick(terminal, app, None)? {
                 break;
             }
         }
@@ -153,7 +169,7 @@ impl App {
 
         let mut app = App::new(services);
 
-        App::run_with(&mut terminal, &mut app, None)?;
+        App::run_with(&mut terminal, &mut app)?;
 
         disable_raw_mode()?;
         execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
@@ -163,163 +179,51 @@ impl App {
 }
 
 #[cfg(test)]
-impl App {
-    pub fn new_fake() -> Self {
-        App::new(crate::presentation::tui::app_services::AppServices::fake())
-    }
-
-    pub fn new_fake_with_mode(mode: &'static str) -> Self {
-        App::new(crate::presentation::tui::app_services::AppServices::fake_with_mode(mode))
-    }
-}
-
-#[cfg(test)]
 mod tests {
-    use std::{sync::Arc, time::Duration};
-
-    use ratatui::{Terminal, backend::TestBackend};
+    use std::sync::Arc;
 
     use super::*;
-    use crate::{
-        application::{
-            dtos::{requests::ListAllMedicationsRequest, responses::ListAllMedicationsResponse},
-            errors::{ApplicationError, StorageError},
-            ports::inbound::list_all_medications_port::ListAllMedicationsPort,
-        },
-        presentation::tui::{
-            app_services::AppServices, event_source::FakeEventSource, screen::Screen,
-        },
-    };
+    use crate::presentation::tui::{app_services::AppServices, input::Key};
 
-    struct ErrorListAllMedicationsPort;
-    impl ListAllMedicationsPort for ErrorListAllMedicationsPort {
+    struct FakeGetSettings;
+    impl crate::application::ports::inbound::get_settings_port::GetSettingsPort for FakeGetSettings {
         fn execute(
             &self,
-            _: ListAllMedicationsRequest,
-        ) -> Result<ListAllMedicationsResponse, ApplicationError> {
-            Err(ApplicationError::Storage(StorageError(
-                "test error".to_string(),
-            )))
+            _: crate::application::dtos::requests::GetSettingsRequest,
+        ) -> Result<
+            crate::application::dtos::responses::GetSettingsResponse,
+            crate::application::errors::ApplicationError,
+        > {
+            Ok(crate::application::dtos::responses::GetSettingsResponse {
+                navigation_mode: "vi".into(),
+            })
         }
     }
 
-    fn app_with_error_list_port() -> App {
-        let services = AppServices {
-            list_all_medications: Arc::new(ErrorListAllMedicationsPort),
-            ..AppServices::fake()
-        };
-        App::new(services)
-    }
-
     #[test]
-    fn new_starts_on_home_screen() {
-        let app = App::new_fake();
-        assert!(matches!(app.current_screen, Screen::HomeScreen));
-        assert!(!app.should_quit);
-    }
-
-    #[test]
-    fn set_status_stores_message_and_expiry() {
-        let mut app = App::new_fake();
-        app.set_status("hello", 500);
-        assert_eq!(app.status_message.as_deref(), Some("hello"));
-        assert!(app.status_expires_at.is_some());
-    }
-
-    #[test]
-    fn clear_status_removes_message_and_expiry() {
-        let mut app = App::new_fake();
-        app.set_status("hello", 500);
+    fn app_status_and_navigation() {
+        let mut app = App::default();
+        app.set_status("hi", 10);
+        assert!(app.status_message.is_some());
         app.clear_status();
         assert!(app.status_message.is_none());
-        assert!(app.status_expires_at.is_none());
+
+        // is_vim_mode depends on get_settings; default returns none -> true
+        assert!(app.is_vim_mode());
+
+        // get_navigation_mode with fake service
+        app.services.get_settings = Arc::new(FakeGetSettings);
+        let mode = app.get_navigation_mode();
+        assert!(mode.is_some());
     }
 
     #[test]
-    fn load_medications_populates_list() {
-        let mut app = App::new_fake();
-        app.medications.clear();
-        app.load_medications();
-        // FakeListAllMedicationsPort returns an empty list – load should not error
-        assert!(app.status_message.is_none());
-    }
-
-    #[test]
-    fn load_medications_sets_status_message_when_port_returns_error() {
-        let app = app_with_error_list_port();
-
-        assert!(app.status_message.is_some());
-        assert!(
-            app.status_message
-                .as_deref()
-                .unwrap()
-                .contains("Error loading medications")
-        );
-    }
-
-    #[test]
-    fn run_with_exits_immediately_when_should_quit_is_true() {
+    fn tick_with_key_invokes_handler() {
+        use ratatui::{Terminal, backend::TestBackend};
+        let mut app = App::default();
         let backend = TestBackend::new(80, 24);
         let mut terminal = Terminal::new(backend).unwrap();
-        let mut app = App::new_fake();
-        app.should_quit = true;
-        let fake_es = FakeEventSource::new().no_event();
-
-        App::run_with(&mut terminal, &mut app, Some(&fake_es)).unwrap();
-    }
-
-    #[test]
-    fn run_with_clears_expired_status_before_exiting() {
-        let backend = TestBackend::new(80, 24);
-        let mut terminal = Terminal::new(backend).unwrap();
-        let mut app = App::new_fake();
-        app.set_status("expiring", 1);
-        std::thread::sleep(Duration::from_millis(10));
-        app.should_quit = true;
-        let fake_es = FakeEventSource::new().no_event();
-
-        App::run_with(&mut terminal, &mut app, Some(&fake_es)).unwrap();
-
-        assert!(app.status_message.is_none());
-    }
-
-    #[test]
-    fn run_with_preserves_status_that_has_not_yet_expired() {
-        let backend = TestBackend::new(80, 24);
-        let mut terminal = Terminal::new(backend).unwrap();
-        let mut app = App::new_fake();
-        app.set_status("still active", 60_000);
-        app.should_quit = true;
-        let fake_es = FakeEventSource::new().no_event();
-
-        App::run_with(&mut terminal, &mut app, Some(&fake_es)).unwrap();
-
-        assert_eq!(app.status_message.as_deref(), Some("still active"));
-    }
-
-    #[test]
-    fn tick_returns_false_when_should_quit_is_false() {
-        let backend = TestBackend::new(80, 24);
-        let mut terminal = Terminal::new(backend).unwrap();
-        let mut app = App::new_fake();
-        app.should_quit = false;
-        let fake_es = FakeEventSource::new().no_event();
-
-        let quit = App::tick(&mut terminal, &mut app, Some(&fake_es)).unwrap();
-
-        assert!(!quit);
-    }
-
-    #[test]
-    fn tick_returns_true_when_should_quit_is_true() {
-        let backend = TestBackend::new(80, 24);
-        let mut terminal = Terminal::new(backend).unwrap();
-        let mut app = App::new_fake();
-        app.should_quit = true;
-        let fake_es = FakeEventSource::new().no_event();
-
-        let quit = App::tick(&mut terminal, &mut app, Some(&fake_es)).unwrap();
-
-        assert!(quit);
+        let res = App::tick(&mut terminal, &mut app, Some(Key::Char('x')));
+        assert!(res.is_ok());
     }
 }

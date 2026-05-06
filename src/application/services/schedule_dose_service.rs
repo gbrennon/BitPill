@@ -28,7 +28,6 @@ use crate::{
 /// # Example
 ///
 /// ```no_run
-/// // In tests, inject fakes for full isolation (see the #[cfg(test)] module below).
 /// // In production, wire the service via the composition root.
 /// ```
 pub struct ScheduleDoseService {
@@ -97,78 +96,5 @@ impl ScheduleDosePort for ScheduleDoseService {
             })
             .collect();
         Ok(ScheduleDoseResponse { created })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::{
-        application::ports::fakes::{
-            FakeClock, FakeDoseRecordRepository, FakeMedicationRepository, FakeNotificationPort,
-        },
-        domain::{
-            entities::medication::Medication,
-            value_objects::{
-                dosage::Dosage, medication_frequency::DoseFrequency, medication_id::MedicationId,
-                medication_name::MedicationName, scheduled_time::ScheduledTime,
-            },
-        },
-    };
-
-    fn make_service(
-        med_repo: std::sync::Arc<FakeMedicationRepository>,
-        dose_repo: std::sync::Arc<FakeDoseRecordRepository>,
-        notification: std::sync::Arc<FakeNotificationPort>,
-        clock: std::sync::Arc<FakeClock>,
-    ) -> ScheduleDoseService {
-        ScheduleDoseService::new(med_repo, dose_repo, notification, clock)
-    }
-
-    #[test]
-    fn execute_creates_records_and_sends_notifications_when_due() {
-        let med = Medication::new(
-            MedicationId::generate(),
-            MedicationName::new("Test").unwrap(),
-            Dosage::new(100).unwrap(),
-            vec![ScheduledTime::new(8, 0).unwrap()],
-            DoseFrequency::OnceDaily,
-        )
-        .unwrap();
-        let med_repo = std::sync::Arc::new(FakeMedicationRepository::with(vec![med.clone()]));
-        let dose_repo = std::sync::Arc::new(FakeDoseRecordRepository::new());
-        let notification = std::sync::Arc::new(FakeNotificationPort::new());
-        let clock = std::sync::Arc::new(FakeClock::at(8, 0));
-
-        let service = make_service(
-            med_repo.clone(),
-            dose_repo.clone(),
-            notification.clone(),
-            clock.clone(),
-        );
-        let created = service.execute().unwrap();
-        assert_eq!(created.len(), 1);
-        assert_eq!(notification.call_count(), 1);
-        assert_eq!(dose_repo.saved_count(), 1);
-    }
-
-    #[test]
-    fn execute_returns_empty_when_not_due() {
-        let med = Medication::new(
-            MedicationId::generate(),
-            MedicationName::new("Test").unwrap(),
-            Dosage::new(100).unwrap(),
-            vec![ScheduledTime::new(9, 0).unwrap()],
-            DoseFrequency::OnceDaily,
-        )
-        .unwrap();
-        let med_repo = std::sync::Arc::new(FakeMedicationRepository::with(vec![med]));
-        let dose_repo = std::sync::Arc::new(FakeDoseRecordRepository::new());
-        let notification = std::sync::Arc::new(FakeNotificationPort::new());
-        let clock = std::sync::Arc::new(FakeClock::at(8, 0));
-
-        let service = make_service(med_repo, dose_repo, notification, clock);
-        let created = service.execute().unwrap();
-        assert!(created.is_empty());
     }
 }

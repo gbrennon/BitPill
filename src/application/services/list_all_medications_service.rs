@@ -76,28 +76,3 @@ impl ListAllMedicationsPort for ListAllMedicationsService {
         Ok(ListAllMedicationsResponse { medications: dtos })
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::application::ports::fakes::{FakeDoseRecordRepository, FakeMedicationRepository};
-
-    fn make_service(
-        repo: std::sync::Arc<FakeMedicationRepository>,
-        dose_repo: std::sync::Arc<FakeDoseRecordRepository>,
-    ) -> ListAllMedicationsService {
-        ListAllMedicationsService::new(repo, dose_repo)
-    }
-
-    #[test]
-    fn execute_with_empty_repository_returns_empty_list() {
-        let repo = std::sync::Arc::new(FakeMedicationRepository::new());
-        let dose_repo = std::sync::Arc::new(FakeDoseRecordRepository::new());
-        let service = make_service(repo, dose_repo);
-
-        let res = service.execute(ListAllMedicationsRequest);
-
-        assert!(res.is_ok());
-        assert!(res.unwrap().medications.is_empty());
-    }
-}

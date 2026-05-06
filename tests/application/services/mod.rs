@@ -1,26 +1,17 @@
-#[path = "create_medication_service_tests.rs"]
-mod create_medication_service_tests;
-
-#[path = "create_dose_record_service_tests.rs"]
-mod create_dose_record_service_tests;
-
-#[path = "delete_medication_service_tests.rs"]
-mod delete_medication_service_tests;
-
-#[path = "edit_medication_service_tests.rs"]
-mod edit_medication_service_tests;
-
-#[path = "get_medication_service_tests.rs"]
-mod get_medication_service_tests;
-
-#[path = "get_settings_service_tests.rs"]
-mod get_settings_service_tests;
-
-#[path = "replenish_medication_stock_service_tests.rs"]
-mod replenish_medication_stock_service_tests;
-
-#[path = "schedule_dose_service_tests.rs"]
-mod schedule_dose_service_tests;
-
-#[path = "update_medication_service_tests.rs"]
-mod update_medication_service_tests;
+mod create_dose_record_service_test;
+mod create_medication_service_test;
+mod delete_medication_box_service_test;
+mod delete_medication_service_test;
+mod edit_medication_service_test;
+mod get_medication_box_service_test;
+mod get_medication_service_test;
+mod get_settings_service_test;
+mod list_all_medications_service_test;
+mod list_dose_records_service_test;
+mod mark_dose_taken_service_test;
+mod register_medication_box_service_test;
+mod replenish_medication_stock_service_test;
+mod save_settings_service_test;
+mod schedule_dose_service_test;
+mod update_medication_box_service_test;
+mod update_medication_service_test;

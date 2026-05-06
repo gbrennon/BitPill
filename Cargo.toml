@@ -11,7 +11,7 @@ keywords = ["medication", "health", "tui", "ratatui", "cli"]
 categories = ["accessibility", "command-line-utilities", "filesystem"]
 
 [features]
-default = ["test-helpers"]
+default = []
 test-helpers = []
 rest-api = ["dep:actix-web", "dep:tokio"]
 serde = []
