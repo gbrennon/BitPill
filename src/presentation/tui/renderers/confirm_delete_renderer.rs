@@ -19,8 +19,6 @@ impl ScreenRenderer for ConfirmDeleteRenderer {
 
 #[cfg(test)]
 mod tests {
-    use ratatui::prelude::*;
-
     use super::*;
     use crate::presentation::tui::{app::App, screen::Screen};
 
@@ -46,7 +44,7 @@ mod tests {
     #[test]
     fn test_render_does_nothing_on_wrong_screen() {
         let renderer = ConfirmDeleteRenderer;
-        let mut app = App::default();
+        let app = App::default();
 
         use ratatui::{Terminal, backend::TestBackend};
         let backend = TestBackend::new(80, 24);

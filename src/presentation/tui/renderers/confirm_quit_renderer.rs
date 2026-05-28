@@ -15,8 +15,6 @@ impl ScreenRenderer for ConfirmQuitRenderer {
 
 #[cfg(test)]
 mod tests {
-    use ratatui::prelude::*;
-
     use super::*;
     use crate::presentation::tui::app::App;
 
