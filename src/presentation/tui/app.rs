@@ -183,7 +183,7 @@ mod tests {
     use std::sync::Arc;
 
     use super::*;
-    use crate::presentation::tui::{app_services::AppServices, input::Key};
+    use crate::presentation::tui::input::Key;
 
     struct FakeGetSettings;
     impl crate::application::ports::inbound::get_settings_port::GetSettingsPort for FakeGetSettings {
