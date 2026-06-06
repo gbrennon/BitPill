@@ -5,6 +5,7 @@ pub mod draw;
 pub mod event_source;
 pub mod handlers;
 pub mod input;
+pub mod keybindings;
 pub mod presenters;
 pub mod renderers;
 pub mod screen;
