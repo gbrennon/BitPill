@@ -1,5 +1,6 @@
 use crate::{
     application::dtos::requests::MarkDoseTakenRequest,
+    log_debug,
     presentation::tui::{
         app::App,
         handlers::port::{Handler, HandlerResult},
@@ -99,20 +100,38 @@ impl Handler for MarkDoseHandler {
             }
             Key::Enter => {
                 if recs.is_empty() {
+                    log_debug!("[DEBUG] Enter on empty mark-dose screen, going home");
                     app.set_status("No records to mark", 3000);
                     app.current_screen = Screen::HomeScreen;
                 } else {
                     let rec = &recs[sel_idx];
+                    log_debug!(
+                        "[DEBUG] Enter on record: id={}, med_id={}, is_slot={}",
+                        rec.id,
+                        rec.medication_id,
+                        rec.id.starts_with("slot:")
+                    );
                     if rec.id.starts_with("slot:") {
+                        let req = crate::application::dtos::requests::MarkDoseTakenRequest::new_with_schedule(
+                            rec.medication_id.clone(),
+                            rec.scheduled_at,
+                        );
+                        log_debug!(
+                            "[DEBUG] Calling MarkDoseTakenPort (slot) with scheduled_at={:?}",
+                            rec.scheduled_at
+                        );
                         match crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort::execute(
                             &*app.services.mark_dose_taken,
-                            crate::application::dtos::requests::MarkDoseTakenRequest::new_with_schedule(
-                                rec.medication_id.clone(),
-                                rec.scheduled_at,
-                            ),
+                            req,
                         ) {
-                            Ok(_) => app.set_status("Marked scheduled slot as taken", 3000),
-                            Err(e) => app.status_message = Some(format!("Error: {e}")),
+                            Ok(_) => {
+                                log_debug!("[DEBUG] Slot mark OK");
+                                app.set_status("Marked scheduled slot as taken", 3000);
+                            }
+                            Err(e) => {
+                                log_debug!("[DEBUG] Slot mark ERROR: {e}");
+                                app.status_message = Some(format!("Error: {e}"));
+                            }
                         }
                         app.load_medications();
                         app.current_screen = Screen::MedicationDetails {
@@ -120,10 +139,16 @@ impl Handler for MarkDoseHandler {
                         };
                     } else {
                         let req = MarkDoseTakenRequest::new(rec.id.clone());
+                        log_debug!(
+                            "[DEBUG] Calling MarkDoseTakenPort (record) with record_id={}",
+                            rec.id
+                        );
                         match crate::application::ports::inbound::mark_dose_taken_port::MarkDoseTakenPort::execute(&*app.services.mark_dose_taken, req) {
                             Ok(_) => {
+                                log_debug!("[DEBUG] Record mark OK");
                                 app.set_status("Marked as taken", 3000);
                                 app.load_medications();
+                                log_debug!("[DEBUG] Reloading records for medication_id={}", med_id);
                                 let new_records: Vec<crate::application::dtos::responses::DoseRecordDto> = match crate::application::ports::inbound::list_dose_records_port::ListDoseRecordsPort::execute(
                                     &*app.services.list_dose_records,
                                     crate::application::dtos::requests::ListDoseRecordsRequest {
@@ -132,11 +157,16 @@ impl Handler for MarkDoseHandler {
                                 ) {
                                     Ok(resp) => {
                                         let today = chrono::Local::now().date_naive();
-                                        resp.records.into_iter()
+                                        let filtered: Vec<_> = resp.records.into_iter()
                                             .filter(|r| r.scheduled_at.date() == today && r.taken_at.is_none())
-                                            .collect()
+                                            .collect();
+                                        log_debug!("[DEBUG] Filtered {} untaken records for today", filtered.len());
+                                        filtered
                                     }
-                                    Err(_) => vec![],
+                                    Err(e) => {
+                                        log_debug!("[DEBUG] Failed to reload records: {e}");
+                                        vec![]
+                                    },
                                 };
                                 let new_len = new_records.len();
                                 app.current_screen = Screen::MarkDose {
@@ -145,7 +175,10 @@ impl Handler for MarkDoseHandler {
                                     selected_index: sel_idx.min(new_len.saturating_sub(1)),
                                 };
                             }
-                            Err(e) => app.status_message = Some(format!("Error: {e}")),
+                            Err(e) => {
+                                log_debug!("[DEBUG] Record mark ERROR: {e}");
+                                app.status_message = Some(format!("Error: {e}"));
+                            }
                         }
                     }
                 }
