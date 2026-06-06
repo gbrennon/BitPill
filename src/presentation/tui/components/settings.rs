@@ -1,10 +1,13 @@
 use crate::{
     domain::value_objects::navigation_mode::NavigationModeVariant,
-    presentation::tui::templates::form_template::{FormField, FormTemplate},
+    presentation::tui::{
+        keybindings,
+        templates::form_template::{FormField, FormTemplate},
+    },
 };
 
 pub fn settings_view(f: &mut ratatui::Frame, selected_index: usize) {
-    let help = "[?] Help  [Space/j/l] Toggle  [s] Save  [Esc] Cancel";
+    let help = keybindings::settings_help();
 
     let options: Vec<&str> = NavigationModeVariant::variants()
         .iter()

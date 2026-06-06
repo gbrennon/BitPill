@@ -1,6 +1,9 @@
 use ratatui::Frame;
 
-use crate::presentation::tui::templates::form_template::{FormField, FormTemplate};
+use crate::presentation::tui::{
+    keybindings,
+    templates::form_template::{FormField, FormTemplate},
+};
 
 #[allow(clippy::too_many_arguments)]
 pub fn render_medication_form<'a>(
@@ -16,8 +19,7 @@ pub fn render_medication_form<'a>(
     frequency_options: &'a [&'a str],
     selected_frequency: usize,
 ) {
-    let help =
-        status_message.unwrap_or(" [i] Insert  [Tab] Next field  [Enter] Submit  [Esc] Cancel");
+    let help = status_message.unwrap_or(keybindings::medication_form_help());
 
     let mode = if insert_mode { "INSERT" } else { "NORMAL" };
 
