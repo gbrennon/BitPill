@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{cmp::Reverse, sync::Arc};
 
 use crate::{
     application::{
@@ -38,7 +38,7 @@ impl ListDoseRecordsPort for ListDoseRecordsService {
                 ))
             })?);
         let mut records = self.repository.find_all_by_medication(&medication_id)?;
-        records.sort_by(|a, b| b.taken_at().cmp(&a.taken_at()));
+        records.sort_by_key(|b| Reverse(b.taken_at()));
         let dtos = records
             .into_iter()
             .map(|r| DoseRecordDto {
