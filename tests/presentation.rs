@@ -25,3 +25,9 @@ mod render_all_screens;
 
 #[path = "presentation/tui/handlers/time_slot_parser.rs"]
 mod time_slot_parser;
+
+#[path = "presentation/keybindings_test.rs"]
+mod keybindings_test;
+
+#[path = "presentation/help_bar_test.rs"]
+mod help_bar_test;
