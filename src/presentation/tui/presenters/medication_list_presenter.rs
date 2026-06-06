@@ -1,11 +1,10 @@
-// Internal imports first
-// External crates
 use ratatui::{Frame, widgets::ListState};
 
 use crate::{
     application::dtos::responses::MedicationDto,
     presentation::tui::{
-        components::table::medication_table, templates::screen_template::ScreenTemplate,
+        components::table::medication_table, keybindings,
+        templates::screen_template::ScreenTemplate,
     },
 };
 
@@ -19,12 +18,9 @@ impl MedicationListPresenter {
         selected_index: usize,
         status_message: Option<&String>,
     ) {
-        let default_help = if medications.is_empty() {
-            " [c] Create  [s] Settings  [q] Quit"
-        } else {
-            " [c] Create  [Enter] Details  [m] Mark Taken  [e] Edit  [d] Delete  [s] Settings  [q] Quit"
-        };
-        let help_text = status_message.map(String::as_str).unwrap_or(default_help);
+        let help_text = status_message
+            .map(|s| s.as_str())
+            .unwrap_or_else(|| keybindings::home_screen_help(!medications.is_empty()));
 
         let mut state = ListState::default();
         if !medications.is_empty() {

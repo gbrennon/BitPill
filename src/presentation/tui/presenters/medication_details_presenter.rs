@@ -5,11 +5,12 @@ use ratatui::{
     text::{Line, Span},
 };
 
+use crate::application::dtos::responses::{DoseRecordDto, MedicationDto};
 // External crates
-use crate::presentation::tui::styles::{content_style, highlight_style};
-use crate::{
-    application::dtos::responses::{DoseRecordDto, MedicationDto},
-    presentation::tui::templates::screen_template::ScreenTemplate,
+use crate::presentation::tui::{
+    keybindings,
+    styles::{content_style, highlight_style},
+    templates::screen_template::ScreenTemplate,
 };
 
 pub struct MedicationDetailsInput<'a> {
@@ -23,7 +24,7 @@ impl MedicationDetailsPresenter {
     pub fn present(&self, f: &mut Frame, input: &MedicationDetailsInput) {
         ScreenTemplate {
             subtitle: "Medication Details",
-            help: " [e] Edit  [s] Mark scheduled slot  [Esc] Back",
+            help: keybindings::medication_details_help(),
             mode: "NORMAL",
         }
         .render(f, |f, area| {

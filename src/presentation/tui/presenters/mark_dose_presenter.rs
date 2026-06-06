@@ -8,6 +8,7 @@ use ratatui::{
 use crate::{
     application::dtos::responses::DoseRecordDto,
     presentation::tui::{
+        keybindings,
         styles::{content_style, highlight_style},
         templates::screen_template::ScreenTemplate,
     },
@@ -23,10 +24,9 @@ pub struct MarkDosePresenter;
 
 impl MarkDosePresenter {
     pub fn present(&self, f: &mut Frame, input: &MarkDoseInput) {
-        let help = "[j/k] Navigate  [Enter] Mark as taken  [Esc] Back";
         ScreenTemplate {
             subtitle: "Mark dose as taken",
-            help,
+            help: keybindings::mark_dose_help(),
             mode: "NORMAL",
         }
         .render(f, |f, area| {
