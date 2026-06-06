@@ -37,10 +37,10 @@ impl ListDoseRecordsPort for ListDoseRecordsService {
                     request.medication_id
                 ))
             })?);
-        let records = self.repository.find_all_by_medication(&medication_id)?;
+        let mut records = self.repository.find_all_by_medication(&medication_id)?;
+        records.sort_by(|a, b| b.taken_at().cmp(&a.taken_at()));
         let dtos = records
             .into_iter()
-            .rev()
             .map(|r| DoseRecordDto {
                 id: r.id().to_string(),
                 medication_id: r.medication_id().to_string(),

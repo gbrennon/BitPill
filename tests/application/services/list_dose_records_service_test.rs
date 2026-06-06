@@ -39,36 +39,31 @@ mod tests {
     }
 
     #[test]
-    fn list_dose_records_returns_newest_first() {
+    fn list_dose_records_returns_newest_taken_first() {
         let med_id = MedicationId::generate();
+        let base = NaiveDate::from_ymd_opt(2025, 1, 1)
+            .unwrap()
+            .and_hms_opt(8, 0, 0)
+            .unwrap();
 
-        let oldest = DoseRecord::new(
-            med_id.clone(),
-            NaiveDate::from_ymd_opt(2025, 1, 1)
-                .unwrap()
-                .and_hms_opt(8, 0, 0)
-                .unwrap(),
-        );
-        let middle = DoseRecord::new(
-            med_id.clone(),
-            NaiveDate::from_ymd_opt(2025, 1, 1)
-                .unwrap()
-                .and_hms_opt(12, 0, 0)
-                .unwrap(),
-        );
-        let newest = DoseRecord::new(
-            med_id.clone(),
-            NaiveDate::from_ymd_opt(2025, 1, 1)
-                .unwrap()
-                .and_hms_opt(18, 0, 0)
-                .unwrap(),
-        );
+        let mut morning = DoseRecord::new(med_id.clone(), base);
+        let mut afternoon = DoseRecord::new(med_id.clone(), base);
+        let mut evening = DoseRecord::new(med_id.clone(), base);
 
-        // Pushed in chronological order (oldest first) — the fake repo preserves insertion order.
+        let date = NaiveDate::from_ymd_opt(2025, 1, 1).unwrap();
+        morning
+            .mark_taken(date.and_hms_opt(9, 0, 0).unwrap())
+            .unwrap();
+        afternoon
+            .mark_taken(date.and_hms_opt(12, 0, 0).unwrap())
+            .unwrap();
+        evening
+            .mark_taken(date.and_hms_opt(18, 0, 0).unwrap())
+            .unwrap();
+
+        // Pushed in arbitrary order — service sorts by taken_at descending.
         let repo = Arc::new(FakeDoseRecordRepository::with_records(vec![
-            oldest.clone(),
-            middle.clone(),
-            newest.clone(),
+            afternoon, evening, morning,
         ]));
         let service = ListDoseRecordsService::new(repo);
 
@@ -78,21 +73,76 @@ mod tests {
         let res = service.execute(req).expect("should list records");
 
         assert_eq!(res.records.len(), 3, "should return all 3 records");
-        // Service reverses repository order: newest (last pushed) must be first.
+        // Most recently taken first
         assert_eq!(
-            res.records[0].scheduled_at,
-            newest.scheduled_at(),
-            "first record must be the most recent dose"
+            res.records[0].taken_at,
+            Some(
+                NaiveDate::from_ymd_opt(2025, 1, 1)
+                    .unwrap()
+                    .and_hms_opt(18, 0, 0)
+                    .unwrap()
+            ),
+            "first record must have the latest taken_at"
         );
         assert_eq!(
-            res.records[1].scheduled_at,
-            middle.scheduled_at(),
-            "second record must be the middle dose"
+            res.records[1].taken_at,
+            Some(
+                NaiveDate::from_ymd_opt(2025, 1, 1)
+                    .unwrap()
+                    .and_hms_opt(12, 0, 0)
+                    .unwrap()
+            ),
+            "second record must have the middle taken_at"
         );
         assert_eq!(
-            res.records[2].scheduled_at,
-            oldest.scheduled_at(),
-            "third record must be the oldest dose"
+            res.records[2].taken_at,
+            Some(
+                NaiveDate::from_ymd_opt(2025, 1, 1)
+                    .unwrap()
+                    .and_hms_opt(9, 0, 0)
+                    .unwrap()
+            ),
+            "third record must have the earliest taken_at"
+        );
+    }
+
+    #[test]
+    fn list_dose_records_returns_none_taken_at_last() {
+        let med_id = MedicationId::generate();
+        let base = NaiveDate::from_ymd_opt(2025, 1, 1)
+            .unwrap()
+            .and_hms_opt(8, 0, 0)
+            .unwrap();
+
+        let mut taken = DoseRecord::new(med_id.clone(), base);
+        taken
+            .mark_taken(
+                NaiveDate::from_ymd_opt(2025, 1, 1)
+                    .unwrap()
+                    .and_hms_opt(12, 0, 0)
+                    .unwrap(),
+            )
+            .unwrap();
+        let not_taken = DoseRecord::new(med_id.clone(), base);
+
+        let repo = Arc::new(FakeDoseRecordRepository::with_records(vec![
+            taken, not_taken,
+        ]));
+        let service = ListDoseRecordsService::new(repo);
+
+        let req = ListDoseRecordsRequest {
+            medication_id: med_id.to_string(),
+        };
+        let res = service.execute(req).expect("should list records");
+
+        assert_eq!(res.records.len(), 2);
+        assert!(
+            res.records[0].taken_at.is_some(),
+            "taken records must appear before not-taken ones"
+        );
+        assert!(
+            res.records[1].taken_at.is_none(),
+            "not-taken records must appear last"
         );
     }
 
