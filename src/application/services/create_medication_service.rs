@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, sync::Arc};
+use std::{convert::TryFrom, path::PathBuf};
 
 use crate::{
     application::{
@@ -10,15 +10,18 @@ use crate::{
         },
     },
     domain::entities::medication::Medication,
+    infrastructure::persistence::json_medication_repository::JsonMedicationRepository,
 };
 
 pub struct CreateMedicationService {
-    repository: Arc<dyn MedicationRepository>,
+    repository: JsonMedicationRepository,
 }
 
 impl CreateMedicationService {
-    pub fn new(repository: Arc<dyn MedicationRepository>) -> Self {
-        Self { repository }
+    pub fn new() -> Self {
+        Self {
+            repository: JsonMedicationRepository::new(PathBuf::from("medications.json")),
+        }
     }
 }
 

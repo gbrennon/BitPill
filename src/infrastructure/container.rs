@@ -85,9 +85,7 @@ impl Container {
         }
 
         Self {
-            create_medication_service: Arc::new(CreateMedicationService::new(
-                medication_repo.clone(),
-            )),
+            create_medication_service: Arc::new(CreateMedicationService::new()),
             list_all_medications_service: Arc::new(ListAllMedicationsService::new(
                 medication_repo.clone(),
                 dose_record_repo.clone(),
