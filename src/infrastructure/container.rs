@@ -99,7 +99,6 @@ impl Container {
                 dose_record_repo.clone(),
             )),
             mark_dose_taken_service: Arc::new(MarkDoseTakenService::new(
-                dose_record_repo.clone(),
                 medication_repo.clone(),
             )),
             schedule_dose_service: Arc::new(ScheduleDoseService::new(

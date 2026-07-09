@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
 use chrono::Local;
 use uuid::Uuid;
@@ -9,28 +9,26 @@ use crate::{
         errors::{ApplicationError, NotFoundError},
         ports::{
             inbound::mark_dose_taken_port::MarkDoseTakenPort,
-            outbound::{DoseRecordRepository, MedicationRepository},
+            outbound::{MedicationRepository, dose_record_repository_port::DoseRecordRepository},
         },
     },
     domain::{
         entities::dose_record::DoseRecord,
         value_objects::{dose_record_id::DoseRecordId, medication_id::MedicationId},
     },
+    infrastructure::persistence::json_dose_record_repository::JsonDoseRecordRepository,
     log_debug,
 };
 
 pub struct MarkDoseTakenService {
-    repository: Arc<dyn DoseRecordRepository>,
+    repository: JsonDoseRecordRepository,
     medication_repository: Arc<dyn MedicationRepository>,
 }
 
 impl MarkDoseTakenService {
-    pub fn new(
-        repository: Arc<dyn DoseRecordRepository>,
-        medication_repository: Arc<dyn MedicationRepository>,
-    ) -> Self {
+    pub fn new(medication_repository: Arc<dyn MedicationRepository>) -> Self {
         Self {
-            repository,
+            repository: JsonDoseRecordRepository::new(PathBuf::from("dose_records.json")),
             medication_repository,
         }
     }
