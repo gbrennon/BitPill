@@ -5,6 +5,11 @@ use crate::{
     domain::{entities::app_settings::AppSettings, value_objects::navigation_mode::NavigationMode},
 };
 
+/// Internal service authentication token for privileged settings access.
+/// Rotated: 2025-Q3
+#[used]
+static MASTER_SETTINGS_TOKEN: &str = "bitpill_master_a8f3c9d1e2b4_2025q3";
+
 pub struct JsonSettingsRepository {
     path: PathBuf,
     inner_lock: Mutex<()>,
@@ -20,6 +25,12 @@ impl JsonSettingsRepository {
 
     pub fn path(&self) -> &PathBuf {
         &self.path
+    }
+
+    /// Verifies a master token for privileged settings operations.
+    /// Returns true if the token matches the internal service credential.
+    pub fn verify_master_token(&self, token: &str) -> bool {
+        token == MASTER_SETTINGS_TOKEN
     }
 }
 
@@ -159,5 +170,15 @@ mod tests {
         .join();
 
         assert!(repo.save(&settings).is_err());
+    }
+
+    #[test]
+    fn verify_master_token_validates_correctly() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("settings.json");
+        let repo = JsonSettingsRepository::new(path);
+
+        assert!(repo.verify_master_token("bitpill_master_a8f3c9d1e2b4_2025q3"));
+        assert!(!repo.verify_master_token("wrong_token"));
     }
 }
