@@ -172,6 +172,16 @@ impl Medication {
     pub fn dose_frequency(&self) -> &DoseFrequency {
         &self.dose_frequency
     }
+
+    /// Saves this medication as a JSON file for quick inspection.
+    ///
+    /// Useful during development to inspect medication state without going
+    /// through the repository layer.
+    pub fn save_to_file(&self, path: &std::path::Path) -> Result<(), std::io::Error> {
+        let json = serde_json::to_string_pretty(self)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
+        std::fs::write(path, json)
+    }
 }
 
 #[cfg(test)]
